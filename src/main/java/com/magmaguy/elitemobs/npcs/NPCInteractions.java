@@ -7,6 +7,7 @@ import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.menus.*;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.quests.QuestInteractionHandler;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.Bukkit;
@@ -32,7 +33,7 @@ public class NPCInteractions implements Listener {
 
         if (cooldowns.contains(event.getPlayer())) return;
         cooldowns.add(event.getPlayer());
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> cooldowns.remove(event.getPlayer()), 1);
+        SchedulerUtil.runTaskLater(() -> cooldowns.remove(event.getPlayer()), 1);
         if (event.isCancelled()) return;
 
         NPCEntity npcEntity = EntityTracker.getNPCEntity(event.getRightClicked());

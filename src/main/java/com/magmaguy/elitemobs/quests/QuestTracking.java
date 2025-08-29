@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.quests.objectives.*;
 import com.magmaguy.elitemobs.treasurechest.TreasureChest;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.wormhole.Wormhole;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.SpigotMessage;
@@ -119,7 +120,7 @@ public class QuestTracking {
                         destinations.addAll(getDialogLocations((DialogObjective) objective));
                     else if (objective instanceof CustomFetchObjective)
                         destinations.addAll(getFetchLocations((CustomFetchObjective) objective));
-            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, () -> objectiveDestinations = destinations);
+            SchedulerUtil.runTask(() -> objectiveDestinations = destinations);
         } else {
             questIsDone = true;
             getTurnInNPC();

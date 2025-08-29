@@ -4,6 +4,7 @@ import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.config.ConfigurationEngine;
 import com.magmaguy.elitemobs.config.CustomConfigFields;
 import com.magmaguy.elitemobs.config.DefaultConfig;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.Bukkit;
@@ -180,7 +181,7 @@ public class TranslationsConfigFields extends CustomConfigFields {
     private void save() {
         if (saving) return;
         saving = true;
-        Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, () -> {
+        SchedulerUtil.scheduleSyncDelayedTask(() -> {
             ConfigurationEngine.fileSaverCustomValues(fileConfiguration, file);
             if (translationData != null) {
                 ConfigurationEngine.fileSaverCustomValues(translationData, translationDataFile);

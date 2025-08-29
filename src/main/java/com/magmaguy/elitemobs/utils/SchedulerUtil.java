@@ -181,6 +181,17 @@ public class SchedulerUtil {
     }
 
     /**
+     * Runs a repeating async task using the appropriate scheduler.
+     */
+    public static Object runTaskTimerAsync(Runnable task, long delay, long period) {
+        if (isFolia) {
+            return Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay, period);
+        } else {
+            return Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, task, delay, period);
+        }
+    }
+
+    /**
      * Cancels a scheduler task.
      * Handles both Folia ScheduledTask and Bukkit BukkitTask.
      */
