@@ -67,7 +67,7 @@ public class EntityTracker implements Listener {
         return PersistentTagger.getEliteEntity(entity);
     }
 
-    private static BukkitTask ManagedEntityTask = null;
+    private static Object ManagedEntityTask = null;
 
     public static void registerVisualEffects(Entity entity) {
         PersistentTagger.tagVisualEffect(entity);
@@ -121,20 +121,17 @@ public class EntityTracker implements Listener {
         BlockData finalPreviousBlockData = previousBlockData;
         //Death banners for instanced content don't timeout
         if (ticks < 0) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (Bukkit.getWorld(worldUUID) == null) return;
-                temporaryBlocks.remove(block);
-                if (!block.getBlockData().equals(finalPreviousBlockData))
-                    if (finalPreviousBlockData != null)
-                        //Case if a temp block was placed and now needs to be restored
-                        block.setBlockData(finalPreviousBlockData);
-                    else
-                        //Case if a temp block was placed on a temp block
-                        block.setType(Material.AIR);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        SchedulerUtil.runTaskLater(() -> {
+            if (Bukkit.getWorld(worldUUID) == null) return;
+            temporaryBlocks.remove(block);
+            if (!block.getBlockData().equals(finalPreviousBlockData))
+                if (finalPreviousBlockData != null)
+                    //Case if a temp block was placed and now needs to be restored
+                    block.setBlockData(finalPreviousBlockData);
+                else
+                    //Case if a temp block was placed on a temp block
+                    block.setType(Material.AIR);
+        }, ticks);
     }
 
     public static boolean isTemporaryBlock(Block block) {
@@ -198,7 +195,7 @@ public class EntityTracker implements Listener {
 
     public static void wipeShutdown() {
         if (ManagedEntityTask != null)
-            ManagedEntityTask.cancel();
+            SchedulerUtil.cancelTask(ManagedEntityTask);
         for (EliteEntity eliteEntity : ((HashMap<UUID, EliteEntity>) eliteMobEntities.clone()).values())
             eliteEntity.remove(RemovalReason.SHUTDOWN);
         getEliteMobEntities().clear();
@@ -232,24 +229,21 @@ public class EntityTracker implements Listener {
     //After many years of trying to make the chunk unload event work, I gave up and am now using a clock instead.
     //There's just too many bugs with how the chunk unloading works, unfortunately
     public static void managedEntityWatchdog() {
-        ManagedEntityTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Safely iterate over eliteMobEntities by cloning the values first to avoid CME
-                new HashSet<>(eliteMobEntities.values()).forEach(value -> {
-                    if (value.getLivingEntity() != null && !value.getLivingEntity().isValid()) {
-                        value.remove(RemovalReason.CHUNK_UNLOAD);
-                    }
-                });
+        ManagedEntityTask = SchedulerUtil.runTaskTimer(() -> {
+            // Safely iterate over eliteMobEntities by cloning the values first to avoid CME
+            new HashSet<>(eliteMobEntities.values()).forEach(value -> {
+                if (value.getLivingEntity() != null && !value.getLivingEntity().isValid()) {
+                    value.remove(RemovalReason.CHUNK_UNLOAD);
+                }
+            });
 
-                // Safely iterate over npcEntities by cloning the values first to avoid CME
-                new HashSet<>(npcEntities.values()).forEach(value -> {
-                    if (value.getVillager() != null && !value.getVillager().isValid()) {
-                        value.remove(RemovalReason.CHUNK_UNLOAD);
-                    }
-                });
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0,1);
+            // Safely iterate over npcEntities by cloning the values first to avoid CME
+            new HashSet<>(npcEntities.values()).forEach(value -> {
+                if (value.getVillager() != null && !value.getVillager().isValid()) {
+                    value.remove(RemovalReason.CHUNK_UNLOAD);
+                }
+            });
+        }, 0, 1);
     }
 
     @EventHandler(ignoreCancelled = true)

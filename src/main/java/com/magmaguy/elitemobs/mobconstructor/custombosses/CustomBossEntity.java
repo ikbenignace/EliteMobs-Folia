@@ -26,6 +26,7 @@ import com.magmaguy.elitemobs.thirdparty.libsdisguises.DisguiseEntity;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
 import com.magmaguy.elitemobs.utils.CommandRunner;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -41,8 +42,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -52,7 +51,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     public static Set<CustomBossEntity> dynamicLevelBossEntities = new HashSet<>();
     @Getter
     protected static HashSet<CustomBossEntity> trackableCustomBosses = new HashSet<>();
-    private static BukkitTask dynamicLevelUpdater = null;
+    private static Object dynamicLevelUpdater = null;
     private final List<BukkitTask> globalReinforcements = new ArrayList<>();
     @Getter
     protected CustomBossesConfigFields customBossesConfigFields;
@@ -65,7 +64,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     protected CustomBossTrail customBossTrail;
     @Getter
     protected CustomBossBossBar customBossBossBar;
-    protected Integer escapeMechanism;
+    protected Object escapeMechanism;
     @Getter
     protected PhaseBossEntity phaseBossEntity = null;
     protected String worldName;
@@ -143,36 +142,33 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     }
 
     public static void startUpdatingDynamicLevels() {
-        dynamicLevelUpdater = new BukkitRunnable() {
-            @Override
-            public void run() {
-                Iterator<CustomBossEntity> iterator = dynamicLevelBossEntities.iterator();
-                while (iterator.hasNext()) {
-                    CustomBossEntity customBossEntity = iterator.next();
-                    if (!customBossEntity.isValid()) {
-                        iterator.remove(); // Remove from the list instead of canceling
-                        continue; // Skip to the next iteration
-                    }
-                    int currentLevel = customBossEntity.getLevel();
-                    customBossEntity.getDynamicLevel(customBossEntity.getLocation());
-                    int newLevel = customBossEntity.getLevel();
-
-                    if (currentLevel == newLevel) {
-                        continue; // Skip to the next iteration if the level hasn't changed
-                    }
-
-                    // In theory, the damage should update automatically; the only thing that needs updating should be the health
-                    customBossEntity.setMaxHealth();
-                    customBossEntity.setNormalizedHealth();
-                    CustomBossMegaConsumer.setName(customBossEntity.getLivingEntity(), customBossEntity, customBossEntity.level);
+        dynamicLevelUpdater = SchedulerUtil.runTaskTimer(() -> {
+            Iterator<CustomBossEntity> iterator = dynamicLevelBossEntities.iterator();
+            while (iterator.hasNext()) {
+                CustomBossEntity customBossEntity = iterator.next();
+                if (!customBossEntity.isValid()) {
+                    iterator.remove(); // Remove from the list instead of canceling
+                    continue; // Skip to the next iteration
                 }
+                int currentLevel = customBossEntity.getLevel();
+                customBossEntity.getDynamicLevel(customBossEntity.getLocation());
+                int newLevel = customBossEntity.getLevel();
+
+                if (currentLevel == newLevel) {
+                    continue; // Skip to the next iteration if the level hasn't changed
+                }
+
+                // In theory, the damage should update automatically; the only thing that needs updating should be the health
+                customBossEntity.setMaxHealth();
+                customBossEntity.setNormalizedHealth();
+                CustomBossMegaConsumer.setName(customBossEntity.getLivingEntity(), customBossEntity, customBossEntity.level);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20 * 5L, 20 * 5L);
+        }, 20 * 5L, 20 * 5L);
     }
 
     public static void shutdown() {
         if (dynamicLevelUpdater != null)
-            dynamicLevelUpdater.cancel();
+            SchedulerUtil.cancelTask(dynamicLevelUpdater);
         dynamicLevelBossEntities.clear();
     }
 
@@ -534,7 +530,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
             if (!(this instanceof RegionalBossEntity) || this instanceof InstancedBossEntity)
                 EntityTracker.getEliteMobEntities().remove(super.eliteUUID);
             new EventCaller(new EliteMobRemoveEvent(this, removalReason));
-            if (escapeMechanism != null) Bukkit.getScheduler().cancelTask(escapeMechanism);
+            if (escapeMechanism != null) SchedulerUtil.cancelTask(escapeMechanism);
             trackableCustomBosses.remove(this);
             if (persistentObjectHandler != null) {
                 persistentObjectHandler.remove();
