@@ -5,6 +5,7 @@ import com.magmaguy.elitemobs.config.enchantments.premade.EarthquakeConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Particle;
@@ -32,11 +33,11 @@ public class EarthquakeEnchantment extends CustomEnchantment {
     public static void doEarthquakeEnchantment(int earthquakeLevel, Player player) {
         player.sendMessage(EarthquakeConfig.getEarthquakeActivationMessage());
         player.setVelocity(player.getLocation().getDirection().normalize().multiply((Math.log(earthquakeLevel + 2 / 2D) + 1) / 20D).setY(Math.log(earthquakeLevel + 2 / 2D)));
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
+        Object earthquakeTask = SchedulerUtil.runTaskTimer(() -> {
             player.setFallDistance(0f);
             if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
                     && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                task.cancel();
+                SchedulerUtil.cancelTask(earthquakeTask);
                 doLanding(earthquakeLevel, player);
                 return;
             }
@@ -84,12 +85,12 @@ public class EarthquakeEnchantment extends CustomEnchantment {
             if (earthquakeLevel < 1) return;
             if (!players.contains(event.getPlayer().getUniqueId())) {
                 players.add(event.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, (task) -> players.remove(event.getPlayer().getUniqueId()), 10);
+                SchedulerUtil.runTaskLater(() -> players.remove(event.getPlayer().getUniqueId()), 10);
                 return;
             }
             players.remove(event.getPlayer().getUniqueId());
             cooldownPlayers.add(event.getPlayer().getUniqueId());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, (task) -> {
+            SchedulerUtil.runTaskLater(() -> {
                 event.getPlayer().sendMessage(EarthquakeConfig.getEarthquakeAvailableMessage());
                 cooldownPlayers.remove(event.getPlayer().getUniqueId());
             }, 20L * 60 * 2);

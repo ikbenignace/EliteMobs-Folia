@@ -2,6 +2,7 @@ package com.magmaguy.elitemobs.items.customenchantments;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -31,10 +32,10 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
 
     public static void doPlasmaBootsEnchantment(int level, Player player) {
         player.setVelocity(new Vector(0, .8, 0));
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
+        Object plasmaTask = SchedulerUtil.runTaskTimer(() -> {
             if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
                     && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                task.cancel();
+                SchedulerUtil.cancelTask(plasmaTask);
                 doLanding(level, player);
                 return;
             }
@@ -123,12 +124,12 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
             if (plasmaBootLevel < 1) return;
             if (!players.contains(event.getPlayer().getUniqueId())) {
                 players.add(event.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> players.remove(event.getPlayer().getUniqueId()), 10);
+                SchedulerUtil.runTaskLater(task -> players.remove(event.getPlayer().getUniqueId()), 10);
                 return;
             }
             players.remove(event.getPlayer().getUniqueId());
             cooldownPlayers.add(event.getPlayer().getUniqueId());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
+            SchedulerUtil.runTaskLater(task -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
 
             doPlasmaBootsEnchantment((int) plasmaBootLevel, event.getPlayer());
 

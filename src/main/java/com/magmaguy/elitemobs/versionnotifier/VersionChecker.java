@@ -3,6 +3,7 @@ package com.magmaguy.elitemobs.versionnotifier;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.dungeons.EMPackage;
 import com.magmaguy.elitemobs.utils.DiscordLinks;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import com.magmaguy.magmacore.util.SpigotMessage;
@@ -115,7 +116,7 @@ public class VersionChecker {
     }
 
     private static void checkContentVersion() {
-        Bukkit.getScheduler().runTaskAsynchronously(MetadataHandler.PLUGIN, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 String remoteVersions = readStringFromURL("https://www.magmaguy.com/api/elitemobs_content");
                 connectionFailed = false; // Reset the flag if successful
@@ -203,7 +204,7 @@ public class VersionChecker {
                         " seconds (Attempt " + connectionRetryCount + "/" + MAX_RETRY_ATTEMPTS + ")");
 
                 // Schedule a retry after delay
-                Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN,
+                SchedulerUtil.runTaskLaterAsync(
                         () -> checkContentVersion(), 20L * RETRY_DELAY_SECONDS);
             } else {
                 Logger.warn("Failed to connect for " + checkType + " after " + MAX_RETRY_ATTEMPTS +

@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.mobconstructor.PersistentObjectHandler;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.WeightedProbability;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import com.magmaguy.magmacore.util.Round;
@@ -103,7 +104,7 @@ public class TreasureChest implements PersistentObject {
             if (time < 0)
                 generateChest();
             else
-                Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::generateChest, time);
+                SchedulerUtil.scheduleSyncDelayedTask(this::generateChest, time);
         }
     }
 
@@ -163,7 +164,7 @@ public class TreasureChest implements PersistentObject {
         customTreasureChestConfigFields.setRestockTime(location, restockTime);
 
         if (!customTreasureChestConfigFields.isInstanced())
-            Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+            SchedulerUtil.scheduleSyncDelayedTask(this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
 
     }
 

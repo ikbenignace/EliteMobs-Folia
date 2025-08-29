@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.mobconstructor.PersistentObject;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.transitiveblocks.TransitiveBlock;
 import com.magmaguy.elitemobs.pathfinding.Navigation;
 import com.magmaguy.elitemobs.powers.SpiritWalk;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.magmacore.util.AttributeManager;
@@ -230,7 +231,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
             return;
         RegionalBossEntity regionalBossEntity = this;
         if (leashTask != null) leashTask.cancel();
-        leashTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, () -> {
+        leashTask = SchedulerUtil.runTaskTimerAsync(() -> {
             try {
                 if (!isValid()) {
                     cancelLeash();
