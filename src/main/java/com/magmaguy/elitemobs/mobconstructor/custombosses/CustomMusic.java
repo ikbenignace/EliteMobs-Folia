@@ -19,6 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 
 public class CustomMusic {
@@ -221,12 +222,7 @@ public class CustomMusic {
                 return;
             }
             //Wait for a second after teleporting, just to make sure
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    customMusic.play(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20);
+            SchedulerUtil.runTaskLater(() -> {customMusic.play(event.getPlayer());}, 20);
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -239,12 +235,7 @@ public class CustomMusic {
                 return;
             }
             //Wait for a second after teleporting, just to make sure
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    customMusic.play(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20);
+            SchedulerUtil.runTaskLater(() -> {customMusic.play(event.getPlayer());}, 20);
         }
     }
 }

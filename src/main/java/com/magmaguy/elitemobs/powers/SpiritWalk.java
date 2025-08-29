@@ -127,13 +127,8 @@ public class SpiritWalk extends BossPower implements Listener {
                                     }
 
                                     vehicle.setInvulnerable(false);
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            PreventMountExploit.bypass = true;
-                                            vehicle.addPassenger(eliteEntity.getLivingEntity());
-                                        }
-                                    }.runTaskLater(MetadataHandler.PLUGIN, 1);
+                                    SchedulerUtil.runTaskLater(() -> {PreventMountExploit.bypass = true;
+                                            vehicle.addPassenger(eliteEntity.getLivingEntity());}, 1);
                                 }
                                 cancel();
 

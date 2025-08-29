@@ -2,8 +2,8 @@ package com.magmaguy.elitemobs.utils.shapes;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.utils.Lerp;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -64,27 +64,24 @@ public class RotatingRay extends Ray {
         double singleTickPitchRotation = pitchRotation != 0 ? pitchRotation / totalTickDuration : 0;
         double singleTickYawRotation = yawRotation != 0 ? yawRotation / totalTickDuration : 0;
         Vector perpendicularVector = raySegment.clone().setY(0).normalize().rotateAroundY(Math.toRadians(90));
-        new BukkitRunnable() {
-            private int counter = 1;
-
-            @Override
-            public void run() {
-                if (counter > animationDuration) {
-                    cancel();
-                    return;
-                }
-                counter++;
-
-                if (target2 != null)
-                    centerLocation = Lerp.lerpLocation(originalCenterLocation, target2, counter / (double) animationDuration);
-
-                if (singleTickPitchRotation > 0)
-                    raySegment.rotateAroundAxis(perpendicularVector, Math.toRadians(singleTickPitchRotation));
-                if (singleTickYawRotation > 0)
-                    raySegment.rotateAroundY(Math.toRadians(singleTickYawRotation));
-                locations = drawLine(centerLocation,target2);
+        final int[] counter = {1}; // Counter that persists across executions
+        final Object[] taskRef = new Object[1]; // Reference to store the task for cancellation
+        taskRef[0] = SchedulerUtil.runTaskTimer(() -> {
+            if (counter[0] > animationDuration) {
+                SchedulerUtil.cancelTask(taskRef[0]);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1L, 1L);
+            counter[0]++;
+
+            if (target2 != null)
+                centerLocation = Lerp.lerpLocation(originalCenterLocation, target2, counter[0] / (double) animationDuration);
+
+            if (singleTickPitchRotation > 0)
+                raySegment.rotateAroundAxis(perpendicularVector, Math.toRadians(singleTickPitchRotation));
+            if (singleTickYawRotation > 0)
+                raySegment.rotateAroundY(Math.toRadians(singleTickYawRotation));
+            locations = drawLine(centerLocation,target2);
+        }, 1L, 1L);
     }
 
 }

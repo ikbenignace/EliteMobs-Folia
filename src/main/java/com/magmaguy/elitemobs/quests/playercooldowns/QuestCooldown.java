@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class QuestCooldown implements Serializable {
     @Getter

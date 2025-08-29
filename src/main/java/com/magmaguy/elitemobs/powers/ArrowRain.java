@@ -15,6 +15,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ArrowRain extends MinorPower implements Listener {
 

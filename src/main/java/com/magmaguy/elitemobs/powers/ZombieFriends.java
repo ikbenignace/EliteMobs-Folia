@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 18/05/2017.
@@ -84,13 +85,8 @@ public class ZombieFriends extends MajorPower implements Listener {
 
     private void nameClearer(EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3);
+        SchedulerUtil.runTaskLater(() -> {if (eliteEntity.isValid())
+                    eliteEntity.setName(eliteEntity.getName(), true);}, 20 * 3);
 
     }
 

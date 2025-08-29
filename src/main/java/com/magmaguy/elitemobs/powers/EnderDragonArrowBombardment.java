@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class EnderDragonArrowBombardment extends Bombardment {
 
@@ -34,12 +35,7 @@ public class EnderDragonArrowBombardment extends Bombardment {
                 Projectile arrow = EliteProjectile.create(EntityType.ARROW, eliteEntity.getLivingEntity(), shotVector, false);
 
                 //anti-lag measure, culls arrows after 4 seconds
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        arrow.remove();
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20L * 4);
+                SchedulerUtil.runTaskLater(() -> {arrow.remove();}, 20L * 4);
             }
     }
 }

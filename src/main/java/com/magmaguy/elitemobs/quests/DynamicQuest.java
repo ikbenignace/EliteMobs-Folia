@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class DynamicQuest extends Quest {
 

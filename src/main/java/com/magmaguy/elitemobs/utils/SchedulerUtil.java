@@ -192,6 +192,29 @@ public class SchedulerUtil {
     }
 
     /**
+     * Cancels a specific task.
+     * Handles both Folia ScheduledTask and Bukkit BukkitTask objects.
+     */
+    public static void cancelTask(Object task) {
+        if (task == null) return;
+        
+        if (isFolia) {
+            // For Folia, task is a ScheduledTask, use reflection to call cancel()
+            try {
+                task.getClass().getMethod("cancel").invoke(task);
+            } catch (Exception e) {
+                // If reflection fails, we can't cancel the task
+                // This shouldn't happen in normal circumstances
+            }
+        } else {
+            // For Bukkit/Spigot, task is a BukkitTask
+            if (task instanceof BukkitTask) {
+                ((BukkitTask) task).cancel();
+            }
+        }
+    }
+
+    /**
      * Cancels all tasks for the plugin.
      * Used during plugin shutdown.
      */

@@ -6,6 +6,7 @@ import com.magmaguy.elitemobs.config.WormholesConfig;
 import com.magmaguy.elitemobs.economy.EconomyHandler;
 import com.magmaguy.elitemobs.quests.playercooldowns.PlayerQuestCooldowns;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import lombok.NonNull;
@@ -245,13 +246,8 @@ public class WormholeManager {
      * Starts the main task for processing wormholes
      */
     private void startWormholeTask() {
-        wormholeTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Process all wormholes in a single task
-                processWormholes();
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+        wormholeTask = SchedulerUtil.runTaskTimer(() -> {// Process all wormholes in a single task
+                processWormholes();}, 0, 5);
     }
 
     /**

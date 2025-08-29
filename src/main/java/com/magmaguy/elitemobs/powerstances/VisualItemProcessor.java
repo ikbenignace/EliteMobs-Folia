@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class VisualItemProcessor {
 

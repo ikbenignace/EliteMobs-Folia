@@ -182,12 +182,7 @@ public class QuestTracking {
 
     public void stop() {
         playerTrackingQuests.remove(player);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            }
-        }.runTask(MetadataHandler.PLUGIN);
+        SchedulerUtil.runTask(() -> {player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());});
         locationRefresher.cancel();
         compassTask.cancel();
         compassBar.removeAll();

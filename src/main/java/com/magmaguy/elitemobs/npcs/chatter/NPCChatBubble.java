@@ -3,6 +3,7 @@ package com.magmaguy.elitemobs.npcs.chatter;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.npcs.NPCEntity;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;

@@ -11,6 +11,7 @@ import com.magmaguy.elitemobs.items.customenchantments.CriticalStrikesEnchantmen
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.utils.DialogArmorStand;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Round;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

@@ -3,10 +3,10 @@ package com.magmaguy.elitemobs.utils;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class DialogArmorStand {
@@ -18,22 +18,19 @@ public class DialogArmorStand {
         TextDisplay armorStand = VisualDisplay.generateTemporaryTextDisplay(sourceEntity.getLocation().clone().add(finalOffset), dialog);
 
         //This part is necessary because armorstands are visible on their first tick to players
-        new BukkitRunnable() {
-            int taskTimer = 0;
+        final int[] taskTimer = {0}; // Counter that persists across executions
+        final Object[] taskRef = new Object[1]; // Reference to store the task for cancellation
+        
+        taskRef[0] = SchedulerUtil.runTaskTimer(() -> {
+            taskTimer[0]++;
 
-            @Override
-            public void run() {
-                taskTimer++;
-
-                if (taskTimer > 15 || !sourceEntity.isValid()) {
-                    EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
-                    return;
-                }
-                armorStand.teleport(sourceEntity.getLocation().clone().add(finalOffset).add(new Vector(0, taskTimer * 0.05, 0)));
+            if (taskTimer[0] > 15 || !sourceEntity.isValid()) {
+                EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
+                SchedulerUtil.cancelTask(taskRef[0]);
+                return;
             }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 2);
+            armorStand.teleport(sourceEntity.getLocation().clone().add(finalOffset).add(new Vector(0, taskTimer[0] * 0.05, 0)));
+        }, 0, 2);
 
         return armorStand;
     }
@@ -51,20 +48,18 @@ public class DialogArmorStand {
 
         TextDisplay armorStand = VisualDisplay.generateTemporaryTextDisplay(sourceEntity.getLocation().clone().add(getDisplacementVector(sourceEntity)), dialog);
         //This part is necessary because armorstands are visible on their first tick to players
-        new BukkitRunnable() {
-            int taskTimer = 0;
-
-            @Override
-            public void run() {
-                if (taskTimer > 15 || !sourceEntity.isValid()) {
-                    EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
-                    return;
-                }
-                armorStand.teleport(sourceEntity.getLocation().clone().add(getDisplacementVector(sourceEntity)));
-                taskTimer++;
+        final int[] taskTimer2 = {0}; // Counter that persists across executions
+        final Object[] taskRef2 = new Object[1]; // Reference to store the task for cancellation
+        
+        taskRef2[0] = SchedulerUtil.runTaskTimer(() -> {
+            if (taskTimer2[0] > 15 || !sourceEntity.isValid()) {
+                EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
+                SchedulerUtil.cancelTask(taskRef2[0]);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            armorStand.teleport(sourceEntity.getLocation().clone().add(getDisplacementVector(sourceEntity)));
+            taskTimer2[0]++;
+        }, 0, 1);
         return armorStand;
     }
 

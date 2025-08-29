@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SummonMerchantEnchantment extends CustomEnchantment implements Listener {
 
@@ -49,12 +50,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
             return;
         }
         //pass to a sync task
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                new NPCEntity(player.getLocation());
-            }
-        }.runTask(MetadataHandler.PLUGIN);
+        SchedulerUtil.runTask(() -> {new NPCEntity(player.getLocation());});
     }
 
     public static class SummonMerchantEvents implements Listener {
@@ -68,12 +64,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
                 return;
             if (playerCooldowns.contains(event.getPlayer())) return;
             playerCooldowns.add(event.getPlayer());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerCooldowns.remove(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60);
+            SchedulerUtil.runTaskLater(() -> {playerCooldowns.remove(event.getPlayer());}, 20 * 60);
             doSummonMerchant(event.getPlayer(), false, event.getPlayer().getInventory().getItemInMainHand());
         }
 
@@ -83,12 +74,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
             if (event.getMessage().equalsIgnoreCase(merchantMessage)) {
                 if (playerCooldowns.contains(event.getPlayer())) return;
                 playerCooldowns.add(event.getPlayer());
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerCooldowns.remove(event.getPlayer());
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60);
+                SchedulerUtil.runTaskLater(() -> {playerCooldowns.remove(event.getPlayer());}, 20 * 60);
                 for (ItemStack itemStack : event.getPlayer().getInventory())
                     if (itemStack != null)
                         if (getEnchantment(itemStack.getItemMeta()) > 0) {

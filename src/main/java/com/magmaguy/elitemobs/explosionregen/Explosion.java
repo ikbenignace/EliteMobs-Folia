@@ -11,6 +11,7 @@ import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardFlagChecker;
 import com.magmaguy.elitemobs.utils.EntityFinder;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -262,20 +263,14 @@ public class Explosion {
 
         Explosion explosion = this;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (detonatedBlocks.isEmpty()) {
+        SchedulerUtil.runTaskTimer(() -> {if (detonatedBlocks.isEmpty()) {
                     explosions.remove(explosion);
                     cancel();
                     return;
                 }
 
                 BlockState firstBlock = detonatedBlocks.get(0);
-                fullBlockRestore(firstBlock, false);
-
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20 * 60 * delayBeforeRegen, 1);
+                fullBlockRestore(firstBlock, false);}, 20 * 60 * delayBeforeRegen, 1);
 
     }
 

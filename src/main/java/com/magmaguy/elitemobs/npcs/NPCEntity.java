@@ -19,6 +19,7 @@ import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardSpawnEventBypasser
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.NonSolidBlockTypes;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -299,12 +300,7 @@ public class NPCEntity implements PersistentObject, PersistentMovingEntity {
      */
     public void startTalkingCooldown() {
         this.isTalking = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                isTalking = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3L);
+        SchedulerUtil.runTaskLater(() -> {isTalking = false;}, 20 * 3L);
     }
 
     public void setTimeout() {

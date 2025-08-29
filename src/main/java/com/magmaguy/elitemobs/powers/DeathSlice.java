@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class DeathSlice extends BossPower implements Listener {
 

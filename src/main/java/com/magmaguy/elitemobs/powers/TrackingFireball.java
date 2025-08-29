@@ -16,6 +16,7 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.UUID;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class TrackingFireball extends MajorPower {
 

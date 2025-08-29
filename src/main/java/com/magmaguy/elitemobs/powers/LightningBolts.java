@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 
 public class LightningBolts extends BossPower implements Listener {
@@ -38,13 +39,8 @@ public class LightningBolts extends BossPower implements Listener {
                 }
             }
         }
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
-                    eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 4L * 20);
+        SchedulerUtil.runTaskLater(() -> {if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
+                    eliteEntity.getLivingEntity().setAI(true);}, 4L * 20);
     }
 
     public static void lightningTask(Location location, int counter) {

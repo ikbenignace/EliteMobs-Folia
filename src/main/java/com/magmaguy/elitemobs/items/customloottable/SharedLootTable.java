@@ -58,21 +58,11 @@ public class SharedLootTable {
 
     private void endLoot() {
         if (damagers.size() < 2) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    distribute();
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 1);
+            SchedulerUtil.runTaskLater(() -> {distribute();}, 1);
             return;
         }
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                distribute();
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20L * durationInSeconds);
+        SchedulerUtil.runTaskLater(() -> {distribute();}, 20L * durationInSeconds);
     }
 
     private void distribute() {

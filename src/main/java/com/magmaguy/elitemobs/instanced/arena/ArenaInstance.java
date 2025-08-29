@@ -224,17 +224,12 @@ public class ArenaInstance extends MatchInstance {
     }
 
     private void arenaWatchdog() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (arenaState != ArenaState.ACTIVE) return;
+        SchedulerUtil.runTaskTimer(() -> {if (arenaState != ArenaState.ACTIVE) return;
                 for (CustomBossEntity customBossEntity : (HashSet<CustomBossEntity>) customBosses.clone())
                     if (!customBossEntity.exists()) removeBoss(customBossEntity);
                 if (!nonEliteMobsEntities.isEmpty())
                     for (Entity entity : (HashSet<Entity>) nonEliteMobsEntities.clone())
-                        if (!entity.isValid()) removeBoss(entity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 20L);
+                        if (!entity.isValid()) removeBoss(entity);}, 0L, 20L);
     }
 
     public void removeBoss(CustomBossEntity customBossEntity) {

@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossTrail {
 
@@ -90,13 +91,8 @@ public class CustomBossTrail {
                         ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
                         ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
                         ThreadLocalRandom.current().nextDouble() / 5 - 0.10));
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        item.remove();
-                        EntityTracker.unregister(item, RemovalReason.EFFECT_TIMEOUT);
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20);
+                SchedulerUtil.runTaskLater(() -> {item.remove();
+                        EntityTracker.unregister(item, RemovalReason.EFFECT_TIMEOUT);}, 20);
 
             }
         }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5));

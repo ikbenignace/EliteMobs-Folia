@@ -2,6 +2,7 @@ package com.magmaguy.elitemobs;
 
 import com.magmaguy.elitemobs.utils.ChunkVectorizer;
 import com.magmaguy.elitemobs.utils.PersistentVanillaData;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -63,15 +64,10 @@ public class CrashFix implements Listener {
      */
     private static void delayedChunkCheck(Chunk chunk, int hashedChunk) {
         Entity[] entities = chunk.getEntities().clone();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Entity entity : entities)
+        SchedulerUtil.runTaskLater(() -> {for (Entity entity : entities)
                     if (isPersistentEntity(entity))
                         entity.remove();
-                temporarilyCachedChunks.remove(hashedChunk);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+                temporarilyCachedChunks.remove(hashedChunk);}, 1);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

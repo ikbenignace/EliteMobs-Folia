@@ -925,25 +925,15 @@ public class ScriptAction {
                         world.setThundering(false);
                         world.setWeatherDuration(duration > 0 ? duration : 6000);
                         if (duration > 0) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    world.setStorm(false);
-                                }
-                            }.runTaskLater(MetadataHandler.PLUGIN, duration + 1);
+                            SchedulerUtil.runTaskLater(() -> {world.setStorm(false);}, duration + 1);
                         }
                     }
                     case THUNDER -> {
                         world.setStorm(true);
                         world.setThundering(true);
                         world.setThunderDuration(duration > 0 ? duration : 6000);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                world.setStorm(false);
-                                world.setThundering(false);
-                            }
-                        }.runTaskLater(MetadataHandler.PLUGIN, duration + 1);
+                        SchedulerUtil.runTaskLater(() -> {world.setStorm(false);
+                                world.setThundering(false);}, duration + 1);
                     }
                 }
             } catch (Exception e) {

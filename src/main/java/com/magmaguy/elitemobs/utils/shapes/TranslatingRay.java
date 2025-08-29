@@ -2,8 +2,8 @@ package com.magmaguy.elitemobs.utils.shapes;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.utils.Lerp;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class TranslatingRay extends Ray {
     private final Location finalCenterLocation;
@@ -26,20 +26,17 @@ public class TranslatingRay extends Ray {
                                 Location startLocation2,
                                 Location endLocation2,
                                 int animationDuration) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > animationDuration) {
-                    cancel();
-                    return;
-                }
-                counter++;
-                locations = drawLine(
-                        Lerp.lerpLocation(startLocation1, endLocation1, counter / (double) animationDuration),
-                        Lerp.lerpLocation(startLocation2, endLocation2, counter / (double) animationDuration));
+        final int[] counter = {0}; // Counter that persists across executions
+        final Object[] taskRef = new Object[1]; // Reference to store the task for cancellation
+        taskRef[0] = SchedulerUtil.runTaskTimer(() -> {
+            if (counter[0] > animationDuration) {
+                SchedulerUtil.cancelTask(taskRef[0]);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1L, 1L);
+            counter[0]++;
+            locations = drawLine(
+                    Lerp.lerpLocation(startLocation1, endLocation1, counter[0] / (double) animationDuration),
+                    Lerp.lerpLocation(startLocation2, endLocation2, counter[0] / (double) animationDuration));
+        }, 1L, 1L);
     }
 }

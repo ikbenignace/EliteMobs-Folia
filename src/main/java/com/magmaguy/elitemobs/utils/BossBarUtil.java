@@ -15,6 +15,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class BossBarUtil {
     public static HashSet<BossBar> bossBars = new HashSet<>();

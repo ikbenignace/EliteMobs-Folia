@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Iterator;
 import java.util.List;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ProjectileDamage {
 

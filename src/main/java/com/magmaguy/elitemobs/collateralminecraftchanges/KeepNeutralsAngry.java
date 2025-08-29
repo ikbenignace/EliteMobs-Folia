@@ -14,6 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Objects;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class KeepNeutralsAngry {
     private static final HashSet<EliteEntity> angryMobs = new HashSet<>();

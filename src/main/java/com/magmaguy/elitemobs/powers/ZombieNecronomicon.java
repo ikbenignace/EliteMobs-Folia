@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.magmaguy.magmacore.util.ChatColorConverter.convert;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 18/05/2017.

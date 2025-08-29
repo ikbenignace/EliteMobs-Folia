@@ -19,6 +19,7 @@ import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.elitemobs.utils.MapListInterpreter;
 import com.magmaguy.elitemobs.utils.WorldInstantiator;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.FileUtils;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
@@ -321,15 +322,10 @@ public class DungeonInstance extends MatchInstance {
                 Logger.warn("Failed to unload world " + instancedWorldName + " ! This is bad, report this to the developer!");
                 return;
             }
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    try{
+            SchedulerUtil.runTaskLaterAsync(() -> {try{
                         FileUtils.deleteDirectory(instancedWorldFile);} catch (Exception e){
                         Logger.warn("Failed to delete " + instancedWorldFile + " ! This is bad, report this to the developer!");
-                    }
-                }
-            }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20L * 60 * 2); //wait 2 minutes after unloading world before removing files
+                    }}, 20L * 60 * 2); //wait 2 minutes after unloading world before removing files
         }
     }
 }

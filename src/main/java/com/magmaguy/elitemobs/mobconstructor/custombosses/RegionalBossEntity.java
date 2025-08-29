@@ -193,16 +193,11 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     public void queueSpawn(boolean silent) {
         RegionalBossEntity regionalBossEntity = this;
         this.isRespawning = true;
-        respawnTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (phaseBossEntity != null) phaseBossEntity.silentReset();
+        respawnTask = SchedulerUtil.runTaskLater(() -> {if (phaseBossEntity != null) phaseBossEntity.silentReset();
                 ticksBeforeRespawn = 0;
                 //Reminder: this might not spawn a living entity as it gets queued for when the chunk loads
                 regionalBossEntity.spawn(silent);
-                regionalBossEntity.getDamagers().clear();
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticksBeforeRespawn);
+                regionalBossEntity.getDamagers().clear();}, ticksBeforeRespawn);
     }
 
     public void forceRespawn() {

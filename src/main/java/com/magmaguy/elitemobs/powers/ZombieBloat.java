@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ZombieBloat extends MajorPower implements Listener {
 
@@ -111,15 +112,8 @@ public class ZombieBloat extends MajorPower implements Listener {
         /*
         Effect is done, start task to remove giant
          */
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                giant.remove();
-                eventZombie.setAI(true);
-            }
-
-        }.runTaskLater(MetadataHandler.PLUGIN, 10);
+        SchedulerUtil.runTaskLater(() -> {giant.remove();
+                eventZombie.setAI(true);}, 10);
 
     }
 

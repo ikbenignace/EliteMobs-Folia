@@ -6,6 +6,7 @@ import com.magmaguy.elitemobs.config.contentpackages.ContentPackagesConfigFields
 import com.magmaguy.elitemobs.dungeons.WorldDungeonPackage;
 import com.magmaguy.elitemobs.menus.ItemEnchantmentMenu;
 import com.magmaguy.elitemobs.utils.WorldInstantiator;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,16 +67,11 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
                 cloneWorldFiles(contentPackagesConfigFields, instancedWordName, player));
         future.thenAccept(file -> {
             if (file == null) return;
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
+            SchedulerUtil.runTask(() -> {DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
                     if (dungeonInstance instanceof EnchantmentDungeonInstance enchantmentDungeonInstance) {
                         enchantmentDungeonInstance.setUpgradedItem(upgradedItem.clone());
                         enchantmentDungeonInstance.setCurrentItem(itemFromInventory.clone());
-                    }
-                }
-            }.runTask(MetadataHandler.PLUGIN);
+                    }});
         });
 
         return true;
@@ -83,12 +79,7 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
 
     @Override
     public void endMatch() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                removeInstance();
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 10);
+        SchedulerUtil.runTaskLater(() -> {removeInstance();}, 20 * 10);
     }
 
     @Override

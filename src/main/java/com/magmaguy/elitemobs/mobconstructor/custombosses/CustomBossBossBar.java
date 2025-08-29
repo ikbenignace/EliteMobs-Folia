@@ -24,6 +24,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossBossBar {
 

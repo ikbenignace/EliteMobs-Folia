@@ -4,6 +4,7 @@ import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -67,10 +68,7 @@ public class InstanceDeathLocation {
 
     //This is necessary because physics updates might remove the banner while it should still be on there
     public void bannerWatchdog() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
+        SchedulerUtil.runTaskTimer(() -> {if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
                     cancel();
                     return;
                 }
@@ -78,8 +76,6 @@ public class InstanceDeathLocation {
                 EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
                 EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
                 EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
-                findBannerLocation(deathLocation);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 5, 5);
+                findBannerLocation(deathLocation);}, 5, 5);
     }
 }

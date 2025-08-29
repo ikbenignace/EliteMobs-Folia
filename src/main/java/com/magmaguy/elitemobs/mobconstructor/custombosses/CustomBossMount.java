@@ -8,6 +8,7 @@ import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossMount {
     private CustomBossMount() {

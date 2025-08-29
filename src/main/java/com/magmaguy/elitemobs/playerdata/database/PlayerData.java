@@ -9,6 +9,7 @@ import com.magmaguy.elitemobs.quests.Quest;
 import com.magmaguy.elitemobs.quests.playercooldowns.PlayerQuestCooldowns;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.ObjectSerializer;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
@@ -703,24 +704,14 @@ public class PlayerData {
     public static class PlayerDataEvents implements Listener {
         @EventHandler(priority = EventPriority.LOWEST)
         public void onPlayerLogin(PlayerJoinEvent event) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (Bukkit.getPlayer(event.getPlayer().getUniqueId()) == null) return;
-                    new PlayerData(event.getPlayer().getUniqueId());
-                }
-            }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20);
+            SchedulerUtil.runTaskLaterAsync(() -> {if (Bukkit.getPlayer(event.getPlayer().getUniqueId()) == null) return;
+                    new PlayerData(event.getPlayer().getUniqueId());}, 20);
         }
 
         @EventHandler
         public void onPlayerLogout(PlayerQuitEvent event) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    clearPlayerData(event.getPlayer().getUniqueId());
-                    setDisplayName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
-                }
-            }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20);
+            SchedulerUtil.runTaskLaterAsync(() -> {clearPlayerData(event.getPlayer().getUniqueId());
+                    setDisplayName(event.getPlayer().getUniqueId(), event.getPlayer().getName());}, 20);
         }
     }
 

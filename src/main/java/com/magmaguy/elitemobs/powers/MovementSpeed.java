@@ -7,6 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 05/11/2016.
@@ -19,12 +20,7 @@ public class MovementSpeed extends MinorPower {
 
     @Override
     public void applyPowers(LivingEntity livingEntity) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100000, 1));
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+        SchedulerUtil.runTaskLater(() -> {livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100000, 1));}, 1);
     }
 
 }

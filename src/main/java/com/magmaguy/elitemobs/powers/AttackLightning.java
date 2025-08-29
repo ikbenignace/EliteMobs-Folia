@@ -13,6 +13,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class AttackLightning extends MinorPower implements Listener {
     public AttackLightning() {

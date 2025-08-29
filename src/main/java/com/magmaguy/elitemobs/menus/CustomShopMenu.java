@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.items.ItemWorthCalculator;
 import com.magmaguy.elitemobs.items.customenchantments.SoulbindEnchantment;
 import com.magmaguy.elitemobs.items.customitems.CustomItem;
 import com.magmaguy.elitemobs.utils.CustomModelAdder;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -130,12 +131,9 @@ public class CustomShopMenu {
                 }
 
                 cooldownPlayers.add(event.getWhoClicked().getUniqueId());
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        cooldownPlayers.remove(event.getWhoClicked().getUniqueId());
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20 * 2L);
+                SchedulerUtil.runTaskLater(() -> {
+                    cooldownPlayers.remove(event.getWhoClicked().getUniqueId());
+                }, 20 * 2L);
 
                 populateShop(event.getInventory(), Bukkit.getPlayer(event.getWhoClicked().getUniqueId()));
                 event.setCancelled(true);
