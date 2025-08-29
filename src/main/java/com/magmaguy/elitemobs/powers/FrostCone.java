@@ -8,6 +8,7 @@ import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
 import com.magmaguy.elitemobs.powers.meta.ProjectileTagger;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -108,7 +109,7 @@ public class FrostCone extends BossPower implements Listener {
         Projectile snowball = EliteProjectile.create(EntityType.SNOWBALL, eliteEntity.getLivingEntity(), getShotVector(eliteEntity, location), false);
         ProjectileTagger.tagProjectileWithCustomDamage(snowball, 2);
         snowball.getPersistentDataContainer().set(frostConeSnowballKey, PersistentDataType.STRING, "true");
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, snowball::remove, 20L * 3);
+        SchedulerUtil.runTaskLater(snowball::remove, 20L * 3);
         return (Snowball) snowball;
     }
 

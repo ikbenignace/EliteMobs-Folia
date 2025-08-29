@@ -59,6 +59,18 @@ public class SchedulerUtil {
     }
 
     /**
+     * Runs a task on the main thread.
+     * Uses appropriate scheduler based on server type.
+     */
+    public static void runTask(Runnable task) {
+        if (isFolia) {
+            Bukkit.getGlobalRegionScheduler().run(MetadataHandler.PLUGIN, (scheduledTask) -> task.run());
+        } else {
+            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, task);
+        }
+    }
+
+    /**
      * Runs a task on the region thread that owns the specified entity.
      * Falls back to sync scheduler for Paper/Spigot.
      */
@@ -153,6 +165,18 @@ public class SchedulerUtil {
             return Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
         } else {
             return Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
+        }
+    }
+
+    /**
+     * Schedules a sync delayed task using the appropriate scheduler.
+     * Uses appropriate scheduler based on server type.
+     */
+    public static Object scheduleSyncDelayedTask(Runnable task, long delay) {
+        if (isFolia) {
+            return Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
+        } else {
+            return Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
         }
     }
 

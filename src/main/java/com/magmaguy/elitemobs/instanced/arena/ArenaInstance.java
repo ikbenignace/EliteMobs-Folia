@@ -17,6 +17,7 @@ import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.thirdparty.mythicmobs.MythicMobsInterface;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.shapes.Cylinder;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -205,7 +206,7 @@ public class ArenaInstance extends MatchInstance {
             delayBetweenWaves *= 2;
         }
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, () -> {
+        SchedulerUtil.scheduleSyncDelayedTask(() -> {
             if (arenaState == ArenaState.IDLE) return;
             String title = ArenasConfig.getWaveTitle();
             String subtitle = ArenasConfig.getWaveSubtitle();
@@ -328,7 +329,7 @@ public class ArenaInstance extends MatchInstance {
         } else
             participants.forEach(player -> player.sendTitle(ArenasConfig.getDefeatTitle().replace("$wave", currentWave + ""), ArenasConfig.getDefeatSubtitle().replace("$wave", currentWave + ""), 20, 20 * 10, 20));
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::destroyMatch, customArenasConfigFields.getDelayBetweenWaves());
+        SchedulerUtil.scheduleSyncDelayedTask(this::destroyMatch, customArenasConfigFields.getDelayBetweenWaves());
     }
 
     @Override

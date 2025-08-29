@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
 import com.magmaguy.elitemobs.powers.meta.CustomSummonPower;
 import com.magmaguy.elitemobs.powers.scripts.caching.ScriptActionBlueprint;
 import com.magmaguy.elitemobs.powers.scripts.enums.ActionType;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -384,7 +385,7 @@ public class ScriptAction {
             if (target instanceof Player player) {
                 bossBar.addPlayer(player);
                 if (blueprint.getDuration().getValue() > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, bossBar::removeAll, blueprint.getDuration().getValue());
+                    SchedulerUtil.runTaskLater(bossBar::removeAll, blueprint.getDuration().getValue());
                 }
             } else {
                 Logger.warn("BOSS_BAR_MESSAGE actions must target players! Problematic script: '" + blueprint.getScriptName() + "' in file '" + blueprint.getScriptFilename() + "'");
@@ -623,7 +624,7 @@ public class ScriptAction {
         getTargets(scriptActionData).forEach(target -> {
             target.setAI(aiEnabled);
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> target.setAI(!aiEnabled), duration);
+                SchedulerUtil.runTaskLater(() -> target.setAI(!aiEnabled), duration);
             }
         });
     }
@@ -641,7 +642,7 @@ public class ScriptAction {
             if (target instanceof Mob mob) {
                 mob.setAware(aware);
                 if (duration > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> mob.setAware(!aware), duration);
+                    SchedulerUtil.runTaskLater(() -> mob.setAware(!aware), duration);
                 }
             } else {
                 Logger.warn("SET_MOB_AWARE action must target mobs! Problematic script: '" + blueprint.getScriptName() + "' in file '" + blueprint.getScriptFilename() + "'");
@@ -801,7 +802,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     target.setInvulnerable(!invulnerable);
                     if (target instanceof Player player) {
                         if (invulnerable) {
@@ -836,7 +837,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     if (bossEntity != null) {
                         bossEntity.removeTags(tags);
                     }
@@ -872,7 +873,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     if (bossEntity != null) {
                         bossEntity.addTags(tags);
                     }
@@ -1101,7 +1102,7 @@ public class ScriptAction {
             if (attribute != null) {
                 attribute.setBaseValue(scaleValue);
                 if (duration > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> attribute.setBaseValue(1.0), duration);
+                    SchedulerUtil.runTaskLater(() -> attribute.setBaseValue(1.0), duration);
                 }
             }
         });

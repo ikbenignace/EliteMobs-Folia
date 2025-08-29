@@ -9,6 +9,7 @@ import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.quests.CustomQuest;
 import com.magmaguy.elitemobs.quests.DynamicQuest;
 import com.magmaguy.elitemobs.quests.Quest;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -141,13 +142,13 @@ public class NPCProximitySensor implements Listener {
         TextDisplay visualArmorStand = VisualDisplay.generateTemporaryTextDisplay(newLocation, messageUp);
         AtomicInteger counter = new AtomicInteger();
         AtomicBoolean up = new AtomicBoolean(true);
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, task -> {
+        Object chatTask = SchedulerUtil.runTaskTimer(() -> {
             if (!player.isValid() ||
                     npcEntity.getVillager() == null ||
                     !npcEntity.getVillager().isValid() ||
                     !npcEntity.getVillager().getWorld().equals(player.getWorld()) ||
                     npcEntity.getVillager().getLocation().distance(player.getLocation()) > npcEntity.getNPCsConfigFields().getActivationRadius()) {
-                task.cancel();
+                SchedulerUtil.cancelTask(chatTask);
                 EntityTracker.unregister(visualArmorStand, RemovalReason.EFFECT_TIMEOUT);
                 return;
             }
