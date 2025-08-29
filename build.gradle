@@ -90,8 +90,8 @@ repositories {
 
 dependencies {
     //Spigot API
-    compileOnly "org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT"
-    //Folia API - will work when network is available
+    compileOnly "org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT"
+    //Folia API
     compileOnly "dev.folia:folia-api:1.21.8-R0.1-SNAPSHOT"
     //WorldGuard API
     compileOnly group: 'com.sk89q.worldguard', name: 'worldguard-bukkit', version: '7.0.7'
