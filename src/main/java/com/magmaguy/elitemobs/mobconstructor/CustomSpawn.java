@@ -108,12 +108,7 @@ public class CustomSpawn {
     public void queueSpawn() {
         //Make sure a location exists
         if (spawnLocation == null)
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    generateCustomSpawn();
-                }
-            }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+            SchedulerUtil.runTaskAsync(() -> generateCustomSpawn());
         else
             spawn();
     }
@@ -124,7 +119,7 @@ public class CustomSpawn {
             @Override
             public void run() {
                 if (spawnLocation == null) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
+                    SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
                     cancel();
                     return;
                 }
@@ -134,7 +129,7 @@ public class CustomSpawn {
                 if (!testEntity.isValid()) {
                     spawnLocation = null;
                     //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
+                    SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
                     cancel();
                     return;
                 }
@@ -167,7 +162,7 @@ public class CustomSpawn {
         //If the global cooldown if enforced and this is a timed event wait for the cd to be over
 
         if (timedEvent != null && System.currentTimeMillis() < TimedEvent.getNextEventStartMinimum()) {
-            Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, this::generateCustomSpawn, 20 * 60L);
+            SchedulerUtil.scheduleAsyncDelayedTask(this::generateCustomSpawn, 20 * 60L);
             return;
         }
 
@@ -186,12 +181,7 @@ public class CustomSpawn {
 
         if (spawnLocation == null) {
             if (keepTrying) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        generateCustomSpawn();
-                    }
-                }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20 * 60);
+                SchedulerUtil.runTaskLaterAsync(() -> generateCustomSpawn(), 20 * 60);
             } else {
                 customBossEntities.forEach((customBossEntity -> {
                     if (customBossEntity.summoningEntity != null)

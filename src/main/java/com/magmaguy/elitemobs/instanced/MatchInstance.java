@@ -9,6 +9,7 @@ import com.magmaguy.elitemobs.api.instanced.MatchLeaveEvent;
 import com.magmaguy.elitemobs.config.ArenasConfig;
 import com.magmaguy.elitemobs.config.DefaultConfig;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -25,7 +26,6 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -138,7 +138,11 @@ public abstract class MatchInstance {
     }
 
     private void startWatchdogs() {
-        new WatchdogTask().runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        SchedulerUtil.runTaskTimer(() -> {
+            playerWatchdog();
+            spectatorWatchdog();
+            intruderWatchdog();
+        }, 0, 1);
     }
 
     public void countdownMatch() {
@@ -148,7 +152,20 @@ public abstract class MatchInstance {
             return;
         }
         state = InstancedRegionState.STARTING;
-        new CountdownTask().runTaskTimer(MetadataHandler.PLUGIN, 0L, 20L);
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer(() -> {
+            if (players.size() < minPlayers) {
+                endMatch();
+                return;
+            }
+            counter[0]++;
+            players.forEach(player -> startMessage(counter[0], player));
+            spectators.forEach(player -> startMessage(counter[0], player));
+            if (counter[0] >= 3) {
+                startMatch();
+                // The task will be automatically cancelled when this returns since it's not repeating
+            }
+        }, 0L, 20L);
     }
 
     private void playerWatchdog() {
@@ -188,46 +205,14 @@ public abstract class MatchInstance {
     }
 
     private void instanceMessages() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (state == InstancedRegionState.WAITING)
-                    announce(ArenasConfig.getArenaStartHintMessage().replace("$count", minPlayers + ""));
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20*60L);
+        SchedulerUtil.runTaskTimer(() -> {
+            if (state == InstancedRegionState.WAITING)
+                announce(ArenasConfig.getArenaStartHintMessage().replace("$count", minPlayers + ""));
+        }, 0, 20*60L);
     }
 
     protected void announce(String message) {
         participants.forEach(player -> player.sendMessage(ChatColorConverter.convert(message)));
-    }
-
-    private class WatchdogTask extends BukkitRunnable {
-        @Override
-        public void run() {
-            playerWatchdog();
-            spectatorWatchdog();
-            intruderWatchdog();
-        }
-    }
-
-    private class CountdownTask extends BukkitRunnable {
-        int counter = 0;
-
-        @Override
-        public void run() {
-            if (players.size() < minPlayers) {
-                cancel();
-                endMatch();
-                return;
-            }
-            counter++;
-            players.forEach(player -> startMessage(counter, player));
-            spectators.forEach(player -> startMessage(counter, player));
-            if (counter >= 3) {
-                startMatch();
-                cancel();
-            }
-        }
     }
 
     private void startMessage(int counter, Player player) {

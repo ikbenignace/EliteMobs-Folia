@@ -8,13 +8,13 @@ import com.magmaguy.elitemobs.config.customevents.CustomEventsConfig;
 import com.magmaguy.elitemobs.config.customevents.CustomEventsConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.CustomSpawn;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.WeightedProbability;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,21 +60,18 @@ public class TimedEvent extends CustomEvent implements Listener {
     }
 
     private static void startEventPicker() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (Bukkit.getServer().getOnlinePlayers().isEmpty()) return;
-                boolean validPlayer = false;
-                for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers())
-                    if (!GuildRank.isAtOrAboveGuildRank(onlinePlayer, 0, 0)) {
-                        validPlayer = true;
-                        break;
-                    }
-                if (!validPlayer) return;
-                if (System.currentTimeMillis() < nextEventTrigger) return;
-                pickEvent();
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20L * 60L * 5L, 20L * 60L);
+        SchedulerUtil.runTaskTimer(() -> {
+            if (Bukkit.getServer().getOnlinePlayers().isEmpty()) return;
+            boolean validPlayer = false;
+            for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers())
+                if (!GuildRank.isAtOrAboveGuildRank(onlinePlayer, 0, 0)) {
+                    validPlayer = true;
+                    break;
+                }
+            if (!validPlayer) return;
+            if (System.currentTimeMillis() < nextEventTrigger) return;
+            pickEvent();
+        }, 20L * 60L * 5L, 20L * 60L);
     }
 
     private static void pickEvent() {
@@ -157,7 +154,7 @@ public class TimedEvent extends CustomEvent implements Listener {
                     silentRetry = true;
                 }
 
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     customSpawn.setSpawnLocation(null);
                     customSpawn.queueSpawn();
                 }, 1);
