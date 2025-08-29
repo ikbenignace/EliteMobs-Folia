@@ -26,8 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;

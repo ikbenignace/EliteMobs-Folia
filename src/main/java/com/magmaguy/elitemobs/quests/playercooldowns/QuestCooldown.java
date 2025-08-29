@@ -6,8 +6,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.metadata.LazyMetadataValue;
 import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -21,7 +20,7 @@ public class QuestCooldown implements Serializable {
     @Getter
     private long targetUnixTime = 0;
     @Getter
-    private transient BukkitTask bukkitTask = null;
+    private transient SchedulerUtil.TaskWrapper bukkitTask = null;
 
     public QuestCooldown(int delayInMinutes, String permission, UUID player) {
         this.permanent = delayInMinutes < 1;
@@ -41,16 +40,13 @@ public class QuestCooldown implements Serializable {
         permissionAttachment.setPermission(permission, true);
         Bukkit.getPlayer(player).setMetadata(permission, new LazyMetadataValue(MetadataHandler.PLUGIN, () -> true));
         if (!permanent)
-            bukkitTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (Bukkit.getPlayer(player) != null) {
+            bukkitTask = SchedulerUtil.runTaskLater((task) -> {
+if (Bukkit.getPlayer(player) != null) {
                         permissionAttachment.unsetPermission(permission);
                         Bukkit.getPlayer(player).removeMetadata(permission, MetadataHandler.PLUGIN);
                         PlayerData.updatePlayerQuestCooldowns(player, PlayerData.getPlayerQuestCooldowns(player));
                     }
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, delay);
+                }, delay);
     }
 
 }

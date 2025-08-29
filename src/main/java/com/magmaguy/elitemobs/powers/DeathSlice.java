@@ -14,7 +14,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -30,19 +29,16 @@ public class DeathSlice extends BossPower implements Listener {
     private static void doDeathSlice(EliteEntity eliteEntity) {
         ArrayList<Location> locations = raytracedLocationList(eliteEntity.getLivingEntity().getLocation());
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 20 * 5 || !eliteEntity.isValid()) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 20 * 5 || !eliteEntity.isValid()) {
                     if (eliteEntity.getLivingEntity() != null)
                         eliteEntity.getLivingEntity().setAI(true);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
-                if (counter < 20 * 2.5) {
+                if (counter[0] < 20 * 2.5) {
                     for (Location location : locations)
                         doWarningParticle(location);
                 } else {
@@ -50,9 +46,8 @@ public class DeathSlice extends BossPower implements Listener {
                         doDamagePhase(location, eliteEntity);
                 }
 
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 2);
+                counter[0]++;
+            }, 0, 2);
 
     }
 

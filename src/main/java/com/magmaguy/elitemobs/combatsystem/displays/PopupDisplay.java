@@ -25,7 +25,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
@@ -96,14 +95,11 @@ public class PopupDisplay implements Listener {
         armorStand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
         armorStand.setRightArmPose(new EulerAngle(Math.PI / 2d, Math.PI + Math.PI / 2d, Math.PI));
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 20 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 20 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
                     EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 try {
@@ -111,9 +107,8 @@ public class PopupDisplay implements Listener {
                 } catch (Exception e) {
                     //Sometimes, very rarely, x is not finite. Doesn't really matter.
                 }
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                counter[0]++;
+            }, 1, 1);
     }
 
     private Location getResistLocation(Player player, EliteEntity eliteEntity) {
@@ -131,23 +126,19 @@ public class PopupDisplay implements Listener {
         textDisplays[0] = generateWeakArmorStand(player, eliteEntity, material, -1);
         textDisplays[1] = generateWeakArmorStand(player, eliteEntity, material, 1);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 10 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 10 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
                     EntityTracker.unregister(textDisplays[0], RemovalReason.EFFECT_TIMEOUT);
                     EntityTracker.unregister(textDisplays[1], RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 for (TextDisplay armorStand : textDisplays)
                     armorStand.teleport(armorStand.getLocation().add(eliteEntity.getLocation().add(new Vector(0, 0, 0))
                             .subtract(armorStand.getLocation()).toVector().normalize().multiply(.4)));
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                counter[0]++;
+            }, 1, 1);
     }
 
     private TextDisplay generateWeakArmorStand(Player player, EliteEntity eliteEntity, Material material, int offset) {

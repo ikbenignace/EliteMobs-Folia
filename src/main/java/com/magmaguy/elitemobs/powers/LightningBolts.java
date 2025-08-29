@@ -12,7 +12,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
@@ -44,21 +43,17 @@ public class LightningBolts extends BossPower implements Listener {
     }
 
     public static void lightningTask(Location location, int counter) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
-                if (counter > 20 * 2) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                if (counter[0] > 20 * 2) {
                     LightningSpawnBypass.bypass();
                     location.getWorld().strikeLightning(location);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.CRIT, location, 10, 0.5, 1.5, 0.5, 0.3);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, counter * 5L, 1);
+            }, counter * 5L, 1);
 
     }
 

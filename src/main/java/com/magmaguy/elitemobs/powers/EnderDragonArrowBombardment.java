@@ -8,7 +8,6 @@ import com.magmaguy.elitemobs.powers.meta.Bombardment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Projectile;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;

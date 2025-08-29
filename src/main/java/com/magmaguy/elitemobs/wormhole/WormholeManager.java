@@ -17,8 +17,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -38,7 +37,7 @@ public class WormholeManager {
     private final Map<UUID, PlayerWormholeData> playerTeleportData = new HashMap<>();
     // Maps to track rotation counters for each wormhole
     private final Map<WormholeEntry, Integer> rotationCounters = new HashMap<>();
-    private BukkitTask wormholeTask;
+    private SchedulerUtil.TaskWrapper wormholeTask;
 
     // Constructor
     private WormholeManager() {

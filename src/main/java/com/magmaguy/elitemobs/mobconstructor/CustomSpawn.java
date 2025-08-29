@@ -23,7 +23,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -116,12 +115,10 @@ public class CustomSpawn {
 
     private void spawn() {
         //Pass back to sync if it's in async
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (spawnLocation == null) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (spawnLocation == null) {
                     SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 //One last check
@@ -131,12 +128,12 @@ public class CustomSpawn {
                     spawnLocation = null;
                     //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
                     SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 testEntity.remove();
 
-                if (!keepTrying) cancel();
+                if (!keepTrying) task.cancel();
 
                 if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
                         spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
@@ -150,13 +147,12 @@ public class CustomSpawn {
                     if (!customBossEntity.exists())
                         customBossEntity.spawn(spawnLocation, isEvent);
 
-                cancel();
+                task.cancel();
 
                 if (timedEvent != null)
                     timedEvent.queueEvent();
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void generateCustomSpawn() {

@@ -34,7 +34,6 @@ import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
@@ -305,12 +304,8 @@ public class NPCEntity implements PersistentObject, PersistentMovingEntity {
 
     public void setTimeout() {
         if (npCsConfigFields.getTimeout() <= 0) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                remove(RemovalReason.NPC_TIMEOUT);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, (long) (npCsConfigFields.getTimeout() * 20 * 60));
+        SchedulerUtil.runTaskLater(() -> remove(RemovalReason.NPC_TIMEOUT), 
+            (long) (npCsConfigFields.getTimeout() * 20 * 60));
     }
 
     /**

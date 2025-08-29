@@ -8,7 +8,6 @@ import com.magmaguy.elitemobs.quests.menus.QuestMenu;
 import com.magmaguy.elitemobs.quests.objectives.CustomFetchObjective;
 import com.magmaguy.elitemobs.quests.objectives.Objective;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;

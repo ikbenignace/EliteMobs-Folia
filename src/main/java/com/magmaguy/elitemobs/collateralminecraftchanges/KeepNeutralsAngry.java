@@ -10,7 +10,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -26,16 +25,14 @@ public class KeepNeutralsAngry {
         //might already contain
         EntityType entityType = eliteEntity.getLivingEntity().getType();
         if (angryMobs.contains(eliteEntity)) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity instanceof CustomBossEntity customBossEntity && customBossEntity.getCustomBossesConfigFields().isNeutral())
+        SchedulerUtil.runTaskTimer((task) -> {
+if (eliteEntity instanceof CustomBossEntity customBossEntity && customBossEntity.getCustomBossesConfigFields().isNeutral())
                     return;
                 //It is possible for entities to change type during combat, in which case they need to be wiped
                 if (!eliteEntity.isValid() ||
                         !entityType.equals(eliteEntity.getLivingEntity().getType()) ||
                         entityType.equals(EntityType.WOLF) && ((Wolf) eliteEntity.getLivingEntity()).isTamed()) {
-                    cancel();
+                    task.cancel();
                     angryMobs.remove(eliteEntity);
                     return;
                 }
@@ -55,7 +52,6 @@ public class KeepNeutralsAngry {
 
                 ((Mob) eliteEntity.getLivingEntity()).setTarget(null);
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+            }, 0, 20);
     }
 }

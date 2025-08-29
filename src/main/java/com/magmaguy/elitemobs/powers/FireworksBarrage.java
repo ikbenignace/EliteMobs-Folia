@@ -16,7 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -34,15 +33,11 @@ public class FireworksBarrage extends BossPower {
         if (eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)).getBlock().getType().equals(Material.AIR))
             if (!eliteEntity.getLivingEntity().getType().equals(EntityType.GHAST))
                 eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)));
-        new BukkitRunnable() {
-            final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
@@ -75,15 +70,14 @@ public class FireworksBarrage extends BossPower {
                             new FireworkTask(firework, nearbyEntity.getLocation().clone(), eliteEntity);
                         }
 
-                counter++;
-                if (counter > 10) {
-                    cancel();
+                counter[0]++;
+                if (counter[0] > 10) {
+                    task.cancel();
                     eliteEntity.getLivingEntity().setAI(true);
                     eliteEntity.getLivingEntity().teleport(initialLocation);
                 }
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+            }, 0, 10);
     }
 
     public static class FireworksBarrageEvents implements Listener {
@@ -101,14 +95,11 @@ public class FireworksBarrage extends BossPower {
 
     private class FireworkTask {
         public FireworkTask(Firework firework, Location targetLocation, EliteEntity eliteEntity) {
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    counter++;
-                    if (firework == null || counter > 20 * 5) {
-                        cancel();
+                    final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                    if (firework == null || counter[0] > 20 * 5) {
+                        task.cancel();
                         return;
                     }
                     if (firework.getLocation().distanceSquared(targetLocation) < Math.pow(0.01, 2)) {
@@ -120,8 +111,7 @@ public class FireworksBarrage extends BossPower {
                                     blockList.add(firework.getLocation().clone().add(new Vector(x, y, z)).getBlock());
                         Explosion.generateFakeExplosion(blockList, eliteEntity.getLivingEntity(), (PowersConfigFields) getPowersConfigFields(), firework.getLocation());
                     }
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                }, 0, 1);
 
         }
     }

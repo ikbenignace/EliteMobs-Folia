@@ -16,7 +16,6 @@ import com.magmaguy.magmacore.util.AttributeManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class InstancePlayerManager {
 

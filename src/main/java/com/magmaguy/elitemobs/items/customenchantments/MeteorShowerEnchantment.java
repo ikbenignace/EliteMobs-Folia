@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,34 +25,29 @@ public class MeteorShowerEnchantment extends CustomEnchantment {
     }
 
     public static void doMeteorShower(Player player) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!player.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                if (counter > 10 * 20) {
-                    cancel();
+                if (counter[0] > 10 * 20) {
+                    task.cancel();
                     return;
                 }
 
-                counter++;
+                counter[0]++;
 
                 doCloudEffect(player.getLocation().clone().add(new Vector(0, 10, 0)));
 
-                if (counter > 2 * 20) {
+                if (counter[0] > 2 * 20) {
 
                     doFireballs(player.getLocation().clone().add(new Vector(0, 10, 0)), player);
 
                 }
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private static void doCloudEffect(Location location) {

@@ -8,7 +8,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -18,16 +17,11 @@ public class ProjectileDamage {
 
     public static void doGoldNuggetDamage(List<Item> goldNuggets, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-
-            int timer = 0;
-
-            @Override
-            public void run() {
-
-                timer++;
+                final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+timer[0]++;
                 if (goldNuggets.isEmpty()) {
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
@@ -56,7 +50,7 @@ public class ProjectileDamage {
                     }
                 }
 
-                if (timer < 5 * 20) return;
+                if (timer[0] < 5 * 20) return;
 
                 for (Iterator<Item> endIterator = goldNuggets.iterator(); endIterator.hasNext(); ) {
                     Item goldNugget = endIterator.next();
@@ -64,11 +58,9 @@ public class ProjectileDamage {
                     endIterator.remove();
                 }
 
-                cancel();
+                task.cancel();
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

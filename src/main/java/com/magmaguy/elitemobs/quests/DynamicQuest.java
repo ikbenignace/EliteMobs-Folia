@@ -11,8 +11,7 @@ import com.magmaguy.elitemobs.quests.objectives.QuestObjectives;
 import com.magmaguy.elitemobs.quests.rewards.QuestReward;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +22,7 @@ public class DynamicQuest extends Quest {
 
     //These are generated fresh every hour
     private static final HashMap<Integer, List<QuestObjectives>> threeRandomDynamicObjectives = new HashMap<>();
-    private static BukkitTask randomizerTask;
+    private static SchedulerUtil.TaskWrapper randomizerTask;
 
     public DynamicQuest(Player player, int questLevel, QuestObjectives questObjectives) {
         super(player, questObjectives, questLevel);
@@ -34,18 +33,15 @@ public class DynamicQuest extends Quest {
     }
 
     public static void startRandomizingQuests() {
-        randomizerTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
+        randomizerTask = SchedulerUtil.runTaskTimer((task) -> {
+for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
                     List<QuestObjectives> questObjectives = new ArrayList<>();
                     for (int questNumber = 0; questNumber < 3; questNumber++) {
                         questObjectives.add(new QuestObjectives(activeLevel));
                     }
                     threeRandomDynamicObjectives.put(activeLevel, questObjectives);
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 60L);
+            }, 0, 20 * 60L);
     }
 
     public static void shutdown() {

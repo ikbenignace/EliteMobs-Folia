@@ -2,7 +2,6 @@ package com.magmaguy.elitemobs.config;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.magmacore.util.Logger;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -20,28 +19,25 @@ public class ConfigurationExporter {
     }
 
     public static void initializeConfigs() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Path configurationsPath = Paths.get(MetadataHandler.PLUGIN.getDataFolder().getAbsolutePath());
-                if (!Files.isDirectory(Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports"))) {
-                    try {
-                        Files.createDirectory(Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports"));
-                    } catch (Exception exception) {
-                        Logger.warn("Failed to create exports directory! Tell the dev!");
-                        exception.printStackTrace();
-                    }
-                }
+        SchedulerUtil.runTaskAsync(() -> {
+            Path configurationsPath = Paths.get(MetadataHandler.PLUGIN.getDataFolder().getAbsolutePath());
+            if (!Files.isDirectory(Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports"))) {
                 try {
-                    File rspFile = Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports" + File.separatorChar + "elitemobs_resource_pack.zip").toFile();
-                    if (rspFile.exists()) rspFile.delete();
-                    downloadFile("https://magmaguy.com/downloads/elitemobs_resource_pack.zip", Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports").toAbsolutePath().toString());
-                } catch (Exception e) {
-                    Logger.warn("Failed to download official resource pack! Tell the dev!");
-                    e.printStackTrace();
+                    Files.createDirectory(Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports"));
+                } catch (Exception exception) {
+                    Logger.warn("Failed to create exports directory! Tell the dev!");
+                    exception.printStackTrace();
                 }
             }
-        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+            try {
+                File rspFile = Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports" + File.separatorChar + "elitemobs_resource_pack.zip").toFile();
+                if (rspFile.exists()) rspFile.delete();
+                downloadFile("https://magmaguy.com/downloads/elitemobs_resource_pack.zip", Paths.get(configurationsPath.normalize() + "" + File.separatorChar + "exports").toAbsolutePath().toString());
+            } catch (Exception e) {
+                Logger.warn("Failed to download official resource pack! Tell the dev!");
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void downloadFile(String fileURL, String saveFilePath) throws IOException {

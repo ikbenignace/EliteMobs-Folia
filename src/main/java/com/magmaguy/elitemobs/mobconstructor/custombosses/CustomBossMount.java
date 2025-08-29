@@ -7,7 +7,6 @@ import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfigFields;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossMount {
@@ -44,10 +43,8 @@ public class CustomBossMount {
                 mountEntity.setMount(true);
                 mountEntity.spawn(false);
 
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!mountEntity.isValid()) return;
+                SchedulerUtil.runTaskLater((task) -> {
+if (!mountEntity.isValid()) return;
                         if (customBossEntity.getLivingEntity() == null) return;
                         if (mountEntity.getCustomModel() != null)
                             mountEntity.getCustomModel().addPassenger(customBossEntity);
@@ -57,8 +54,7 @@ public class CustomBossMount {
                                 mountEntity.getLivingEntity().addPassenger(customBossEntity.getLivingEntity());
                         }
                         customBossEntity.customBossMount = mountEntity;
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 5);
+                    }, 5);
                 return mountEntity;
             }
 

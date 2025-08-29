@@ -10,7 +10,6 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
@@ -39,14 +38,10 @@ public class AttackArrow extends MinorPower implements Listener {
 
     private void repeatingArrowTask(AttackArrow attackArrow, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid() || ((Monster) eliteEntity.getLivingEntity()).getTarget() == null) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid() || ((Monster) eliteEntity.getLivingEntity()).getTarget() == null) {
                     attackArrow.setFiring(false);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
@@ -57,9 +52,7 @@ public class AttackArrow extends MinorPower implements Listener {
                                         player.getGameMode().equals(GameMode.SURVIVAL)))
                             shootArrow(eliteEntity.getLivingEntity(), (Player) nearbyEntity);
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 8);
+            }, 0, 20 * 8);
 
     }
 

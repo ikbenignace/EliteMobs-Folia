@@ -17,7 +17,6 @@ package com.magmaguy.elitemobs.powers.meta;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;

@@ -15,7 +15,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class Implosion extends MinorPower implements Listener {
@@ -28,15 +27,12 @@ public class Implosion extends MinorPower implements Listener {
     public void onDeath(EliteMobDeathEvent event) {
         if (!event.getEliteEntity().hasPower(this)) return;
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter < 20)
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] < 20)
                     for (int i = 0; i < 20; i++)
                         event.getEntity().getLocation().getWorld().spawnParticle(Particle.PORTAL, event.getEntity().getLocation(), 1, 0.1, 0.1, 0.1, 1);
-                if (counter > 20 * 3) {
+                if (counter[0] > 20 * 3) {
                     for (Entity entity : event.getEntity().getWorld().getNearbyEntities(event.getEntity().getLocation(), 10, 10, 10))
                         if (entity instanceof LivingEntity) {
                             EliteEntity eliteEntity = EntityTracker.getEliteMobEntity(entity);
@@ -52,11 +48,10 @@ public class Implosion extends MinorPower implements Listener {
                                 //Sometimes this is infinite. That just means players shouldn't move.
                             }
                         }
-                    cancel();
+                    task.cancel();
                 }
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 0);
+                counter[0]++;
+            }, 1, 0);
     }
 
 }

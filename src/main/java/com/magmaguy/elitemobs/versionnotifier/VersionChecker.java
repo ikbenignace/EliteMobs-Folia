@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -65,10 +64,8 @@ public class VersionChecker {
     }
 
     private static void checkPluginVersion() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
+        SchedulerUtil.runTaskLater((task) -> {
+String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
                 boolean snapshot = false;
                 if (currentVersion.contains("SNAPSHOT")) {
                     snapshot = true;
@@ -243,9 +240,7 @@ public class VersionChecker {
 
             if (!event.getPlayer().hasPermission("elitemobs.versionnotification")) return;
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+            SchedulerUtil.runTaskLater(() -> {
                     if (!event.getPlayer().isOnline()) return;
 
                     if (connectionFailed && event.getPlayer().hasPermission("elitemobs.admin")) {
@@ -310,8 +305,7 @@ public class VersionChecker {
                     if (SHA1Updated) {
                         event.getPlayer().sendMessage(ChatColorConverter.convert("&8[EliteMobs] &cThe EliteMobs resource pack has updated! This means that the current resource pack will not fully work until you restart your server. You only need to restart once!"));
                     }
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20L * 3);
+                }, 20L * 3);
         }
     }
 }

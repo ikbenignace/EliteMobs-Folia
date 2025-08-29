@@ -11,7 +11,6 @@ import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.reflections.Reflections;
 
 import java.util.HashMap;

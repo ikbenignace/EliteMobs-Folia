@@ -30,7 +30,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -148,12 +147,9 @@ public class TreasureChest implements PersistentObject {
                 blacklistedPlayersInstance.add(player.getUniqueId());
             } else if (customTreasureChestConfigFields.getRestockTimers() != null) {
                 customTreasureChestConfigFields.getRestockTimers().add(cooldownStringConstructor(player));
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        customTreasureChestConfigFields.getRestockTimers().removeIf(restockTime -> restockTime.split(":")[0].equals(player.getUniqueId().toString()));
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+                SchedulerUtil.runTaskLater(() -> {
+                    customTreasureChestConfigFields.getRestockTimers().removeIf(restockTime -> restockTime.split(":")[0].equals(player.getUniqueId().toString()));
+                }, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
             }
             return;
         }

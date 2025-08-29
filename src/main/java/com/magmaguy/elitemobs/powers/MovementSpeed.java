@@ -6,7 +6,6 @@ import com.magmaguy.elitemobs.powers.meta.MinorPower;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**

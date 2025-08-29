@@ -5,7 +5,6 @@ import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Item;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
@@ -40,17 +39,12 @@ public class VisualItemProcessor {
     private void rotateExistingEffects(Object[][] multiDimensionalTrailTracker, Vector[][] cachedVectorPositions,
                                        int pointsPerRotation, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-
-            final boolean isObfuscated = eliteEntity.isVisualEffectObfuscated();
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid() || !hasValidEffect) {
+                final boolean isObfuscated = eliteEntity.isVisualEffectObfuscated();
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimerAsync((task) -> {
+if (!eliteEntity.isValid() || !hasValidEffect) {
                     VisualItemRemover.removeItems(multiDimensionalTrailTracker);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
@@ -62,7 +56,7 @@ public class VisualItemProcessor {
                                 pointsPerRotation,
                                 multiDimensionalTrailTracker[i].length,
                                 sectionCounter,
-                                counter);
+                                counter[0]);
 
                         Vector vector = cachedVectorPositions[i][adjustedEffectPositionInRotation];
 
@@ -81,36 +75,31 @@ public class VisualItemProcessor {
 
                 }
 
-                counter++;
-                if (counter >= pointsPerRotation)
-                    counter = 0;
+                counter[0]++;
+                if (counter[0] >= pointsPerRotation)
+                    counter[0] = 0;
 
                 /*
                 Check if the effect has ceased being obfuscated
                  */
                 if (isObfuscated != eliteEntity.isVisualEffectObfuscated()) {
                     VisualItemRemover.removeItems(multiDimensionalTrailTracker);
-                    cancel();
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            eliteEntity.setVisualEffectObfuscated(false);
-                            if (Arrays.deepEquals(cachedVectorPositions, MinorPowerStanceMath.cachedVectors)) {
-                                eliteEntity.setMinorVisualEffect(false);
-                                new MinorPowerPowerStance(eliteEntity);
-                            }
-                            if (Arrays.deepEquals(cachedVectorPositions, MajorPowerStanceMath.cachedVectors)) {
-                                eliteEntity.setMajorVisualEffect(false);
-                                new MajorPowerPowerStance(eliteEntity);
-                            }
+                    task.cancel();
+                    SchedulerUtil.runTask(() -> {
+                        eliteEntity.setVisualEffectObfuscated(false);
+                        if (Arrays.deepEquals(cachedVectorPositions, MinorPowerStanceMath.cachedVectors)) {
+                            eliteEntity.setMinorVisualEffect(false);
+                            new MinorPowerPowerStance(eliteEntity);
                         }
-                    }.runTask(MetadataHandler.PLUGIN);
+                        if (Arrays.deepEquals(cachedVectorPositions, MajorPowerStanceMath.cachedVectors)) {
+                            eliteEntity.setMajorVisualEffect(false);
+                            new MajorPowerPowerStance(eliteEntity);
+                        }
+                    });
 
                 }
 
-            }
-
-        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 0, 5);
+            }, 0, 5);
 
     }
 

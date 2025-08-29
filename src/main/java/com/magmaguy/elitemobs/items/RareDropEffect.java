@@ -8,7 +8,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class RareDropEffect implements Listener {
@@ -20,25 +19,19 @@ public class RareDropEffect implements Listener {
                 ItemQualityColorizer.getItemQuality(item.getItemStack()).equals(ItemQualityColorizer.ItemQuality.GOLD)))
             return;
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (item == null || !item.isValid() || item.isDead()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (item == null || !item.isValid() || item.isDead()) {
+                    task.cancel();
                     return;
                 }
 
                 item.getWorld().spawnParticle(Particle.PORTAL, item.getLocation(), 5, 0.01, 0.01, 0.01, 0.5);
 
-                counter += 20;
-                if (counter > 20 * 60 * 2)
-                    cancel();
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+                counter[0] += 20;
+                if (counter[0] > 20 * 60 * 2)
+                    task.cancel();
+            }, 0, 20);
 
     }
 

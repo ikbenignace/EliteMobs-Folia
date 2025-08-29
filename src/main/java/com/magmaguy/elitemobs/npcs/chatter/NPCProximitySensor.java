@@ -21,7 +21,6 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -33,11 +32,8 @@ public class NPCProximitySensor implements Listener {
     private static final HashSet<Player> nearbyPlayers = new HashSet<>();
 
     public NPCProximitySensor() {
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                HashSet<Player> unseenPlayerList = (HashSet<Player>) nearbyPlayers.clone();
+        SchedulerUtil.runTaskTimer((task) -> {
+HashSet<Player> unseenPlayerList = (HashSet<Player>) nearbyPlayers.clone();
                 for (NPCEntity npcEntity : EntityTracker.getNpcEntities().values()) {
                     if (!npcEntity.isValid()) continue;
                     for (Entity entity : npcEntity.getVillager().getNearbyEntities(npcEntity.getNPCsConfigFields().getActivationRadius(),
@@ -60,9 +56,7 @@ public class NPCProximitySensor implements Listener {
 
                 nearbyPlayers.removeIf(unseenPlayerList::contains);
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20L * 5L);
+            }, 0, 20L * 5L);
 
     }
 

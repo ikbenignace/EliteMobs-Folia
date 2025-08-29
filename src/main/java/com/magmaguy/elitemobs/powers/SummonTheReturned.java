@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -37,24 +36,20 @@ public class SummonTheReturned extends BossPower implements Listener {
 
     private void doSummonParticles(EliteEntity eliteEntity) {
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
-                counter++;
+                counter[0]++;
                 eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.PORTAL,
                         eliteEntity.getLivingEntity().getLocation().add(new Vector(0, 1, 0)), 50, 0.01, 0.01, 0.01, 1);
-                if (counter < 20 * 3) return;
-                cancel();
+                if (counter[0] < 20 * 3) return;
+                task.cancel();
                 doSummon(eliteEntity);
                 eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

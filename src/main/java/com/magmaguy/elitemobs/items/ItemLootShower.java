@@ -28,7 +28,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -54,22 +53,18 @@ public class ItemLootShower implements Listener {
 
         if (Math.abs(mobLevel - ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false))
                 > ItemSettingsConfig.getLootLevelDifferenceLockout()) {
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    counter++;
-                    if (!player.isValid() || counter > 20 * 5) {
-                        cancel();
+                    final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                    if (!player.isValid() || counter[0] > 20 * 5) {
+                        task.cancel();
                         return;
                     }
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(
                             ChatColorConverter.convert(ItemSettingsConfig.getLevelRangeTooDifferent())
                                     .replace("$playerLevel", ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false) + "")
                                     .replace("$bossLevel", (int) mobLevel + "")));
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                }, 0, 1);
             return;
         }
         if (ItemSettingsConfig.isPutLootDirectlyIntoPlayerInventory())
@@ -86,19 +81,15 @@ public class ItemLootShower implements Listener {
     private static void sendCurrencyNotification(Player player) {
         if (playerCurrencyPickup.containsKey(player)) return;
 
-        new BukkitRunnable() {
-            double oldAmount = 0;
-
-            @Override
-            public void run() {
-
-                if (!playerCurrencyPickup.containsKey(player)) {
+                final double[] oldAmount = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!playerCurrencyPickup.containsKey(player)) {
                     playerCurrencyPickup.put(player, 0.0);
                     return;
                 }
 
-                if (oldAmount != playerCurrencyPickup.get(player)) {
-                    oldAmount = playerCurrencyPickup.get(player);
+                if (oldAmount[0] != playerCurrencyPickup.get(player)) {
+                    oldAmount[0] = playerCurrencyPickup.get(player);
                     return;
                 }
 
@@ -109,11 +100,9 @@ public class ItemLootShower implements Listener {
                 playerCurrencyPickup.remove(player);
                 sendAdventurersGuildNotification(player);
 
-                cancel();
+                task.cancel();
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 40);
+            }, 0, 40);
 
     }
 
@@ -123,69 +112,64 @@ public class ItemLootShower implements Listener {
     }
 
     private void addIndirectly(Location location, int currencyAmount2) {
-        new BukkitRunnable() {
-            int currencyAmount = currencyAmount2;
-
-            @Override
-            public void run() {
-
-                if (currencyAmount <= 0) {
-                    cancel();
+                final int[] currencyAmount = {currencyAmount2};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (currencyAmount[0] <= 0) {
+                    task.cancel();
                     return;
                 }
 
-                if (currencyAmount >= 1000) {
+                if (currencyAmount[0] >= 1000) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropOneThousand(location);
-                        currencyAmount -= 1000;
+                        currencyAmount[0] -= 1000;
                         return;
                     }
                 }
 
-                if (currencyAmount >= 500) {
+                if (currencyAmount[0] >= 500) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropFiveHundred(location);
-                        currencyAmount -= 500;
+                        currencyAmount[0] -= 500;
                         return;
                     }
                 }
 
-                if (currencyAmount >= 100) {
+                if (currencyAmount[0] >= 100) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropOneHundred(location);
-                        currencyAmount -= 100;
+                        currencyAmount[0] -= 100;
                     }
 
-                } else if (currencyAmount >= 50) {
+                } else if (currencyAmount[0] >= 50) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropFifty(location);
-                        currencyAmount -= 50;
+                        currencyAmount[0] -= 50;
                     }
 
-                } else if (currencyAmount >= 20) {
+                } else if (currencyAmount[0] >= 20) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropTwenty(location);
-                        currencyAmount -= 20;
+                        currencyAmount[0] -= 20;
                     }
 
-                } else if (currencyAmount >= 10) {
+                } else if (currencyAmount[0] >= 10) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropTen(location);
-                        currencyAmount -= 10;
+                        currencyAmount[0] -= 10;
                     }
 
-                } else if (currencyAmount >= 5) {
+                } else if (currencyAmount[0] >= 5) {
                     if (ThreadLocalRandom.current().nextDouble() < 0.65) {
                         dropFive(location);
-                        currencyAmount -= 5;
+                        currencyAmount[0] -= 5;
                     }
 
                 } else {
                     dropOne(location);
-                    currencyAmount--;
+                    currencyAmount[0]--;
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 2, 2);
+            }, 2, 2);
     }
 
     private int getCurrencyAmount(double eliteMobTier) {
@@ -401,29 +385,22 @@ public class ItemLootShower implements Listener {
             coinValues.put(item.getUniqueId(), this);
             pickupable = false;
             item.setGravity(false);
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (coinValues.containsKey(item.getUniqueId())) {
+            SchedulerUtil.runTaskLater((task) -> {
+if (coinValues.containsKey(item.getUniqueId())) {
                         if (Bukkit.getEntity(item.getUniqueId()) != null)
                             Bukkit.getEntity(item.getUniqueId()).remove();
                         coinValues.remove(item.getUniqueId());
                     }
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60 * 5);
+                }, 20 * 60 * 5);
 
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-
-                    if (!item.isValid() ||
+                    final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!item.isValid() ||
                             !player.isValid() ||
                             !player.getWorld().equals(item.getWorld()) ||
-                            counter > 20 * 4 ||
+                            counter[0] > 20 * 4 ||
                             item.getLocation().distanceSquared(player.getLocation()) > 900) {
-                        cancel();
+                        task.cancel();
                         pickupable = true;
                         item.setGravity(true);
                         return;
@@ -448,13 +425,12 @@ public class ItemLootShower implements Listener {
                                                 .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
                                                 .replace("$amount", Round.twoDecimalPlaces(playerCurrencyPickup.get(player)) + ""))));
                         coinValues.remove(item.getUniqueId());
-                        cancel();
+                        task.cancel();
                         return;
                     }
 
-                    counter++;
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                    counter[0]++;
+                }, 1, 1);
         }
     }
 

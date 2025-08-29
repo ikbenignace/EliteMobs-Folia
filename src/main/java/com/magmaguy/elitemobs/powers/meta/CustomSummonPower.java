@@ -22,8 +22,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -60,15 +59,13 @@ public class CustomSummonPower extends ElitePower implements Listener {
         return customBossEntity;
     }
 
-    public static BukkitTask summonGlobalReinforcement(CustomBossReinforcement customBossReinforcement, CustomBossEntity summoningEntity) {
+    public static SchedulerUtil.TaskWrapper summonGlobalReinforcement(CustomBossReinforcement customBossReinforcement, CustomBossEntity summoningEntity) {
         if (customBossReinforcement.customSpawn == null || customBossReinforcement.customSpawn.isEmpty()) {
             Logger.warn("Reinforcement for boss " + summoningEntity.getCustomBossesConfigFields().getFilename() + " has an incorrectly configured global reinforcement for " + customBossReinforcement.bossFileName);
             return null;
         }
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (summoningEntity.getGlobalReinforcementsCount() > 30 * summoningEntity.getSpawnLocation().getWorld().getPlayers().size())
+        return SchedulerUtil.runTaskTimer((task) -> {
+if (summoningEntity.getGlobalReinforcementsCount() > 30 * summoningEntity.getSpawnLocation().getWorld().getPlayers().size())
                     return;
                 for (int i = 0; i < customBossReinforcement.amount; i++) {
                     CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity(customBossReinforcement.bossFileName);
@@ -87,8 +84,7 @@ public class CustomSummonPower extends ElitePower implements Listener {
                     customBossReinforcement.isSummoned = true;
                     customBossEntity.setSummoningEntity(summoningEntity);
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20L * 10);
+            }, 0, 20L * 10);
     }
 
     public List<CustomBossReinforcement> getCustomBossReinforcements() {

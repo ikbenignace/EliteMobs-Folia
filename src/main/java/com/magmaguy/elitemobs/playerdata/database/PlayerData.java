@@ -22,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,34 +95,31 @@ public class PlayerData {
         }
         PermissionAttachment permissionAttachment = player.addAttachment(MetadataHandler.PLUGIN);
         permissionAttachment.setPermission("elitequest.*", false);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Statement statement = null;
-                try {
-                    statement = getConnection().createStatement();
-                    ResultSet resultSet = statement.executeQuery("SELECT * FROM " + PLAYER_DATA_TABLE_NAME + " WHERE PlayerUUID = '" + uuid + "';");
-                    if (resultSet.next()) {
-                        readExistingData(statement, uuid, resultSet);
-                    } else {
-                        writeNewData(statement, uuid);
-                    }
-                    resultSet.close();
-                    statement.close();
-                } catch (Exception e) {
-                    if (statement != null) {
-                        try {
-                            statement.close();
-                        } catch (SQLException throwables) {
-                            Logger.warn("Failed to close statement after failing player data creation!");
-                            throwables.printStackTrace();
-                        }
-                    }
-                    Logger.warn("Something went wrong while generating a new player entry. This is bad! Tell the dev.");
-                    Logger.warn(e.getClass().getName() + ": " + e.getMessage());
+        SchedulerUtil.runTaskAsync(() -> {
+            Statement statement = null;
+            try {
+                statement = getConnection().createStatement();
+                ResultSet resultSet = statement.executeQuery("SELECT * FROM " + PLAYER_DATA_TABLE_NAME + " WHERE PlayerUUID = '" + uuid + "';");
+                if (resultSet.next()) {
+                    readExistingData(statement, uuid, resultSet);
+                } else {
+                    writeNewData(statement, uuid);
                 }
+                resultSet.close();
+                statement.close();
+            } catch (Exception e) {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException throwables) {
+                        Logger.warn("Failed to close statement after failing player data creation!");
+                        throwables.printStackTrace();
+                    }
+                }
+                Logger.warn("Something went wrong while generating a new player entry. This is bad! Tell the dev.");
+                Logger.warn(e.getClass().getName() + ": " + e.getMessage());
             }
-        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+        });
     }
 
     public static PlayerData getPlayerData(UUID player) {
@@ -331,28 +327,25 @@ public class PlayerData {
     }
 
     public static void setDatabaseValue(UUID uuid, String key, Object value) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Statement statement = null;
-                try {
-                    statement = getConnection().createStatement();
-                    String sql;
-                    if (value instanceof String) {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = '" + value + "' WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    } else if (value instanceof Boolean) {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + (((Boolean) value) ? 1 : 0) + " WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    } else {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + value + " WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    }
-                    statement.executeUpdate(sql);
-                    statement.close();
-                } catch (Exception e) {
-                    Logger.warn("Failed to update database value.");
-                    e.printStackTrace();
+        SchedulerUtil.runTaskAsync(() -> {
+            Statement statement = null;
+            try {
+                statement = getConnection().createStatement();
+                String sql;
+                if (value instanceof String) {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = '" + value + "' WHERE PlayerUUID = '" + uuid.toString() + "';";
+                } else if (value instanceof Boolean) {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + (((Boolean) value) ? 1 : 0) + " WHERE PlayerUUID = '" + uuid.toString() + "';";
+                } else {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + value + " WHERE PlayerUUID = '" + uuid.toString() + "';";
                 }
+                statement.executeUpdate(sql);
+                statement.close();
+            } catch (Exception e) {
+                Logger.warn("Failed to update database value.");
+                e.printStackTrace();
             }
-        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+        });
     }
 
     private static Object getDatabaseBlob(UUID uuid, String value) {

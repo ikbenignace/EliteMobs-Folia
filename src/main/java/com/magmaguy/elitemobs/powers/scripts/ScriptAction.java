@@ -28,7 +28,6 @@ import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -135,10 +134,8 @@ public class ScriptAction {
         }
 
         if (blueprint.getWait().getValue() > 0) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    runScriptTask(scriptActionData);
+            SchedulerUtil.runTaskLater((task) -> {
+runScriptTask(scriptActionData);
                 }
             }.runTaskLater(MetadataHandler.PLUGIN, blueprint.getWait().getValue());
         } else {
@@ -154,31 +151,27 @@ public class ScriptAction {
     private void runScriptTask(ScriptActionData scriptActionData) {
         if (blueprint.getRepeatEvery().getValue() > 0) {
             // If it's a repeating task, schedule it accordingly.
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    counter++;
-                    if (blueprint.getConditionsBlueprint() != null
-                            && !scriptConditions.meetsActionConditions(scriptActionData)) {
-                        cancel();
-                        return;
-                    }
-
-                    if (blueprint.getTimes().getValue() > 0 && counter > blueprint.getTimes().getValue()) {
-                        cancel();
-                        return;
-                    }
-
-                    if (blueprint.getTimes().getValue() < 0 && !scriptActionData.getEliteEntity().isValid()) {
-                        cancel();
-                        return;
-                    }
-
-                    runActions(scriptActionData);
+            final int[] counter = {0};
+            SchedulerUtil.runTaskTimer((task) -> {
+                counter[0]++;
+                if (blueprint.getConditionsBlueprint() != null
+                        && !scriptConditions.meetsActionConditions(scriptActionData)) {
+                    task.cancel();
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, blueprint.getRepeatEvery().getValue());
+
+                if (blueprint.getTimes().getValue() > 0 && counter[0] > blueprint.getTimes().getValue()) {
+                    task.cancel();
+                    return;
+                }
+
+                if (blueprint.getTimes().getValue() < 0 && !scriptActionData.getEliteEntity().isValid()) {
+                    task.cancel();
+                    return;
+                }
+
+                runActions(scriptActionData);
+            }, 0, blueprint.getRepeatEvery().getValue());
         } else {
             if (blueprint.getConditionsBlueprint() != null
                     && !scriptConditions.meetsActionConditions(scriptActionData)) {
@@ -687,19 +680,16 @@ public class ScriptAction {
 
         // Delay the push by one tick to avoid interference with other events.
         Vector localFinalVelocity = velocity;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Vector finalVelocity = localFinalVelocity;
-                getTargets(scriptActionData).forEach(target -> {
-                    if (additive) {
-                        target.setVelocity(target.getVelocity().add(finalVelocity));
-                    } else {
-                        target.setVelocity(finalVelocity);
-                    }
-                });
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+        SchedulerUtil.runTaskLater(() -> {
+            Vector finalVelocity = localFinalVelocity;
+            getTargets(scriptActionData).forEach(target -> {
+                if (additive) {
+                    target.setVelocity(target.getVelocity().add(finalVelocity));
+                } else {
+                    target.setVelocity(finalVelocity);
+                }
+            });
+        }, 1);
     }
 
     /**
@@ -1031,19 +1021,15 @@ public class ScriptAction {
 
                 if (!blueprint.getLandingScripts().isEmpty()) {
                     FallingEntityDataPair dataPair = new FallingEntityDataPair(this, scriptActionData);
-                    new BukkitRunnable() {
-                        final int maxTicks = 20 * 60 * 5;
-                        int counter = 0;
-
-                        @Override
-                        public void run() {
-                            if (!entity.isValid() || entity.isOnGround() || counter > maxTicks) {
+                            final int[] maxTicks = {20 * 60 * 5};
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!entity.isValid() || entity.isOnGround() || counter[0] > maxTicks[0]) {
                                 ScriptListener.runEvent(dataPair, entity.getLocation());
-                                cancel();
+                                task.cancel();
                             }
-                            counter++;
-                        }
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                            counter[0]++;
+                        }, 1, 1);
                 }
             } catch (Exception e) {
                 Logger.warn("Failed to summon entity at location '" + location + "' in script '" + blueprint.getScriptName() + "': " + e.getMessage());

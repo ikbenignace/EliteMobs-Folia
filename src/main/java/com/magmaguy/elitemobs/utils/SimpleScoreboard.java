@@ -3,7 +3,6 @@ package com.magmaguy.elitemobs.utils;
 import com.magmaguy.elitemobs.MetadataHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
 import java.util.List;

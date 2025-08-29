@@ -22,8 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private long unixRespawnTime;
     private int respawnCoolDownInMinutes = -1;
     private boolean isRespawning = false;
-    private BukkitTask leashTask;
+    private SchedulerUtil.TaskWrapper leashTask;
     @Getter
     @Setter
     private List<TransitiveBlock> onSpawnTransitiveBlocks;
@@ -52,7 +51,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private List<TransitiveBlock> onRemoveTransitiveBlocks;
     @Getter
     private boolean removed = false;
-    private BukkitTask respawnTask = null;
+    private SchedulerUtil.TaskWrapper respawnTask = null;
 
     public RegionalBossEntity(CustomBossesConfigFields customBossesConfigFields, String rawString) {
         super(customBossesConfigFields);
@@ -124,12 +123,9 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     }
 
     public static void regionalDataSaver() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                save();
-            }
-        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 20L * 5, 20L * 5);
+        SchedulerUtil.runTaskTimerAsync((task) -> {
+save();
+            }, 20L * 5, 20L * 5);
     }
 
     public static void save() {

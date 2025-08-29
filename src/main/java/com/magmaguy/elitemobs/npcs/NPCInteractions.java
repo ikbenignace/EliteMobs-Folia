@@ -20,7 +20,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 

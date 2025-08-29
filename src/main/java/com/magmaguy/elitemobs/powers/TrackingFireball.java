@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -50,14 +49,10 @@ public class TrackingFireball extends MajorPower {
 
             public TrackingFireballTasks(Monster monster, TrackingFireball trackingFireball) {
 
-                new BukkitRunnable() {
-
-                    @Override
-                    public void run() {
-
-                        if (!monster.isValid() || monster.getTarget() == null) {
+                SchedulerUtil.runTaskTimer((task) -> {
+if (!monster.isValid() || monster.getTarget() == null) {
                             trackingFireball.setFiring(false);
-                            cancel();
+                            task.cancel();
                             return;
                         }
 
@@ -67,9 +62,7 @@ public class TrackingFireball extends MajorPower {
                                         ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL))
                                     new TrackingFireballTask(monster, (Player) nearbyEntity);
 
-                    }
-
-                }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 8);
+                    }, 0, 20 * 8);
 
             }
 
@@ -85,18 +78,15 @@ public class TrackingFireball extends MajorPower {
                     repeatingFireball.setShooter((ProjectileSource) entity);
                     trackingFireballs.put(repeatingFireball.getUniqueId(), this);
 
-                    new BukkitRunnable() {
-                        int counter = 0;
-
-                        @Override
-                        public void run() {
-                            if (repeatingFireball == null ||
+                            final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (repeatingFireball == null ||
                                     !repeatingFireball.isValid() ||
                                     !entity.isValid() ||
                                     player.isDead() ||
-                                    counter > 20 * 60 * 3 ||
+                                    counter[0] > 20 * 60 * 3 ||
                                     repeatingFireball.getLocation().getWorld() != player.getWorld()) {
-                                cancel();
+                                task.cancel();
                                 return;
                             }
 
@@ -107,9 +97,8 @@ public class TrackingFireball extends MajorPower {
                                 repeatingFireball.setDirection(setFireballDirection(entity));
                                 repeatingFireball.setVelocity(setFireballDirection(entity));
                             }
-                            counter++;
-                        }
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                            counter[0]++;
+                        }, 1, 1);
                 }
 
 
