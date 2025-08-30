@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id("io.github.goooler.shadow") version "8.1.8"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'signing'
 }
 
@@ -144,6 +144,7 @@ shadowJar {
 //        relocate('com.magmaguy.magmacore', 'com.magmaguy.elitemobs.magmacore')
         relocate('com.magmaguy.easyminecraftgoals', 'com.magmaguy.elitemobs.easyminecraftgoals')
     }
+
     archiveClassifier.set(null)
     archiveFileName.set(project.name + ".jar")
     destinationDirectory.set(new File("testbed/plugins"))
