@@ -47,7 +47,6 @@ repositories {
     }
 
     mavenCentral()
-    jcenter()
     mavenLocal()
 
     //Spigot API & CloudCommands
