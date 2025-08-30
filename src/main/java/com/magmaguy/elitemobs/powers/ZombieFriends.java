@@ -81,8 +81,10 @@ if (!event.getEliteMobEntity().isValid() || !reinforcement1.isValid() && !reinfo
 
     private void nameClearer(EliteEntity eliteEntity) {
 
-        SchedulerUtil.runTaskLater(() -> {if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);}, 20 * 3);
+        SchedulerUtil.runTaskLater(() -> {
+            if (eliteEntity.isValid())
+                eliteEntity.setName(eliteEntity.getName(), true);
+        }, 20 * 3);
 
     }
 

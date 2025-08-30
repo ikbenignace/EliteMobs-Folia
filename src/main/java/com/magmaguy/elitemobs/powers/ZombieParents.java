@@ -70,8 +70,10 @@ if (!bossEntity.isValid()) {
 
     private static void nameClearer(EliteEntity eliteEntity) {
 
-        SchedulerUtil.runTaskLater(() -> {if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);}, 20L * 3);
+        SchedulerUtil.runTaskLater(() -> {
+            if (eliteEntity.isValid())
+                eliteEntity.setName(eliteEntity.getName(), true);
+        }, 20L * 3);
 
     }
 

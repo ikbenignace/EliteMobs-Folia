@@ -42,9 +42,11 @@ public class Taunt extends MinorPower implements Listener {
         int randomizedKey = ThreadLocalRandom.current().nextInt(list.size());
         String tempName = list.get(randomizedKey);
         entity.setCustomName(ChatColorConverter.convert(tempName));
-        SchedulerUtil.runTaskLater(() -> {if (!entity.isValid())
-                    return;
-                entity.setCustomName(eliteEntity.getName());}, 4 * 20L);
+        SchedulerUtil.runTaskLater(() -> {
+            if (!entity.isValid())
+                return;
+            entity.setCustomName(eliteEntity.getName());
+        }, 4 * 20L);
     }
 
     /**

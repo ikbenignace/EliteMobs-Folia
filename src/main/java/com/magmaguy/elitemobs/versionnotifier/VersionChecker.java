@@ -64,52 +64,51 @@ public class VersionChecker {
     }
 
     private static void checkPluginVersion() {
-        SchedulerUtil.runTaskLater((task) -> {
-String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
-                boolean snapshot = false;
-                if (currentVersion.contains("SNAPSHOT")) {
-                    snapshot = true;
-                    currentVersion = currentVersion.split("-")[0];
-                }
-                String publicVersion = "";
+        SchedulerUtil.runTaskAsync(() -> {
+            String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
+            boolean snapshot = false;
+            if (currentVersion.contains("SNAPSHOT")) {
+                snapshot = true;
+                currentVersion = currentVersion.split("-")[0];
+            }
+            String publicVersion = "";
 
-                try {
-                    publicVersion = VersionChecker.readStringFromURL("https://api.spigotmc.org/legacy/update.php?resource=40090");
-                    Logger.info("Latest public release is " + publicVersion);
-                    Logger.info("Your version is " + MetadataHandler.PLUGIN.getDescription().getVersion());
-                } catch (IOException e) {
-                    handleConnectionError("plugin version check", e);
-                    return;
-                }
+            try {
+                publicVersion = VersionChecker.readStringFromURL("https://api.spigotmc.org/legacy/update.php?resource=40090");
+                Logger.info("Latest public release is " + publicVersion);
+                Logger.info("Your version is " + MetadataHandler.PLUGIN.getDescription().getVersion());
+            } catch (IOException e) {
+                handleConnectionError("plugin version check", e);
+                return;
+            }
 
-                if (Double.parseDouble(currentVersion.split("\\.")[0]) < Double.parseDouble(publicVersion.split("\\.")[0])) {
+            if (Double.parseDouble(currentVersion.split("\\.")[0]) < Double.parseDouble(publicVersion.split("\\.")[0])) {
+                outOfDateHandler();
+                return;
+            }
+
+            if (Double.parseDouble(currentVersion.split("\\.")[0]) == Double.parseDouble(publicVersion.split("\\.")[0])) {
+
+                if (Double.parseDouble(currentVersion.split("\\.")[1]) < Double.parseDouble(publicVersion.split("\\.")[1])) {
                     outOfDateHandler();
                     return;
                 }
 
-                if (Double.parseDouble(currentVersion.split("\\.")[0]) == Double.parseDouble(publicVersion.split("\\.")[0])) {
-
-                    if (Double.parseDouble(currentVersion.split("\\.")[1]) < Double.parseDouble(publicVersion.split("\\.")[1])) {
+                if (Double.parseDouble(currentVersion.split("\\.")[1]) == Double.parseDouble(publicVersion.split("\\.")[1])) {
+                    if (Double.parseDouble(currentVersion.split("\\.")[2]) < Double.parseDouble(publicVersion.split("\\.")[2])) {
                         outOfDateHandler();
                         return;
                     }
-
-                    if (Double.parseDouble(currentVersion.split("\\.")[1]) == Double.parseDouble(publicVersion.split("\\.")[1])) {
-                        if (Double.parseDouble(currentVersion.split("\\.")[2]) < Double.parseDouble(publicVersion.split("\\.")[2])) {
-                            outOfDateHandler();
-                            return;
-                        }
-                    }
                 }
-
-                if (!snapshot)
-                    Logger.info("You are running the latest version!");
-                else
-                    Logger.info("You are running a snapshot version! You can check for updates in the #releases channel on the EliteMobs Discord!");
-
-                pluginIsUpToDate = true;
             }
-        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+
+            if (!snapshot)
+                Logger.info("You are running the latest version!");
+            else
+                Logger.info("You are running a snapshot version! You can check for updates in the #releases channel on the EliteMobs Discord!");
+
+            pluginIsUpToDate = true;
+        });
     }
 
     private static void checkContentVersion() {

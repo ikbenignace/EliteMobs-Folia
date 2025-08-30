@@ -17,10 +17,12 @@ public class FrostWalker extends MinorPower {
 
     @Override
     public void applyPowers(LivingEntity livingEntity) {
-        SchedulerUtil.runTaskLater(() -> {ItemStack frostWalkerBoots = new ItemStack(Material.LEATHER_BOOTS);
-                frostWalkerBoots.addEnchantment(Enchantment.FROST_WALKER, 2);
-                frostWalkerBoots.addEnchantment(Enchantment.DEPTH_STRIDER, 3);
-                livingEntity.getEquipment().setBoots(frostWalkerBoots);}, 1);
+        SchedulerUtil.runTaskLater(() -> {
+            ItemStack frostWalkerBoots = new ItemStack(Material.LEATHER_BOOTS);
+            frostWalkerBoots.addEnchantment(Enchantment.FROST_WALKER, 2);
+            frostWalkerBoots.addEnchantment(Enchantment.DEPTH_STRIDER, 3);
+            livingEntity.getEquipment().setBoots(frostWalkerBoots);
+        }, 1);
     }
 
 }

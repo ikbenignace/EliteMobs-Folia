@@ -34,7 +34,9 @@ public class EnderDragonArrowBombardment extends Bombardment {
                 Projectile arrow = EliteProjectile.create(EntityType.ARROW, eliteEntity.getLivingEntity(), shotVector, false);
 
                 //anti-lag measure, culls arrows after 4 seconds
-                SchedulerUtil.runTaskLater(() -> {arrow.remove();}, 20L * 4);
+                SchedulerUtil.runTaskLater(() -> {
+                    arrow.remove();
+                }, 20L * 4);
             }
     }
 }

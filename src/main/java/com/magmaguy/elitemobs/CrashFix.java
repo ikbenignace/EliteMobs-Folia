@@ -63,10 +63,12 @@ public class CrashFix implements Listener {
      */
     private static void delayedChunkCheck(Chunk chunk, int hashedChunk) {
         Entity[] entities = chunk.getEntities().clone();
-        SchedulerUtil.runTaskLater(() -> {for (Entity entity : entities)
-                    if (isPersistentEntity(entity))
-                        entity.remove();
-                temporarilyCachedChunks.remove(hashedChunk);}, 1);
+        SchedulerUtil.runTaskLater(() -> {
+            for (Entity entity : entities)
+                if (isPersistentEntity(entity))
+                    entity.remove();
+            temporarilyCachedChunks.remove(hashedChunk);
+        }, 1);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

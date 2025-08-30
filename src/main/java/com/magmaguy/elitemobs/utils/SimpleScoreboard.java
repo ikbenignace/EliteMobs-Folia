@@ -30,8 +30,10 @@ public class SimpleScoreboard {
 
     public static Scoreboard temporaryScoreboard(Player player, String displayName, List<String> scoreboardContents, int ticksTimeout) {
         Scoreboard scoreboard = lazyScoreboard(player, displayName, scoreboardContents);
-        SchedulerUtil.runTaskLater(() -> {if (player.getScoreboard().equals(scoreboard))
-                    player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());}, ticksTimeout);
+        SchedulerUtil.runTaskLater(() -> {
+            if (player.getScoreboard().equals(scoreboard))
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }, ticksTimeout);
 
         return scoreboard;
     }

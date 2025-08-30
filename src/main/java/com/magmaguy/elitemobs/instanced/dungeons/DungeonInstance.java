@@ -223,10 +223,13 @@ public class DungeonInstance extends MatchInstance {
                 Logger.warn("Failed to unload world " + instancedWorldName + " ! This is bad, report this to the developer!");
                 return;
             }
-            SchedulerUtil.runTaskLaterAsync(() -> {try{
-                        FileUtils.deleteDirectory(instancedWorldFile);} catch (Exception e){
-                        Logger.warn("Failed to delete " + instancedWorldFile + " ! This is bad, report this to the developer!");
-                    }}, 20L * 60 * 2); //wait 2 minutes after unloading world before removing files
+            SchedulerUtil.runTaskLaterAsync(() -> {
+                try {
+                    FileUtils.deleteDirectory(instancedWorldFile);
+                } catch (Exception e) {
+                    Logger.warn("Failed to delete " + instancedWorldFile + " ! This is bad, report this to the developer!");
+                }
+            }, 20L * 60 * 2); //wait 2 minutes after unloading world before removing files
         }, 20 * 30L);
     }
 

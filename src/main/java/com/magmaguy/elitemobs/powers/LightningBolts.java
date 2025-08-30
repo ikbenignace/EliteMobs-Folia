@@ -38,8 +38,10 @@ public class LightningBolts extends BossPower implements Listener {
                 }
             }
         }
-        SchedulerUtil.runTaskLater(() -> {if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
-                    eliteEntity.getLivingEntity().setAI(true);}, 4L * 20);
+        SchedulerUtil.runTaskLater(() -> {
+            if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
+                eliteEntity.getLivingEntity().setAI(true);
+        }, 4L * 20);
     }
 
     public static void lightningTask(Location location, int counter) {

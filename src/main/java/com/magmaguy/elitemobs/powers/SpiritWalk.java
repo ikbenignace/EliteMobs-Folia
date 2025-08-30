@@ -115,8 +115,10 @@ if (!eliteEntity.isValid()) {
                                     }
 
                                     vehicle.setInvulnerable(false);
-                                    SchedulerUtil.runTaskLater(() -> {PreventMountExploit.bypass = true;
-                                            vehicle.addPassenger(eliteEntity.getLivingEntity());}, 1);
+                                    SchedulerUtil.runTaskLater(() -> {
+                                        PreventMountExploit.bypass = true;
+                                        vehicle.addPassenger(eliteEntity.getLivingEntity());
+                                    }, 1);
                                 }
                                 task.cancel();
 

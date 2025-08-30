@@ -134,10 +134,9 @@ public class ScriptAction {
         }
 
         if (blueprint.getWait().getValue() > 0) {
-            SchedulerUtil.runTaskLater((task) -> {
-runScriptTask(scriptActionData);
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, blueprint.getWait().getValue());
+            SchedulerUtil.runTaskLater(() -> {
+                runScriptTask(scriptActionData);
+            }, blueprint.getWait().getValue());
         } else {
             runScriptTask(scriptActionData);
         }
@@ -915,15 +914,19 @@ runScriptTask(scriptActionData);
                         world.setThundering(false);
                         world.setWeatherDuration(duration > 0 ? duration : 6000);
                         if (duration > 0) {
-                            SchedulerUtil.runTaskLater(() -> {world.setStorm(false);}, duration + 1);
+                            SchedulerUtil.runTaskLater(() -> {
+                                world.setStorm(false);
+                            }, duration + 1);
                         }
                     }
                     case THUNDER -> {
                         world.setStorm(true);
                         world.setThundering(true);
                         world.setThunderDuration(duration > 0 ? duration : 6000);
-                        SchedulerUtil.runTaskLater(() -> {world.setStorm(false);
-                                world.setThundering(false);}, duration + 1);
+                        SchedulerUtil.runTaskLater(() -> {
+                            world.setStorm(false);
+                            world.setThundering(false);
+                        }, duration + 1);
                     }
                 }
             } catch (Exception e) {

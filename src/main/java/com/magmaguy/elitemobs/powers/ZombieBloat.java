@@ -104,8 +104,10 @@ if (timer[0] > 40) {
         /*
         Effect is done, start task to remove giant
          */
-        SchedulerUtil.runTaskLater(() -> {giant.remove();
-                eventZombie.setAI(true);}, 10);
+        SchedulerUtil.runTaskLater(() -> {
+            giant.remove();
+            eventZombie.setAI(true);
+        }, 10);
 
     }
 

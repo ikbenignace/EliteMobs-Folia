@@ -67,14 +67,16 @@ public class InstanceDeathLocation {
 
     //This is necessary because physics updates might remove the banner while it should still be on there
     public void bannerWatchdog() {
-        SchedulerUtil.runTaskTimer(() -> {if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
-                    cancel();
-                    return;
-                }
-                if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
-                EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
-                findBannerLocation(deathLocation);}, 5, 5);
+        SchedulerUtil.runTaskTimer((task) -> {
+            if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
+                task.cancel();
+                return;
+            }
+            if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
+            EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
+            findBannerLocation(deathLocation);
+        }, 5, 5);
     }
 }

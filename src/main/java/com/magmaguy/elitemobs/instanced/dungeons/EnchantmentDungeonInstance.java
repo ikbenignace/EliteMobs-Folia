@@ -52,7 +52,11 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
 
     public static boolean setupRandomEnchantedChallengeDungeon(Player player, ItemStack upgradedItem, ItemStack itemFromInventory) {
         List<ContentPackagesConfigFields> contentPackagesConfigFieldsList = new ArrayList<>();
-        WorldDungeonPackage.getEmPackages().values().stream().forEach(emPackage -> {if (emPackage.isInstalled() && emPackage.getContentPackagesConfigFields().isEnchantmentChallenge()) contentPackagesConfigFieldsList.add(emPackage.getContentPackagesConfigFields());});
+        WorldDungeonPackage.getEmPackages().values().stream().forEach(emPackage -> {
+            if (emPackage.isInstalled() && emPackage.getContentPackagesConfigFields().isEnchantmentChallenge()) {
+                contentPackagesConfigFieldsList.add(emPackage.getContentPackagesConfigFields());
+            }
+        });
         if (contentPackagesConfigFieldsList.isEmpty()) {
             player.sendMessage(ChatColorConverter.convert("&8[EliteMobs] &cYou rolled challenge but your server has not installed any challenge dungeons! &2This will count as an automatic enchantment success."));
             return false;
@@ -66,11 +70,13 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
                 cloneWorldFiles(contentPackagesConfigFields, instancedWordName, player));
         future.thenAccept(file -> {
             if (file == null) return;
-            SchedulerUtil.runTask(() -> {DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
-                    if (dungeonInstance instanceof EnchantmentDungeonInstance enchantmentDungeonInstance) {
-                        enchantmentDungeonInstance.setUpgradedItem(upgradedItem.clone());
-                        enchantmentDungeonInstance.setCurrentItem(itemFromInventory.clone());
-                    }});
+            SchedulerUtil.runTask(() -> {
+                DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
+                if (dungeonInstance instanceof EnchantmentDungeonInstance enchantmentDungeonInstance) {
+                    enchantmentDungeonInstance.setUpgradedItem(upgradedItem.clone());
+                    enchantmentDungeonInstance.setCurrentItem(itemFromInventory.clone());
+                }
+            });
         });
 
         return true;
@@ -78,7 +84,9 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
 
     @Override
     public void endMatch() {
-        SchedulerUtil.runTaskLater(() -> {removeInstance();}, 20 * 10);
+        SchedulerUtil.runTaskLater(() -> {
+            removeInstance();
+        }, 20 * 10);
     }
 
     @Override

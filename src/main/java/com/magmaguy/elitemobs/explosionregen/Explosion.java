@@ -262,14 +262,16 @@ public class Explosion {
 
         Explosion explosion = this;
 
-        SchedulerUtil.runTaskTimer(() -> {if (detonatedBlocks.isEmpty()) {
-                    explosions.remove(explosion);
-                    cancel();
-                    return;
-                }
+        SchedulerUtil.runTaskTimer((task) -> {
+            if (detonatedBlocks.isEmpty()) {
+                explosions.remove(explosion);
+                task.cancel();
+                return;
+            }
 
-                BlockState firstBlock = detonatedBlocks.get(0);
-                fullBlockRestore(firstBlock, false);}, 20 * 60 * delayBeforeRegen, 1);
+            BlockState firstBlock = detonatedBlocks.get(0);
+            fullBlockRestore(firstBlock, false);
+        }, 20 * 60 * delayBeforeRegen, 1);
 
     }
 
