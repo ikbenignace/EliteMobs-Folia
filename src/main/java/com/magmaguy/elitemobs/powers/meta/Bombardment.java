@@ -12,7 +12,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,9 +34,9 @@ public abstract class Bombardment extends MajorPower implements Listener {
         if (isActive) return;
         isActive = true;
 
-        task =         final int[] counter = {0};
-        SchedulerUtil.runTaskTimer((task) -> {
-counter[0]++;
+        final int[] counter = {0};
+        task = SchedulerUtil.runTaskTimer((task) -> {
+            counter[0]++;
 
                 if (stopCondition(eliteEntity))
                     return;

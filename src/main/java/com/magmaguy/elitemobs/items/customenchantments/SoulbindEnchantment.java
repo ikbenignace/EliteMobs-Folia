@@ -63,18 +63,21 @@ public class SoulbindEnchantment extends CustomEnchantment {
     public static void addPhysicalDisplay(Item item, Player player) {
         if (player == null) return;
         SchedulerUtil.runTaskTimer((task) -> {
-if (item == null)
+            if (item == null)
+                return;
+            TextDisplay soulboundPlayer = VisualDisplay.generateTemporaryTextDisplay(item.getLocation().clone().add(new Vector(0, -50, 0)), ChatColorConverter.convert(
+                    SoulbindConfig.hologramStrings.replace("$player", player.getDisplayName())));
+            final Location lastLocation = item.getLocation().clone();
+            final int[] counter = {0};
+            SchedulerUtil.runTaskLater((innerTask) -> {
+                counter[0]++;
+                if (counter[0] > 20 * 60 * 5 || !item.isValid()) {
+                    innerTask.cancel();
+                    EntityTracker.unregister(soulboundPlayer, RemovalReason.EFFECT_TIMEOUT);
                     return;
-                TextDisplay soulboundPlayer = VisualDisplay.generateTemporaryTextDisplay(item.getLocation().clone().add(new Vector(0, -50, 0)), ChatColorConverter.convert(
-                        SoulbindConfig.hologramStrings.replace("$player", player.getDisplayName())));
-                        final Location lastLocation = item.getLocation().clone();
-        final int[] counter = {0};
-        SchedulerUtil.runTaskLater((task) -> {
-counter[0]++;
-                        if (counter[0] > 20 * 60 * 5 || !item.isValid()) {
-                            task.task.cancel();
-                            EntityTracker.unregister(soulboundPlayer, RemovalReason.EFFECT_TIMEOUT);
-                            return;}, 20 * 3);
+                }
+            }, 20 * 3);
+        }, 20, 1);
     }
 
     public static boolean isValidSoulbindUser(ItemMeta itemMeta, Player player) {
