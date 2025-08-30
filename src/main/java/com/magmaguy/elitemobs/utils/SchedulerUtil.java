@@ -6,6 +6,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Utility class for cross-server scheduler compatibility between Folia and Paper/Spigot
  */
@@ -220,7 +222,8 @@ public class SchedulerUtil {
      */
     public static Object runTaskLaterAsync(Runnable task, long delay) {
         if (isFolia) {
-            return Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
+            // Convert ticks to milliseconds (1 tick = 50ms)
+            return Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
         } else {
             return Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN, task, delay);
         }
@@ -231,7 +234,8 @@ public class SchedulerUtil {
      */
     public static Object runTaskTimerAsync(Runnable task, long delay, long period) {
         if (isFolia) {
-            return Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay, period);
+            // Convert ticks to milliseconds (1 tick = 50ms)
+            return Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS);
         } else {
             return Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, task, delay, period);
         }
@@ -243,10 +247,11 @@ public class SchedulerUtil {
      */
     public static TaskWrapper runTaskTimerAsync(CancellableRunnable task, long delay, long period) {
         if (isFolia) {
+            // Convert ticks to milliseconds (1 tick = 50ms)
             Object foliaTask = Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> {
                 TaskWrapper wrapper = new TaskWrapper(scheduledTask);
                 task.run(wrapper);
-            }, delay, period);
+            }, delay * 50, period * 50, TimeUnit.MILLISECONDS);
             return new TaskWrapper(foliaTask);
         } else {
             TaskWrapper wrapper = new TaskWrapper(null);
@@ -290,7 +295,8 @@ public class SchedulerUtil {
      */
     public static Object scheduleAsyncDelayedTask(Runnable task, long delay) {
         if (isFolia) {
-            return Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
+            // Convert ticks to milliseconds (1 tick = 50ms)
+            return Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
         } else {
             return Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
         }
