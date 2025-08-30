@@ -60,3 +60,15 @@ jobs:
         path: testbed/plugins/EliteMobs.jar
         retention-days: 90
         if-no-files-found: error
+        
+    - name: Build Summary
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Run Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Artifacts Generated" >> $GITHUB_STEP_SUMMARY
+        echo "1. **EliteMobs-${{ github.event_name }}-${{ github.run_number }}** - All build artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "2. **EliteMobs-Plugin** - Main plugin JAR ready for deployment" >> $GITHUB_STEP_SUMMARY
