@@ -18,7 +18,6 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 
 import java.util.HashMap;
 import java.util.HashSet;

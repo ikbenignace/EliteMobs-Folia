@@ -42,6 +42,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -52,7 +53,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     @Getter
     protected static HashSet<CustomBossEntity> trackableCustomBosses = new HashSet<>();
     private static Object dynamicLevelUpdater = null;
-    private final List<BukkitTask> globalReinforcements = new ArrayList<>();
+    private final List<SchedulerUtil.TaskWrapper> globalReinforcements = new ArrayList<>();
     @Getter
     protected CustomBossesConfigFields customBossesConfigFields;
     protected CustomBossEntity customBossMount = null;

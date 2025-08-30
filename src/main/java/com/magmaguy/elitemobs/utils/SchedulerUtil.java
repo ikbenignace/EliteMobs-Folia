@@ -6,8 +6,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.lang.reflect.Method;
-
 /**
  * Utility class for cross-server scheduler compatibility between Folia and Paper/Spigot
  */
@@ -28,10 +26,6 @@ public class SchedulerUtil {
             isFolia = false;
         }
         foliaChecked = true;
-    }
-
-    public static boolean isFolia() {
-        return isFolia;
     }
 
     /**
@@ -233,27 +227,6 @@ public class SchedulerUtil {
     }
 
     /**
-     * Runs a task later asynchronously with access to task wrapper.
-     * Uses AsyncScheduler for Folia, async scheduler for Paper/Spigot.
-     */
-    public static TaskWrapper runTaskLaterAsync(CancellableRunnable task, long delay) {
-        if (isFolia) {
-            Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
-                TaskWrapper wrapper = new TaskWrapper(scheduledTask);
-                task.run(wrapper);
-            }, delay);
-            return new TaskWrapper(foliaTask);
-        } else {
-            TaskWrapper wrapper = new TaskWrapper(null);
-            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN, () -> {
-                task.run(wrapper);
-            }, delay);
-            wrapper.task = bukkitTask;
-            return wrapper;
-        }
-    }
-
-    /**
      * Runs a repeating async task using the appropriate scheduler.
      */
     public static Object runTaskTimerAsync(Runnable task, long delay, long period) {
@@ -332,38 +305,6 @@ public class SchedulerUtil {
             return Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
         } else {
             return Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
-        }
-    }
-
-    /**
-     * Runs a repeating async task using the appropriate scheduler.
-     */
-    public static Object runTaskTimerAsync(Runnable task, long delay, long period) {
-        if (isFolia) {
-            return Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay, period);
-        } else {
-            return Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, task, delay, period);
-        }
-    }
-
-    /**
-     * Runs a repeating async task with access to task wrapper for self-cancellation.
-     * Uses AsyncScheduler for Folia, async scheduler for Paper/Spigot.
-     */
-    public static TaskWrapper runTaskTimerAsync(CancellableRunnable task, long delay, long period) {
-        if (isFolia) {
-            Object foliaTask = Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> {
-                TaskWrapper wrapper = new TaskWrapper(scheduledTask);
-                task.run(wrapper);
-            }, delay, period);
-            return new TaskWrapper(foliaTask);
-        } else {
-            TaskWrapper wrapper = new TaskWrapper(null);
-            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, () -> {
-                task.run(wrapper);
-            }, delay, period);
-            wrapper.task = bukkitTask;
-            return wrapper;
         }
     }
 

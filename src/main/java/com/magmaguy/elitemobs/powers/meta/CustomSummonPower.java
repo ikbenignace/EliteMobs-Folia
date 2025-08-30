@@ -22,7 +22,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
+
 import org.bukkit.util.Vector;
 
 import java.util.*;

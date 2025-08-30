@@ -16,7 +16,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
+
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;

@@ -30,7 +30,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;

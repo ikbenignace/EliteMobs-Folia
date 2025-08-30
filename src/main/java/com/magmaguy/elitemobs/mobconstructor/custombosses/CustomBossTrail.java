@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.SchedulerUtil.TaskWrapper;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
