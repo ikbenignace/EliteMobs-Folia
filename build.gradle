@@ -89,10 +89,18 @@ repositories {
 }
 
 dependencies {
-    //Spigot API
-    compileOnly "org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT"
     //Folia API
-    compileOnly "dev.folia:folia-api:1.21.8-R0.1-SNAPSHOT"
+    compileOnly("dev.folia:folia-api:1.21.8-R0.1-SNAPSHOT") {
+        capabilities {
+            requireCapability("dev.folia:folia-api")
+        }
+    }
+    //Spigot API
+    compileOnly("org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT") {
+        capabilities {
+            requireCapability("org.spigotmc:spigot-api")
+        }
+    }
     //WorldGuard API
     compileOnly group: 'com.sk89q.worldguard', name: 'worldguard-bukkit', version: '7.0.7'
     //Vault
