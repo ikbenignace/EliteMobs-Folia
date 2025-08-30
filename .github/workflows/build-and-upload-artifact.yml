@@ -32,39 +32,31 @@ jobs:
           
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      continue-on-error: true
       
     - name: Build with Gradle
-      run: |
-        if [ -f "./gradlew" ]; then
-          ./gradlew build shadowJar --no-daemon
-        else
-          gradle build shadowJar --no-daemon
-        fi
+      run: ./gradlew clean build shadowJar --no-daemon --stacktrace
         
     - name: List build outputs
       run: |
         echo "Build directory contents:"
-        find build -name "*.jar" -type f 2>/dev/null || true
-        echo "Project root jar files:"
-        find . -maxdepth 2 -name "*.jar" -type f 2>/dev/null || true
+        find build -name "*.jar" -type f 2>/dev/null || echo "No JARs found in build directory"
+        echo "Testbed directory contents:"
+        find testbed -name "*.jar" -type f 2>/dev/null || echo "No JARs found in testbed directory"
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: elitemobs-${{ github.event_name }}-${{ github.run_number }}
+        name: EliteMobs-${{ github.event_name }}-${{ github.run_number }}
         path: |
           build/libs/*.jar
-          testbed/plugins/*.jar
+          testbed/plugins/EliteMobs.jar
         retention-days: 30
         if-no-files-found: warn
         
-    - name: Upload shadowJar specifically (if exists)
+    - name: Upload main plugin JAR
       uses: actions/upload-artifact@v4
       with:
-        name: elitemobs-shadowjar-${{ github.event_name }}-${{ github.run_number }}
-        path: |
-          build/libs/EliteMobs.jar
-          testbed/plugins/EliteMobs.jar
-        retention-days: 30
-        if-no-files-found: ignore
+        name: EliteMobs-Plugin
+        path: testbed/plugins/EliteMobs.jar
+        retention-days: 90
+        if-no-files-found: error
