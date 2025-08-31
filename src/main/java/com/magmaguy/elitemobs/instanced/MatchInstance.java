@@ -142,7 +142,7 @@ public abstract class MatchInstance {
             playerWatchdog();
             spectatorWatchdog();
             intruderWatchdog();
-        }, 0, 1);
+        }, 1, 1);
     }
 
     public void countdownMatch() {
@@ -165,7 +165,7 @@ public abstract class MatchInstance {
                 startMatch();
                 // The task will be automatically cancelled when this returns since it's not repeating
             }
-        }, 0L, 20L);
+        }, 1L, 20L);
     }
 
     private void playerWatchdog() {
@@ -208,7 +208,7 @@ public abstract class MatchInstance {
         SchedulerUtil.runTaskTimer(() -> {
             if (state == InstancedRegionState.WAITING)
                 announce(ArenasConfig.getArenaStartHintMessage().replace("$count", minPlayers + ""));
-        }, 0, 20*60L);
+        }, 1, 20*60L);
     }
 
     protected void announce(String message) {

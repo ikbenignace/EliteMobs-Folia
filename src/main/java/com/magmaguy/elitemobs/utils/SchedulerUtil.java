@@ -101,6 +101,10 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper runTaskTimer(Runnable task, long delay, long period) {
+        // Validate parameters - delay must be >= 1 for repeating tasks
+        if (delay < 1) delay = 1;
+        if (period < 1) period = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay, period);
             return new TaskWrapper(foliaTask);
@@ -115,6 +119,10 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper runTaskTimer(CancellableRunnable task, long delay, long period) {
+        // Validate parameters - delay must be >= 1 for repeating tasks
+        if (delay < 1) delay = 1;
+        if (period < 1) period = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> {
                 TaskWrapper wrapper = new TaskWrapper(scheduledTask);
@@ -184,6 +192,9 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper runTaskLater(Runnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
             return new TaskWrapper(foliaTask);
@@ -198,6 +209,9 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper runTaskLater(CancellableRunnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
                 TaskWrapper wrapper = new TaskWrapper(scheduledTask);
@@ -219,6 +233,9 @@ public class SchedulerUtil {
      * Falls back to sync scheduler for Paper/Spigot.
      */
     public static TaskWrapper runTaskLater(Location location, Runnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getRegionScheduler().runDelayed(MetadataHandler.PLUGIN, location, (scheduledTask) -> task.run(), delay);
             return new TaskWrapper(foliaTask);
@@ -233,6 +250,9 @@ public class SchedulerUtil {
      * Uses AsyncScheduler for Folia, async scheduler for Paper/Spigot.
      */
     public static TaskWrapper runTaskLaterAsync(Runnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             // Convert ticks to milliseconds (1 tick = 50ms)
             Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
@@ -247,6 +267,10 @@ public class SchedulerUtil {
      * Runs a repeating async task using the appropriate scheduler.
      */
     public static TaskWrapper runTaskTimerAsync(Runnable task, long delay, long period) {
+        // Validate parameters - delay and period must be >= 1 for repeating tasks
+        if (delay < 1) delay = 1;
+        if (period < 1) period = 1;
+        
         if (isFolia) {
             // Convert ticks to milliseconds (1 tick = 50ms)
             Object foliaTask = Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS);
@@ -262,6 +286,10 @@ public class SchedulerUtil {
      * Uses AsyncScheduler for Folia, async scheduler for Paper/Spigot.
      */
     public static TaskWrapper runTaskTimerAsync(CancellableRunnable task, long delay, long period) {
+        // Validate parameters - delay and period must be >= 1 for repeating tasks
+        if (delay < 1) delay = 1;
+        if (period < 1) period = 1;
+        
         if (isFolia) {
             // Convert ticks to milliseconds (1 tick = 50ms)
             Object foliaTask = Bukkit.getAsyncScheduler().runAtFixedRate(MetadataHandler.PLUGIN, (scheduledTask) -> {
@@ -284,6 +312,10 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper runTaskTimerLimited(Location location, Runnable task, long delay, long period, int maxExecutions) {
+        // Validate parameters - delay and period must be >= 1 for repeating tasks
+        if (delay < 1) delay = 1;
+        if (period < 1) period = 1;
+        
         if (isFolia) {
             final int[] executionCount = {0};
             Object foliaTask = Bukkit.getRegionScheduler().runAtFixedRate(MetadataHandler.PLUGIN, location, (scheduledTask) -> {
@@ -312,6 +344,9 @@ public class SchedulerUtil {
      * Schedules an async delayed task using the appropriate scheduler.
      */
     public static TaskWrapper scheduleAsyncDelayedTask(Runnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             // Convert ticks to milliseconds (1 tick = 50ms)
             Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
@@ -327,6 +362,9 @@ public class SchedulerUtil {
      * Uses appropriate scheduler based on server type.
      */
     public static TaskWrapper scheduleSyncDelayedTask(Runnable task, long delay) {
+        // Validate parameters - delay must be >= 1 for delayed tasks
+        if (delay < 1) delay = 1;
+        
         if (isFolia) {
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
             return new TaskWrapper(foliaTask);
