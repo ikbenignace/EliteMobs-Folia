@@ -66,7 +66,7 @@ public class Navigation implements Listener {
     }
 
     public static void shutdown() {
-        currentlyNavigating.values().forEach(BukkitTask::cancel);
+        currentlyNavigating.values().forEach(SchedulerUtil::cancelTask);
         currentlyNavigating.clear();
     }
 

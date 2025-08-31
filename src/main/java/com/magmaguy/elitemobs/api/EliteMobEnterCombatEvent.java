@@ -36,9 +36,9 @@ public class EliteMobEnterCombatEvent extends Event {
             CommandRunner.runCommandFromList(customBossEntity.getCustomBossesConfigFields().getOnCombatEnterCommands(), new ArrayList<>());
         //Phase bosses can launch this event through phase switches
         if (!eliteEntity.isInCombat()) {
-            Object combatTask = SchedulerUtil.runTaskTimerAsync(() -> {
+            SchedulerUtil.runTaskTimerAsync((combatTask) -> {
                 if (!eliteEntity.isValid()) {
-                    SchedulerUtil.cancelTask(combatTask);
+                    combatTask.cancel();
                     SchedulerUtil.runTask(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)));
                     return;
                 }
@@ -47,7 +47,7 @@ public class EliteMobEnterCombatEvent extends Event {
                     if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
                         followRange = 200;
                     if (EntitySearch.getNearbyCombatPlayers(eliteEntity.getLocation(), followRange).isEmpty()) {
-                        SchedulerUtil.cancelTask(combatTask);
+                        combatTask.cancel();
                         SchedulerUtil.runTask(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.NO_NEARBY_PLAYERS)));
                     }
                 }

@@ -73,7 +73,7 @@ public class DungeonInstance extends MatchInstance {
         setDifficulty(difficultyName);
         addNewPlayer(player);
         SchedulerUtil.runTaskLater(() -> {
-            NPCEntity.initializeInstancedNPCs(contentPackagesConfigFields.getWorldName(), world, players.size(), dungeonInstance);
+            NPCEntity.initializeInstancedNPCs(contentPackagesConfigFields.getWorldName(), world, players.size(), this);
             TreasureChest.initializeInstancedTreasureChests(contentPackagesConfigFields.getWorldName(), world);
         }, 20 * 3L);
         dungeonInstances.add(this);

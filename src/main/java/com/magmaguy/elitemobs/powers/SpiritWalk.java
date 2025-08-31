@@ -74,7 +74,7 @@ if (!eliteEntity.isValid()) {
                     eliteEntity.getLivingEntity().setInvulnerable(true);
                     Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
 
-                    Entity vehicle = null;
+                    final Entity vehicle;
 
                     if (eliteEntity.getLivingEntity().isInsideVehicle()) {
                         vehicle = eliteEntity.getLivingEntity().getVehicle();
@@ -83,9 +83,10 @@ if (!eliteEntity.isValid()) {
                         vehicle.setInvulnerable(true);
                         if (((CustomBossEntity) eliteEntity).getPhaseBossEntity() != null)
                             vehicle.remove();
+                    } else {
+                        vehicle = null;
                     }
 
-                            final Entity vehicle = eliteEntity.getLivingEntity().getVehicle();
         final int[] counter = {0};
         SchedulerUtil.runTaskTimer((task) -> {
 if (!eliteEntity.isValid()) {

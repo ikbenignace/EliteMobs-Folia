@@ -200,9 +200,9 @@ public class ShieldWall extends MinorPower {
     }
 
     private void armorStandTracker(EliteEntity eliteEntity) {
-        Object trackerTask = SchedulerUtil.runTaskTimer(() -> {
+        SchedulerUtil.runTaskTimer((task) -> {
             if (!eliteEntity.isValid() || (northHealthPool == 0 && southHealthPool == 0 && eastHealthPool == 0 && westHealthPool == 0) || !isActive) {
-                SchedulerUtil.cancelTask(trackerTask);
+                task.cancel();
                 setActive(false);
 
                 for (List<ArmorStand> armorStands : armorStands.values())

@@ -187,7 +187,7 @@ public class TranslationsConfigFields extends CustomConfigFields {
                 ConfigurationEngine.fileSaverCustomValues(translationData, translationDataFile);
             }
             saving = false;
-        });
+        }, 1);
     }
 
     /** Reads a translated value (with color codes converted). */

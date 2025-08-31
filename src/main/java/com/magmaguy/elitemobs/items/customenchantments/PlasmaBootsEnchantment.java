@@ -31,10 +31,10 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
 
     public static void doPlasmaBootsEnchantment(int level, Player player) {
         player.setVelocity(new Vector(0, .8, 0));
-        Object plasmaTask = SchedulerUtil.runTaskTimer(() -> {
+        SchedulerUtil.runTaskTimer((plasmaTask) -> {
             if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
                     && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                SchedulerUtil.cancelTask(plasmaTask);
+                plasmaTask.cancel();
                 doLanding(level, player);
                 return;
             }

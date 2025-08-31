@@ -33,11 +33,11 @@ public class EarthquakeEnchantment extends CustomEnchantment {
     public static void doEarthquakeEnchantment(int earthquakeLevel, Player player) {
         player.sendMessage(EarthquakeConfig.getEarthquakeActivationMessage());
         player.setVelocity(player.getLocation().getDirection().normalize().multiply((Math.log(earthquakeLevel + 2 / 2D) + 1) / 20D).setY(Math.log(earthquakeLevel + 2 / 2D)));
-        Object earthquakeTask = SchedulerUtil.runTaskTimer(() -> {
+        SchedulerUtil.runTaskTimer((earthquakeTask) -> {
             player.setFallDistance(0f);
             if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
                     && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                SchedulerUtil.cancelTask(earthquakeTask);
+                earthquakeTask.cancel();
                 doLanding(earthquakeLevel, player);
                 return;
             }

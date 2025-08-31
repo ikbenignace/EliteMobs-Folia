@@ -12,16 +12,16 @@ public class CustomBossEscapeMechanism {
 
     public static Integer startEscapeTicks(int timeout, CustomBossEntity customBossEntity) {
         if (timeout < 1) return null;
-        return (Integer) SchedulerUtil.scheduleSyncDelayedTask(() -> {
+        return SchedulerUtil.getTaskId(SchedulerUtil.scheduleSyncDelayedTask(() -> {
             doEscapeMessage(customBossEntity);
-        }, timeout);
+        }, timeout));
     }
 
     public static Integer startEscape(int timeout, CustomBossEntity customBossEntity) {
         if (timeout < 1) return null;
-        return (Integer) SchedulerUtil.scheduleSyncDelayedTask(() -> {
+        return SchedulerUtil.getTaskId(SchedulerUtil.scheduleSyncDelayedTask(() -> {
             doEscapeMessage(customBossEntity);
-        }, 20L * 60L * timeout);
+        }, 20L * 60L * timeout));
     }
 
     public static void doEscapeMessage(CustomBossEntity customBossEntity) {

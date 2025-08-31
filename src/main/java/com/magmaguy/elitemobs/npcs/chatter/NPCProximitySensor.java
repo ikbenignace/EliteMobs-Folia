@@ -136,13 +136,13 @@ HashSet<Player> unseenPlayerList = (HashSet<Player>) nearbyPlayers.clone();
         TextDisplay visualArmorStand = VisualDisplay.generateTemporaryTextDisplay(newLocation, messageUp);
         AtomicInteger counter = new AtomicInteger();
         AtomicBoolean up = new AtomicBoolean(true);
-        Object chatTask = SchedulerUtil.runTaskTimer(() -> {
+        SchedulerUtil.runTaskTimer((chatTask) -> {
             if (!player.isValid() ||
                     npcEntity.getVillager() == null ||
                     !npcEntity.getVillager().isValid() ||
                     !npcEntity.getVillager().getWorld().equals(player.getWorld()) ||
                     npcEntity.getVillager().getLocation().distance(player.getLocation()) > npcEntity.getNPCsConfigFields().getActivationRadius()) {
-                SchedulerUtil.cancelTask(chatTask);
+                chatTask.cancel();
                 EntityTracker.unregister(visualArmorStand, RemovalReason.EFFECT_TIMEOUT);
                 return;
             }

@@ -44,7 +44,7 @@ public class LightningBolts extends BossPower implements Listener {
         }, 4L * 20);
     }
 
-    public static void lightningTask(Location location, int counter) {
+    public static void lightningTask(Location location, int counterValue) {
                 final int[] counter = {0};
         SchedulerUtil.runTaskTimer((task) -> {
 counter[0]++;
@@ -55,7 +55,7 @@ counter[0]++;
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.CRIT, location, 10, 0.5, 1.5, 0.5, 0.3);
-            }, counter * 5L, 1);
+            }, counterValue * 5L, 1);
 
     }
 

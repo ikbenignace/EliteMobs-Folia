@@ -67,7 +67,7 @@ if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
         sourceEntity.getLivingEntity().setAI(false);
 
                 final int[] counter = {0};
-        final Vector laserVector = generateRayVector(sourceLocation, target.getLocation());
+        final Vector[] laserVector = {generateRayVector(sourceLocation, target.getLocation())};
         SchedulerUtil.runTaskTimer((task) -> {
 if (counter[0] > 30 ||
                         !target.isValid() ||
@@ -80,9 +80,9 @@ if (counter[0] > 30 ||
                     return;
                 }
 
-                laserVector = dragTarget(laserVector, sourceEntity.getLocation(), target.getLocation());
+                laserVector[0] = dragTarget(laserVector[0], sourceEntity.getLocation(), target.getLocation());
 
-                doRaytraceLaser(laserVector, sourceEntity.getLocation(), counter[0] < 20 / 4d, sourceEntity);
+                doRaytraceLaser(laserVector[0], sourceEntity.getLocation(), counter[0] < 20 / 4d, sourceEntity);
 
                 counter[0]++;
 

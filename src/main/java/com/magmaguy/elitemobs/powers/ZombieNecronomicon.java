@@ -65,6 +65,7 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
             return;
 
                 final int[] counter = {0};
+        final HashMap<Integer, List<Item>> fourTrack = new HashMap<>();
         SchedulerUtil.runTaskTimer((task) -> {
 if (!livingEntity.isValid() || livingEntity.hasAI()) {
                     for (List<Item> itemList : fourTrack.values())
