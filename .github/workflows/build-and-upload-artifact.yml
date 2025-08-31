@@ -40,16 +40,14 @@ jobs:
       run: |
         echo "Build directory contents:"
         find build -name "*.jar" -type f 2>/dev/null || echo "No JARs found in build directory"
-        echo "Testbed directory contents:"
-        find testbed -name "*.jar" -type f 2>/dev/null || echo "No JARs found in testbed directory"
+        echo "Listing all generated JARs:"
+        ls -la build/libs/*.jar 2>/dev/null || echo "No JARs found in build/libs"
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: EliteMobs-${{ github.event_name }}-${{ github.run_number }}
-        path: |
-          build/libs/*.jar
-          testbed/plugins/EliteMobs.jar
+        path: build/libs/*.jar
         retention-days: 30
         if-no-files-found: warn
         
@@ -57,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: EliteMobs-Plugin
-        path: testbed/plugins/EliteMobs.jar
+        path: build/libs/EliteMobs.jar
         retention-days: 90
         if-no-files-found: error
         
