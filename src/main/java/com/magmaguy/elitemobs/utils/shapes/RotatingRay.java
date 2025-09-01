@@ -1,9 +1,9 @@
 package com.magmaguy.elitemobs.utils.shapes;
 
-import com.magmaguy.elitemobs.MetadataHandler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.Lerp;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -11,12 +11,12 @@ import java.util.List;
 
 public class RotatingRay extends Ray {
 
-
     private final int animationDuration;
     private final Location originalCenterLocation;
     private final Location target2;
     private final Vector raySegment;
     private final double distanceSquared;
+    private WrappedTask rotatingTask;
 
     public RotatingRay(boolean ignoresSolidBlocks,
                        double pointRadius,
@@ -64,13 +64,15 @@ public class RotatingRay extends Ray {
         double singleTickPitchRotation = pitchRotation != 0 ? pitchRotation / totalTickDuration : 0;
         double singleTickYawRotation = yawRotation != 0 ? yawRotation / totalTickDuration : 0;
         Vector perpendicularVector = raySegment.clone().setY(0).normalize().rotateAroundY(Math.toRadians(90));
-        new BukkitRunnable() {
+        rotatingTask = FoliaScheduler.runAtLocationTimer(originalCenterLocation, new Runnable() {
             private int counter = 1;
 
             @Override
             public void run() {
                 if (counter > animationDuration) {
-                    cancel();
+                    if (rotatingTask != null) {
+                        rotatingTask.cancel();
+                    }
                     return;
                 }
                 counter++;
@@ -84,7 +86,7 @@ public class RotatingRay extends Ray {
                     raySegment.rotateAroundY(Math.toRadians(singleTickYawRotation));
                 locations = drawLine(centerLocation,target2);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1L, 1L);
+        }, 1L, 1L);
     }
 
 }
