@@ -125,6 +125,9 @@ public class EliteMobs extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Initialize FoliaLib scheduler first
+        com.magmaguy.elitemobs.utils.FoliaScheduler.initialize(this);
+        
         Bukkit.getLogger().info(" _____ _     _____ _____ ________  ______________  _____");
         Bukkit.getLogger().info("|  ___| |   |_   _|_   _|  ___|  \\/  |  _  | ___ \\/  ___|");
         Bukkit.getLogger().info("| |__ | |     | |   | | | |__ | .  . | | | | |_/ /\\ `--.");
