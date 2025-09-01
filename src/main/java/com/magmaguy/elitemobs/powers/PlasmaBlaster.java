@@ -11,7 +11,7 @@ import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,15 +26,12 @@ public class PlasmaBlaster extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
-                    return;
-                }
-                doPower(eliteEntity);
+        super.bukkitTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 4);
+            doPower(eliteEntity);
+        }, 0, 20 * 4);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -48,27 +45,23 @@ public class PlasmaBlaster extends CombatEnterScanPower {
     }
 
     private void createProjectile(Vector shotVector, Location sourceLocation, EliteEntity sourceEntity, Player player) {
-        new BukkitRunnable() {
-            final Location currentLocation = sourceLocation.clone().add(new Vector(0, 1, 0));
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 20 * 3) {
-                    cancel();
-                    return;
-                }
-                counter++;
-
-                if (player.getBoundingBox().overlaps(new Vector(currentLocation.getX() - .5, currentLocation.getY() - .5, currentLocation.getZ() - .5), new Vector(currentLocation.getX() + .5, currentLocation.getY() + .5, currentLocation.getZ() + .5)))
-                    doDamage(player, sourceEntity);
-                if (counter % 5 == 0)
-                    doVisualEffect(currentLocation, counter);
-
-                currentLocation.add(shotVector);
-                if (!currentLocation.getBlock().isPassable()) cancel();
+        final Location currentLocation = sourceLocation.clone().add(new Vector(0, 1, 0));
+        final int[] counter = {0};
+        
+        FoliaScheduler.runAtLocationTimer(sourceLocation, () -> {
+            if (counter[0] > 20 * 3) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            counter[0]++;
+
+            if (player.getBoundingBox().overlaps(new Vector(currentLocation.getX() - .5, currentLocation.getY() - .5, currentLocation.getZ() - .5), new Vector(currentLocation.getX() + .5, currentLocation.getY() + .5, currentLocation.getZ() + .5)))
+                doDamage(player, sourceEntity);
+            if (counter[0] % 5 == 0)
+                doVisualEffect(currentLocation, counter[0]);
+
+            currentLocation.add(shotVector);
+            if (!currentLocation.getBlock().isPassable()) return;
+        }, 0, 1);
     }
 
     private void doDamage(Player player, EliteEntity sourceEntity) {

@@ -6,14 +6,14 @@ import com.magmaguy.elitemobs.config.powers.PowersConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import java.util.HashSet;
 
 public abstract class CombatEnterScanPower extends MajorPower implements Listener {
 
     public static HashSet<CombatEnterScanPower> combatEnterScanPowers = new HashSet<>();
-    public BukkitTask bukkitTask = null;
+    public WrappedTask bukkitTask = null;
     private boolean isActive = false;
 
     public CombatEnterScanPower(PowersConfigFields powersConfigFields) {
