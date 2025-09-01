@@ -1,17 +1,16 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,25 +35,23 @@ public class SummonTheReturned extends BossPower implements Listener {
 
     private void doSummonParticles(EliteEntity eliteEntity) {
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
                 counter++;
                 eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.PORTAL,
                         eliteEntity.getLivingEntity().getLocation().add(new Vector(0, 1, 0)), 50, 0.01, 0.01, 0.01, 1);
                 if (counter < 20 * 3) return;
-                cancel();
                 doSummon(eliteEntity);
                 eliteEntity.getLivingEntity().setAI(true);
+                return; // Exit the runnable
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+        }, 0, 1);
     }
 
     private void doSummon(EliteEntity eliteEntity) {
