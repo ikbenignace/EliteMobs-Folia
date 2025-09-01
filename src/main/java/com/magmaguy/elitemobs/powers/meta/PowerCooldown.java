@@ -15,9 +15,8 @@
 
 package com.magmaguy.elitemobs.powers.meta;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.HashSet;
 
@@ -30,16 +29,9 @@ public class PowerCooldown {
 
         cooldownList.add(eliteMob);
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-
-                cooldownList.remove(eliteMob);
-
-            }
-
-        }.runTaskLater(MetadataHandler.PLUGIN, duration);
+        FoliaScheduler.runAtEntityLater(eliteMob.getLivingEntity(), () -> {
+            cooldownList.remove(eliteMob);
+        }, duration);
 
     }
 
