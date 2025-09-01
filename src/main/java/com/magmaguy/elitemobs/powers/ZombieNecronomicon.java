@@ -20,7 +20,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.magmaguy.magmacore.util.ChatColorConverter.convert;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 18/05/2017.
@@ -64,24 +64,21 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
         if (!MobCombatSettingsConfig.isEnableWarningVisualEffects())
             return;
 
-        new BukkitRunnable() {
-            final HashMap<Integer, List<Item>> fourTrack = new HashMap<>();
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!livingEntity.isValid() || livingEntity.hasAI()) {
+                final int[] counter = {0};
+        final HashMap<Integer, List<Item>> fourTrack = new HashMap<>();
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!livingEntity.isValid() || livingEntity.hasAI()) {
                     for (List<Item> itemList : fourTrack.values())
                         for (Item item : itemList)
                             item.remove();
                     if (livingEntity.isValid())
                         livingEntity.setCustomName(EntityTracker.getEliteMobEntity(livingEntity).getName());
                     zombieNecronomicon.setFiring(false);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
-                if (counter == 0) {
+                if (counter[0] == 0) {
 
                     //establish 4tracks
                     for (int i = 0; i < 8; i++) {
@@ -94,12 +91,10 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
                         fourTrack.put(i, itemList);
                     }
                 } else
-                    itemMover(fourTrack, livingEntity, counter);
+                    itemMover(fourTrack, livingEntity, counter[0]);
 
-                counter++;
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 5, 5);
+                counter[0]++;
+            }, 5, 5);
 
     }
 
@@ -148,14 +143,10 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
     private void nameScroller(LivingEntity livingEntity, ZombieNecronomicon zombieNecronomicon) {
 
-        new BukkitRunnable() {
-            final String fullChant = convert(PowersConfig.getPower("zombie_necronomicon.yml").getFileConfiguration().getString("summoningChant"));
-
-            @Override
-            public void run() {
-
-                if (!livingEntity.isValid() || livingEntity.hasAI()) {
-                    cancel();
+                final String fullChant = convert(PowersConfig.getPower("zombie_necronomicon.yml").getFileConfiguration().getString("summoningChant"));
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!livingEntity.isValid() || livingEntity.hasAI()) {
+                    task.cancel();
                     return;
                 }
 
@@ -165,9 +156,7 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
                 String subString = fullChant.substring(zombieNecronomicon.chantIndex, zombieNecronomicon.chantIndex + 31);
                 livingEntity.setCustomName(subString);
                 zombieNecronomicon.chantIndex++;
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 
@@ -175,12 +164,8 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
         LivingEntity targetter = eliteEntity.getLivingEntity();
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid() || !targetted.isValid() || !targetter.isValid() || targetted.getWorld() != targetter.getWorld()
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid() || !targetted.isValid() || !targetter.isValid() || targetted.getWorld() != targetter.getWorld()
                         || targetted.getLocation().distance(targetter.getLocation()) > 30) {
 
                     for (CustomBossEntity entity : entityList)
@@ -189,7 +174,7 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
                     if (eliteEntity.isValid())
                         targetter.setAI(true);
-                    cancel();
+                    task.cancel();
                     return;
 
                 }
@@ -216,9 +201,9 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
                         if (!customBossEntity.exists() || !customBossEntity.getLivingEntity().isValid()) {
                             targetter.setAI(true);
-                            cancel();
+                            task.cancel();
                             targetter.setAI(true);
-                            cancel();
+                            task.cancel();
                             return;
                         }
 
@@ -235,14 +220,14 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
                         if (customBossEntity == null) {
                             Logger.warn("necronomicon_skeleton.yml is not valid!");
                             targetter.setAI(true);
-                            cancel();
+                            task.cancel();
                             return;
                         }
                         customBossEntity.spawn(targetter.getLocation(), eliteEntity.getLevel(), false);
 
                         if (!customBossEntity.getLivingEntity().isValid()) {
                             targetter.setAI(true);
-                            cancel();
+                            task.cancel();
                             return;
                         }
 
@@ -258,9 +243,7 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
                 } else
                     targetter.setAI(true);
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20 * 3L, 20 * 3L);
+            }, 20 * 3L, 20 * 3L);
 
     }
 

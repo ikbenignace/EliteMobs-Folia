@@ -8,10 +8,10 @@ import com.magmaguy.elitemobs.quests.menus.QuestMenu;
 import com.magmaguy.elitemobs.quests.objectives.CustomFetchObjective;
 import com.magmaguy.elitemobs.quests.objectives.Objective;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class QuestInteractionHandler {
     private QuestInteractionHandler() {
@@ -72,12 +72,7 @@ public class QuestInteractionHandler {
             player.sendMessage(QuestsConfig.getQuestPrerequisitesMissingMessage());
 
         if (!customQuestList.isEmpty())
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    QuestMenu.generateCustomQuestMenu(customQuestList, player, npcEntity);
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 1);
+            SchedulerUtil.runTaskLater(() -> {QuestMenu.generateCustomQuestMenu(customQuestList, player, npcEntity);}, 1);
     }
 
     private static void scanQuestTakerNPC(NPCEntity npcEntity, List<Quest> activeQuests, List<CustomQuest> npcQuests, Player player) {

@@ -12,9 +12,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class FlamePyre extends BossPower implements Listener {
 
@@ -40,22 +40,18 @@ public class FlamePyre extends BossPower implements Listener {
      */
     private void doFlamePyrePhase1(EliteEntity eliteEntity) {
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
                 if (!eliteEntity.isValid()) {
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 spawnPhase1Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.SMOKE);
-                if (counter < 20 * 2) return;
-                cancel();
+                if (counter[0] < 20 * 2) return;
+                task.cancel();
                 doFlamePyrePhase2(eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void spawnPhase1Particle(Location location, Particle particle) {
@@ -73,24 +69,20 @@ public class FlamePyre extends BossPower implements Listener {
      * First damage phase
      */
     private void doFlamePyrePhase2(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
-                counter++;
+                counter[0]++;
                 spawnPhase1Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.FLAME);
                 doDamage(eliteEntity, 0.5, 50, 0.5);
                 spawnPhase2Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.SMOKE);
-                if (counter < 20 * 2) return;
-                cancel();
+                if (counter[0] < 20 * 2) return;
+                task.cancel();
                 doFlamePyrePhase3(eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void spawnPhase2Particle(Location location, Particle particle) {
@@ -116,24 +108,20 @@ public class FlamePyre extends BossPower implements Listener {
      * @param eliteEntity
      */
     private void doFlamePyrePhase3(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
-                counter++;
+                counter[0]++;
                 spawnPhase2Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.FLAME);
                 doDamage(eliteEntity, 3, 50, 3);
                 spawnPhase3Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.SMOKE);
-                if (counter < 20 * 2) return;
-                cancel();
+                if (counter[0] < 20 * 2) return;
+                task.cancel();
                 doFlamePyrePhase4(eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void spawnPhase3Particle(Location location, Particle particle) {
@@ -144,23 +132,19 @@ public class FlamePyre extends BossPower implements Listener {
      * Final/full damage phase
      */
     private void doFlamePyrePhase4(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
-                counter++;
+                counter[0]++;
                 spawnPhase3Particle(eliteEntity.getLivingEntity().getLocation().clone(), Particle.FLAME);
                 doDamage(eliteEntity, 5, 50, 5);
-                if (counter < 20 * 2) return;
-                cancel();
+                if (counter[0] < 20 * 2) return;
+                task.cancel();
                 eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
 }

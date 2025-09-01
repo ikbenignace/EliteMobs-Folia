@@ -10,13 +10,13 @@ import com.magmaguy.elitemobs.powers.scripts.caching.ScriptZoneBlueprint;
 import com.magmaguy.elitemobs.powers.scripts.enums.TargetType;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.elitemobs.utils.shapes.*;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -79,7 +79,7 @@ public class ScriptZone {
         this.isValid = zoneBlueprint.getTarget() != null;
     }
 
-    private ZoneListenerTask zoneListenerTask = null;
+    private SchedulerUtil.TaskWrapper zoneListenerTask = null;
 
     /**
      * Starts a zone listener that monitors entities entering or leaving the zone.
@@ -92,8 +92,39 @@ public class ScriptZone {
 
         entitiesInZone = new HashSet<>();
         ScriptActionData scriptActionData = new ScriptActionData(eliteEntity, targets, this);
-        zoneListenerTask = new ZoneListenerTask(eliteEntity, scriptActionData);
-        zoneListenerTask.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+        zoneListenerTask = SchedulerUtil.runTaskTimer((task) -> {
+            try {
+                if (eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
+                    // Cancel task if the elite entity is no longer valid
+                    task.cancel();
+                    return;
+                }
+
+                // Retrieve current entities in the zone
+                Collection<LivingEntity> newEntities = getEntitiesInArea(generateShapes(scriptActionData, false), TargetType.ZONE_FULL);
+
+                // Check for entities entering the zone
+                for (LivingEntity entity : newEntities) {
+                    if (!entitiesInZone.contains(entity)) {
+                        zoneEnterEvent(eliteEntity, entity);
+                    }
+                }
+
+                // Check for entities leaving the zone
+                for (LivingEntity entity : entitiesInZone) {
+                    if (!newEntities.contains(entity)) {
+                        zoneLeaveEvent(eliteEntity, entity);
+                    }
+                }
+
+                // Update the set of entities currently in the zone
+                entitiesInZone = new HashSet<>(newEntities);
+
+            } catch (Exception e) {
+                Logger.warn("Error in ZoneListenerTask: " + e.getMessage());
+                task.cancel();
+            }
+        }, 1, 1);
     }
 
     /**
@@ -402,48 +433,4 @@ public class ScriptZone {
     /**
      * A task that listens for entities entering or leaving the zone.
      */
-    private class ZoneListenerTask extends BukkitRunnable {
-        private final EliteEntity eliteEntity;
-        private final ScriptActionData scriptActionData;
-
-        public ZoneListenerTask(EliteEntity eliteEntity, ScriptActionData scriptActionData) {
-            this.eliteEntity = eliteEntity;
-            this.scriptActionData = scriptActionData;
-        }
-
-        @Override
-        public void run() {
-            try {
-                if (eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
-                    // Cancel task if the elite entity is no longer valid
-                    cancel();
-                    return;
-                }
-
-                // Retrieve current entities in the zone
-                Collection<LivingEntity> newEntities = getEntitiesInArea(generateShapes(scriptActionData, false), TargetType.ZONE_FULL);
-
-                // Trigger enter events for entities that have just entered
-                for (LivingEntity livingEntity : newEntities) {
-                    if (!entitiesInZone.contains(livingEntity)) {
-                        zoneEnterEvent(eliteEntity, livingEntity);
-                    }
-                }
-
-                // Trigger leave events for entities that have just left
-                for (LivingEntity livingEntity : entitiesInZone) {
-                    if (!newEntities.contains(livingEntity)) {
-                        zoneLeaveEvent(eliteEntity, livingEntity);
-                    }
-                }
-
-                // Update the set of entities currently in the zone
-                entitiesInZone = new HashSet<>(newEntities);
-
-            } catch (Exception e) {
-                Logger.warn("Error in ZoneListenerTask: " + e.getMessage());
-                cancel();
-            }
-        }
-    }
 }

@@ -10,25 +10,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class EnderCrystalLightningRod {
 
     public EnderCrystalLightningRod(EliteEntity eliteEntity, EnderCrystal enderCrystal) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid() || !enderCrystal.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid() || !enderCrystal.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                if (counter % 5 == 0) {
+                if (counter[0] % 5 == 0) {
                     Vector randomVector = new Vector(
                             ThreadLocalRandom.current().nextInt(-15, 15),
                             0,
@@ -37,9 +34,8 @@ public class EnderCrystalLightningRod {
                     EnderDragonEmpoweredLightning.lightningTask(enderCrystal.getLocation().clone().add(randomVector));
                 }
 
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+                counter[0]++;
+            }, 0, 20);
     }
 
     public static class EnderCrystalLightningRodEvents implements Listener {

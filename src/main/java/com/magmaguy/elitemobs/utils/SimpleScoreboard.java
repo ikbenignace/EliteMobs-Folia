@@ -3,10 +3,10 @@ package com.magmaguy.elitemobs.utils;
 import com.magmaguy.elitemobs.MetadataHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
 import java.util.List;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SimpleScoreboard {
 
@@ -30,13 +30,10 @@ public class SimpleScoreboard {
 
     public static Scoreboard temporaryScoreboard(Player player, String displayName, List<String> scoreboardContents, int ticksTimeout) {
         Scoreboard scoreboard = lazyScoreboard(player, displayName, scoreboardContents);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (player.getScoreboard().equals(scoreboard))
-                    player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticksTimeout);
+        SchedulerUtil.runTaskLater(() -> {
+            if (player.getScoreboard().equals(scoreboard))
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }, ticksTimeout);
 
         return scoreboard;
     }

@@ -11,11 +11,11 @@ import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ElitePower {
 
@@ -155,12 +155,7 @@ public class ElitePower {
 
         eliteEntity.doGlobalPowerCooldown(globalCooldownTime * 20);
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                powerCooldownActive = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, powerCooldownTime * 20L);
+        SchedulerUtil.runTaskLater(() -> powerCooldownActive = false, powerCooldownTime * 20L);
 
     }
 
@@ -169,34 +164,19 @@ public class ElitePower {
         if (globalCooldownTime > 0)
             eliteEntity.doGlobalPowerCooldown(globalCooldownTime);
         if (powerCooldownTime > 0)
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    powerCooldownActive = false;
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, powerCooldownTime);
+            SchedulerUtil.runTaskLater(() -> powerCooldownActive = false, powerCooldownTime);
 
     }
 
     protected void doGlobalCooldown(int ticks, EliteEntity eliteEntity) {
         setInGlobalCooldown(true);
         eliteEntity.doCooldown();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInGlobalCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        SchedulerUtil.runTaskLater(() -> setInGlobalCooldown(false), ticks);
     }
 
     protected void doGlobalCooldown(int ticks) {
         setInGlobalCooldown(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInGlobalCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        SchedulerUtil.runTaskLater(() -> setInGlobalCooldown(false), ticks);
     }
 
 }

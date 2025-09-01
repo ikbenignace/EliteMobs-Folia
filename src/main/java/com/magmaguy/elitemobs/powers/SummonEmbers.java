@@ -10,10 +10,10 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SummonEmbers extends BossPower implements Listener {
     public SummonEmbers() {
@@ -34,24 +34,20 @@ public class SummonEmbers extends BossPower implements Listener {
 
     private void doSummonParticles(EliteEntity eliteEntity) {
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
                 if (!eliteEntity.isValid()) {
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.FLAME,
                         eliteEntity.getLivingEntity().getLocation().add(new Vector(0, 1, 0)), 50, 0.0001, 0.0001, 0.0001);
-                if (counter < 20 * 3) return;
-                cancel();
+                if (counter[0] < 20 * 3) return;
+                task.cancel();
                 doSummon(eliteEntity);
                 eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

@@ -16,10 +16,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 06/05/2017.
@@ -42,17 +42,11 @@ public class Taunt extends MinorPower implements Listener {
         int randomizedKey = ThreadLocalRandom.current().nextInt(list.size());
         String tempName = list.get(randomizedKey);
         entity.setCustomName(ChatColorConverter.convert(tempName));
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (!entity.isValid())
-                    return;
-                entity.setCustomName(eliteEntity.getName());
-            }
-
-
-        }.runTaskLater(MetadataHandler.PLUGIN, 4 * 20L);
+        SchedulerUtil.runTaskLater(() -> {
+            if (!entity.isValid())
+                return;
+            entity.setCustomName(eliteEntity.getName());
+        }, 4 * 20L);
     }
 
     /**

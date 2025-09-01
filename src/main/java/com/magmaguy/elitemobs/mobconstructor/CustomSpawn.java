@@ -23,13 +23,13 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomSpawn {
 
@@ -108,24 +108,17 @@ public class CustomSpawn {
     public void queueSpawn() {
         //Make sure a location exists
         if (spawnLocation == null)
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    generateCustomSpawn();
-                }
-            }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+            SchedulerUtil.runTaskAsync(() -> generateCustomSpawn());
         else
             spawn();
     }
 
     private void spawn() {
         //Pass back to sync if it's in async
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (spawnLocation == null) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
-                    cancel();
+        SchedulerUtil.runTaskTimer((task) -> {
+if (spawnLocation == null) {
+                    SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
+                    task.cancel();
                     return;
                 }
                 //One last check
@@ -134,13 +127,13 @@ public class CustomSpawn {
                 if (!testEntity.isValid()) {
                     spawnLocation = null;
                     //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
-                    cancel();
+                    SchedulerUtil.runTaskLater(() -> generateCustomSpawn(), 1);
+                    task.cancel();
                     return;
                 }
                 testEntity.remove();
 
-                if (!keepTrying) cancel();
+                if (!keepTrying) task.cancel();
 
                 if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
                         spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
@@ -154,20 +147,19 @@ public class CustomSpawn {
                     if (!customBossEntity.exists())
                         customBossEntity.spawn(spawnLocation, isEvent);
 
-                cancel();
+                task.cancel();
 
                 if (timedEvent != null)
                     timedEvent.queueEvent();
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void generateCustomSpawn() {
         //If the global cooldown if enforced and this is a timed event wait for the cd to be over
 
         if (timedEvent != null && System.currentTimeMillis() < TimedEvent.getNextEventStartMinimum()) {
-            Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, this::generateCustomSpawn, 20 * 60L);
+            SchedulerUtil.scheduleAsyncDelayedTask(this::generateCustomSpawn, 20 * 60L);
             return;
         }
 
@@ -186,12 +178,7 @@ public class CustomSpawn {
 
         if (spawnLocation == null) {
             if (keepTrying) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        generateCustomSpawn();
-                    }
-                }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20 * 60);
+                SchedulerUtil.runTaskLaterAsync(() -> generateCustomSpawn(), 20 * 60);
             } else {
                 customBossEntities.forEach((customBossEntity -> {
                     if (customBossEntity.summoningEntity != null)

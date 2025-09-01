@@ -11,9 +11,9 @@ import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SkeletonPillar extends MajorPower implements Listener {
 
@@ -43,23 +43,18 @@ public class SkeletonPillar extends MajorPower implements Listener {
         Location location2 = event.getEliteMobEntity().getLivingEntity().getLocation().clone()
                 .add(locationMover(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), 20, -7));
 
-        new BukkitRunnable() {
-
-            int timer = 1;
-
-            @Override
-            public void run() {
-
-                if (timer > 20 * 7 || !event.getEliteMobEntity().isValid()) {
+                final int[] timer = {1};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (timer[0] > 20 * 7 || !event.getEliteMobEntity().isValid()) {
 
                     if (event.getEliteMobEntity().getLivingEntity() != null)
                         event.getEliteMobEntity().getLivingEntity().setAI(true);
-                    cancel();
+                    task.cancel();
 
-                } else if (timer > 20 && timer < 20 * 7) {
+                } else if (timer[0] > 20 && timer[0] < 20 * 7) {
 
-                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer, 7);
-                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer, -7);
+                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer[0], 7);
+                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer[0], -7);
 
                 } else {
 
@@ -68,11 +63,9 @@ public class SkeletonPillar extends MajorPower implements Listener {
 
                 }
 
-                timer++;
+                timer[0]++;
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 
@@ -106,13 +99,10 @@ public class SkeletonPillar extends MajorPower implements Listener {
 
     private void playPillarSong(Location location) {
         soundLocation = location;
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
-                switch (counter) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                switch (counter[0]) {
                     case 1:
                         playSound(d());
                         break;
@@ -246,13 +236,12 @@ public class SkeletonPillar extends MajorPower implements Listener {
                         playSound(gHigher());
                         break;
                     case 80:
-                        cancel();
+                        task.cancel();
                         break;
                     default:
                         break;
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 2);
+            }, 1, 2);
     }
 
     private void playSound(float pitch) {

@@ -6,6 +6,7 @@ import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
 import com.magmaguy.elitemobs.utils.NonSolidBlockTypes;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Arrow;
@@ -14,7 +15,6 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.SpectralArrow;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -51,17 +51,14 @@ public class ArrowFireworks extends MinorPower implements Listener {
             rocketArrow.setGravity(false);
             rocketArrow.setGlowing(true);
 
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    if (!rocketArrow.isValid() || !eliteEntity.isValid()) {
-                        cancel();
+                    final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!rocketArrow.isValid() || !eliteEntity.isValid()) {
+                        task.cancel();
                         return;
                     }
 
-                    if (counter < 20 * 1.5) {
+                    if (counter[0] < 20 * 1.5) {
                         rocketArrow.getWorld().spawnParticle(Particle.CRIT, rocketArrow.getLocation(), 1);
                     } else {
 
@@ -75,14 +72,13 @@ public class ArrowFireworks extends MinorPower implements Listener {
 
                         rocketArrow.remove();
 
-                        cancel();
+                        task.cancel();
                     }
 
-                    counter++;
+                    counter[0]++;
 
 
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                }, 0, 1);
 
         }
 

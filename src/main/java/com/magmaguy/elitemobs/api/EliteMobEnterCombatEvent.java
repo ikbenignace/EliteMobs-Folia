@@ -7,6 +7,7 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.utils.CommandRunner;
 import com.magmaguy.elitemobs.utils.EntitySearch;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
@@ -34,11 +35,11 @@ public class EliteMobEnterCombatEvent extends Event {
         if (eliteEntity instanceof CustomBossEntity customBossEntity)
             CommandRunner.runCommandFromList(customBossEntity.getCustomBossesConfigFields().getOnCombatEnterCommands(), new ArrayList<>());
         //Phase bosses can launch this event through phase switches
-        if (!eliteEntity.isInCombat())
-            Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, task -> {
+        if (!eliteEntity.isInCombat()) {
+            SchedulerUtil.runTaskTimerAsync((combatTask) -> {
                 if (!eliteEntity.isValid()) {
-                    task.cancel();
-                    Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, syncTask -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)));
+                    combatTask.cancel();
+                    SchedulerUtil.runTask(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)));
                     return;
                 }
                 if (!eliteEntity.isInCombatGracePeriod()) {
@@ -46,11 +47,12 @@ public class EliteMobEnterCombatEvent extends Event {
                     if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
                         followRange = 200;
                     if (EntitySearch.getNearbyCombatPlayers(eliteEntity.getLocation(), followRange).isEmpty()) {
-                        task.cancel();
-                        Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, syncTask -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.NO_NEARBY_PLAYERS)));
+                        combatTask.cancel();
+                        SchedulerUtil.runTask(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.NO_NEARBY_PLAYERS)));
                     }
                 }
             }, 20L, 20L);
+        }
         eliteEntity.setInCombat(true);
     }
 

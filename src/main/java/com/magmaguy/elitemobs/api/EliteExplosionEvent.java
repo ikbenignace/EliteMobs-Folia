@@ -11,11 +11,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class EliteExplosionEvent extends Event implements Cancellable {
 
@@ -95,13 +95,8 @@ public class EliteExplosionEvent extends Event implements Cancellable {
                     fallingBlock.setVelocity(fallingBlock.getLocation().clone().subtract(explosionSourceLocation).toVector().normalize().setY(1).multiply(0.5));
             }
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (fallingBlock.isValid())
-                        fallingBlock.remove();
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 4);
+            SchedulerUtil.runTaskLater(() -> {if (fallingBlock.isValid())
+                        fallingBlock.remove();}, 20 * 4);
 
             CrashFix.registerVisualFallingBlock(fallingBlock);
         }

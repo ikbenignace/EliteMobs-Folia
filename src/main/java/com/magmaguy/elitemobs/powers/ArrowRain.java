@@ -10,11 +10,11 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ArrowRain extends MinorPower implements Listener {
 
@@ -23,30 +23,25 @@ public class ArrowRain extends MinorPower implements Listener {
     }
 
     public static void doArrowRain(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-            final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                if (counter > 10 * 20) {
-                    cancel();
+                if (counter[0] > 10 * 20) {
+                    task.cancel();
                     eliteEntity.getLivingEntity().teleport(initialLocation);
                     return;
                 }
 
-                counter++;
+                counter[0]++;
                 MeteorShower.doCloudEffect(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)));
-                if (counter > 20)
+                if (counter[0] > 20)
                     doArrows(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)), eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private static void doArrows(Location location, EliteEntity eliteEntity) {

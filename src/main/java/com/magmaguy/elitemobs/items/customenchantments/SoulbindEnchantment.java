@@ -8,6 +8,7 @@ import com.magmaguy.elitemobs.config.enchantments.premade.SoulbindConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.items.EliteItemLore;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,7 +23,6 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.UUID;
@@ -62,33 +62,22 @@ public class SoulbindEnchantment extends CustomEnchantment {
 
     public static void addPhysicalDisplay(Item item, Player player) {
         if (player == null) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (item == null)
+        SchedulerUtil.runTaskTimer((task) -> {
+            if (item == null)
+                return;
+            TextDisplay soulboundPlayer = VisualDisplay.generateTemporaryTextDisplay(item.getLocation().clone().add(new Vector(0, -50, 0)), ChatColorConverter.convert(
+                    SoulbindConfig.hologramStrings.replace("$player", player.getDisplayName())));
+            final Location lastLocation = item.getLocation().clone();
+            final int[] counter = {0};
+            SchedulerUtil.runTaskLater((innerTask) -> {
+                counter[0]++;
+                if (counter[0] > 20 * 60 * 5 || !item.isValid()) {
+                    innerTask.cancel();
+                    EntityTracker.unregister(soulboundPlayer, RemovalReason.EFFECT_TIMEOUT);
                     return;
-                TextDisplay soulboundPlayer = VisualDisplay.generateTemporaryTextDisplay(item.getLocation().clone().add(new Vector(0, -50, 0)), ChatColorConverter.convert(
-                        SoulbindConfig.hologramStrings.replace("$player", player.getDisplayName())));
-                new BukkitRunnable() {
-                    final Location lastLocation = item.getLocation().clone();
-                    int counter = 0;
-
-                    @Override
-                    public void run() {
-                        counter++;
-                        if (counter > 20 * 60 * 5 || !item.isValid()) {
-                            cancel();
-                            EntityTracker.unregister(soulboundPlayer, RemovalReason.EFFECT_TIMEOUT);
-                            return;
-                        }
-                        if (!lastLocation.equals(item.getLocation()))
-                            soulboundPlayer.teleport(item.getLocation().clone().add(new Vector(0, 0.5, 0)));
-                        if (counter == 1)
-                            soulboundPlayer.teleport(item.getLocation().clone().add(new Vector(0, 0.5, 0)));
-                    }
-                }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3);
+                }
+            }, 20 * 3);
+        }, 20, 1);
     }
 
     public static boolean isValidSoulbindUser(ItemMeta itemMeta, Player player) {

@@ -5,6 +5,7 @@ import com.magmaguy.elitemobs.config.enchantments.EnchantmentsConfig;
 import com.magmaguy.elitemobs.events.BossCustomAttackDamage;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
 import com.magmaguy.elitemobs.utils.CooldownHandler;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
@@ -18,7 +19,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -91,27 +91,21 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
 
         private void doFlamethrowerPhase1(Player player, Location targetLocation) {
 
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-
-                    if (!player.isValid() || !player.getLocation().getWorld().equals(targetLocation.getWorld())) {
-                        cancel();
+                    final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isValid() || !player.getLocation().getWorld().equals(targetLocation.getWorld())) {
+                        task.cancel();
                         return;
                     }
 
                     doParticleEffect(player, targetLocation, Particle.SMOKE);
-                    counter++;
+                    counter[0]++;
 
-                    if (counter < 20) return;
+                    if (counter[0] < 20) return;
                     doFlamethrowerPhase2(player, targetLocation);
-                    cancel();
+                    task.cancel();
 
-                }
-
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                }, 0, 1);
 
         }
 
@@ -130,23 +124,19 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
          */
         private void doFlamethrowerPhase2(Player player, Location target) {
             List<Location> damagePoints = generateDamagePoints(player, target);
-            new BukkitRunnable() {
-                int timer = 0;
-
-                @Override
-                public void run() {
-                    if (!player.isValid() || !player.getLocation().getWorld().equals(target.getWorld())) {
-                        cancel();
+                    final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isValid() || !player.getLocation().getWorld().equals(target.getWorld())) {
+                        task.cancel();
                         return;
                     }
                     doParticleEffect(player, target, Particle.FLAME);
-                    if (timer % 20 == 0) doDamage(damagePoints, player);
-                    timer++;
-                    if (timer < 20 * 3) return;
+                    if (timer[0] % 20 == 0) doDamage(damagePoints, player);
+                    timer[0]++;
+                    if (timer[0] < 20 * 3) return;
                     doFlamethrowerPhase3(player, target);
-                    cancel();
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                    task.cancel();
+                }, 0, 1);
         }
 
 
@@ -156,21 +146,17 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
          * @param player
          */
         private void doFlamethrowerPhase3(Player player, Location fixedPlayerLocation) {
-            new BukkitRunnable() {
-                int timer = 0;
-
-                @Override
-                public void run() {
-                    if (!player.isValid() || !player.getLocation().getWorld().equals(fixedPlayerLocation.getWorld())) {
-                        cancel();
+                    final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isValid() || !player.getLocation().getWorld().equals(fixedPlayerLocation.getWorld())) {
+                        task.cancel();
                         return;
                     }
-                    timer++;
+                    timer[0]++;
                     doParticleEffect(player, fixedPlayerLocation, Particle.SMOKE);
-                    if (timer < 20) return;
-                    cancel();
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                    if (timer[0] < 20) return;
+                    task.cancel();
+                }, 0, 1);
         }
     }
 

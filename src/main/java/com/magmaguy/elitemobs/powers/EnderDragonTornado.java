@@ -7,6 +7,7 @@ import com.magmaguy.elitemobs.explosionregen.Explosion;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.CombatEnterScanPower;
 import com.magmaguy.elitemobs.utils.EnderDragonPhaseSimplifier;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -14,7 +15,6 @@ import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -32,11 +32,8 @@ public class EnderDragonTornado extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+        super.bukkitTask = SchedulerUtil.runTaskTimer((task) -> {
+if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
                     return;
                 }
 
@@ -47,8 +44,7 @@ public class EnderDragonTornado extends CombatEnterScanPower {
 
                 doPower(eliteEntity);
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+            }, 0, 10);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -59,14 +55,10 @@ public class EnderDragonTornado extends CombatEnterScanPower {
                 .toLocation(eliteEntity.getLivingEntity().getWorld());
 
         tornadoSpeed = tornadoEye.clone().subtract(eliteEntity.getLivingEntity().getLocation()).toVector().setY(0).normalize().multiply(0.2);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
@@ -74,25 +66,24 @@ public class EnderDragonTornado extends CombatEnterScanPower {
                     ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
 
                 if (doExit(eliteEntity) || eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) && !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
                 tornadoEye.add(tornadoSpeed);
 
-                if (counter % 2 == 0) {
+                if (counter[0] % 2 == 0) {
                     doTornadoParticles();
                     doTerrainDestruction(eliteEntity);
                     doEntityDisplacement(eliteEntity.getLivingEntity());
                 }
 
-                if (counter > 20 * 6) {
-                    cancel();
+                if (counter[0] > 20 * 6) {
+                    task.cancel();
                 }
 
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                counter[0]++;
+            }, 0, 1);
     }
 
     private void doTornadoParticles() {

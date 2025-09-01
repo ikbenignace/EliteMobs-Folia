@@ -15,6 +15,7 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.RegionalBossEntity;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.utils.WeightedProbability;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Logger;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -24,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -58,12 +58,7 @@ public class LootTables implements Listener {
             if (AdventurersGuildConfig.isGuildLootLimiter()) {
                 if (itemLevel > GuildRank.getActiveGuildRank(player) * 10) {
                     itemLevel = GuildRank.getActiveGuildRank(player) * 10D;
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(AdventurersGuildConfig.getLootLimiterMessage()));
-                        }
-                    }.runTaskLater(MetadataHandler.PLUGIN, 20 * 10L);
+                    SchedulerUtil.runTaskLater(() -> {player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(AdventurersGuildConfig.getLootLimiterMessage()));}, 20 * 10L);
                 }
             }
 

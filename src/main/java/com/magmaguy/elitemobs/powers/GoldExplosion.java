@@ -12,12 +12,12 @@ import org.bukkit.Particle;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class GoldExplosion extends BossPower implements Listener {
 
@@ -42,27 +42,23 @@ public class GoldExplosion extends BossPower implements Listener {
 
         eliteEntity.getLivingEntity().setAI(false);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                counter++;
+                counter[0]++;
                 if (MobCombatSettingsConfig.isEnableWarningVisualEffects())
-                    eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.SMOKE, eliteEntity.getLivingEntity().getLocation(), counter, 1, 1, 1, 0);
+                    eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.SMOKE, eliteEntity.getLivingEntity().getLocation(), counter[0], 1, 1, 1, 0);
 
-                if (counter < 20 * 1.5) return;
-                cancel();
+                if (counter[0] < 20 * 1.5) return;
+                task.cancel();
                 eliteEntity.getLivingEntity().setAI(true);
                 List<Item> goldNuggets = generateVisualItems(eliteEntity);
                 ProjectileDamage.doGoldNuggetDamage(goldNuggets, eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

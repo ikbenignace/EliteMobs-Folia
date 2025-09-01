@@ -15,10 +15,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class Navigation implements Listener {
 
@@ -26,7 +26,7 @@ public class Navigation implements Listener {
         NMSManager.getAdapter().doNotMove(livingEntity);
     }
 
-    private static final HashMap<CustomBossEntity, BukkitTask> currentlyNavigating = new HashMap();
+    private static final HashMap<CustomBossEntity, Object> currentlyNavigating = new HashMap();
 
     public static void addSoftLeashAI(RegionalBossEntity regionalBossEntity) {
         if (NMSManager.getAdapter() == null) return;
@@ -66,7 +66,7 @@ public class Navigation implements Listener {
     }
 
     public static void shutdown() {
-        currentlyNavigating.values().forEach(BukkitTask::cancel);
+        currentlyNavigating.values().forEach(SchedulerUtil::cancelTask);
         currentlyNavigating.clear();
     }
 
@@ -77,27 +77,25 @@ public class Navigation implements Listener {
         if (speed == null)
             speed = AttributeManager.getAttributeBaseValue(customBossEntity.getLivingEntity(), "generic_movement_speed");
         Double finalSpeed = speed;
-        if (currentlyNavigating.get(customBossEntity) != null) currentlyNavigating.get(customBossEntity).cancel();
+        if (currentlyNavigating.get(customBossEntity) != null) SchedulerUtil.cancelTask(currentlyNavigating.get(customBossEntity));
         int finalDuration = duration;
-        currentlyNavigating.put(customBossEntity, new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter >= finalDuration ||
-                        !customBossEntity.exists() ||
-                        customBossEntity.getLivingEntity() != null && customBossEntity.getLivingEntity().getLocation().distanceSquared(destination) < Math.pow(1, 2)) {
-                    if (customBossEntity.exists() && counter >= finalDuration && force) {
-                        customBossEntity.getLivingEntity().teleport(destination);
-                    }
-                    cancel();
-                    currentlyNavigating.remove(customBossEntity);
-                    return;
+        final Object[] taskRef = new Object[1]; // Reference to store the task for cancellation
+        final int[] counter = {0}; // Counter that persists across executions
+        taskRef[0] = SchedulerUtil.runTaskTimer(() -> {
+            if (counter[0] >= finalDuration ||
+                    !customBossEntity.exists() ||
+                    customBossEntity.getLivingEntity() != null && customBossEntity.getLivingEntity().getLocation().distanceSquared(destination) < Math.pow(1, 2)) {
+                if (customBossEntity.exists() && counter[0] >= finalDuration && force) {
+                    customBossEntity.getLivingEntity().teleport(destination);
                 }
-                NMSManager.getAdapter().move(customBossEntity.getLivingEntity(), finalSpeed.floatValue(), destination);
-                counter++;
+                SchedulerUtil.cancelTask(taskRef[0]);
+                currentlyNavigating.remove(customBossEntity);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1));
+            NMSManager.getAdapter().move(customBossEntity.getLivingEntity(), finalSpeed.floatValue(), destination);
+            counter[0]++;
+        }, 0, 1);
+        currentlyNavigating.put(customBossEntity, taskRef[0]);
     }
 
     @EventHandler(ignoreCancelled = true)

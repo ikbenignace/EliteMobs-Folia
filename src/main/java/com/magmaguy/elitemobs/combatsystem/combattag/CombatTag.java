@@ -14,7 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CombatTag implements Listener {
 
@@ -49,17 +49,14 @@ public class CombatTag implements Listener {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     TextComponent.fromLegacyText(CombatTagConfig.getCombatTagMessage()));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 20 * 60, 0));
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!player.isOnline() || player.isDead())
-                        cancel();
+            SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isOnline() || player.isDead())
+                        task.cancel();
                     if (player.isOnGround()) {
-                        cancel();
+                        task.cancel();
                         player.removePotionEffect(PotionEffectType.SLOWNESS);
                     }
-                }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                }, 0, 1);
         }
     }
 

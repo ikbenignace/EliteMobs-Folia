@@ -9,6 +9,7 @@ import com.magmaguy.elitemobs.items.ItemTagger;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.quests.Quest;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomFetchObjective extends Objective {
@@ -85,19 +85,14 @@ public class CustomFetchObjective extends Objective {
     @Override
     public void progressNonlinearObjective(QuestObjectives questObjectives, Player player) {
         CustomFetchObjective customFetchObjective = this;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                fullUpdate(player);
+        SchedulerUtil.runTaskLater(() -> {fullUpdate(player);
                 if (questObjectives.isTurnedIn()) return;
                 objectiveCompleted = currentAmount >= targetAmount;
                 QuestProgressionEvent questProgressionEvent = new QuestProgressionEvent(
                         Bukkit.getPlayer(questObjectives.getQuest().getPlayerUUID()),
                         questObjectives.getQuest(),
                         customFetchObjective);
-                new EventCaller(questProgressionEvent);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+                new EventCaller(questProgressionEvent);}, 1);
     }
 
     /**

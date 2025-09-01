@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.mobconstructor.PersistentObject;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.transitiveblocks.TransitiveBlock;
 import com.magmaguy.elitemobs.pathfinding.Navigation;
 import com.magmaguy.elitemobs.powers.SpiritWalk;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.magmacore.util.AttributeManager;
@@ -21,8 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private long unixRespawnTime;
     private int respawnCoolDownInMinutes = -1;
     private boolean isRespawning = false;
-    private BukkitTask leashTask;
+    private SchedulerUtil.TaskWrapper leashTask;
     @Getter
     @Setter
     private List<TransitiveBlock> onSpawnTransitiveBlocks;
@@ -51,7 +51,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private List<TransitiveBlock> onRemoveTransitiveBlocks;
     @Getter
     private boolean removed = false;
-    private BukkitTask respawnTask = null;
+    private SchedulerUtil.TaskWrapper respawnTask = null;
 
     public RegionalBossEntity(CustomBossesConfigFields customBossesConfigFields, String rawString) {
         super(customBossesConfigFields);
@@ -123,12 +123,9 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     }
 
     public static void regionalDataSaver() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                save();
-            }
-        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 20L * 5, 20L * 5);
+        SchedulerUtil.runTaskTimerAsync((task) -> {
+save();
+            }, 20L * 5, 20L * 5);
     }
 
     public static void save() {
@@ -192,16 +189,11 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     public void queueSpawn(boolean silent) {
         RegionalBossEntity regionalBossEntity = this;
         this.isRespawning = true;
-        respawnTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (phaseBossEntity != null) phaseBossEntity.silentReset();
+        respawnTask = SchedulerUtil.runTaskLater(() -> {if (phaseBossEntity != null) phaseBossEntity.silentReset();
                 ticksBeforeRespawn = 0;
                 //Reminder: this might not spawn a living entity as it gets queued for when the chunk loads
                 regionalBossEntity.spawn(silent);
-                regionalBossEntity.getDamagers().clear();
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticksBeforeRespawn);
+                regionalBossEntity.getDamagers().clear();}, ticksBeforeRespawn);
     }
 
     public void forceRespawn() {
@@ -230,7 +222,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
             return;
         RegionalBossEntity regionalBossEntity = this;
         if (leashTask != null) leashTask.cancel();
-        leashTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, () -> {
+        leashTask = SchedulerUtil.runTaskTimerAsync(() -> {
             try {
                 if (!isValid()) {
                     cancelLeash();

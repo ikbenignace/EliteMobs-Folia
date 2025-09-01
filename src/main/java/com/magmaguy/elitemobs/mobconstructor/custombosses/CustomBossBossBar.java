@@ -18,19 +18,18 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossBossBar {
 
     private final CustomBossEntity customBossEntity;
     private final Map<Player, BossBar> bossBars = new HashMap<>();
     private final HashSet<Player> trackingPlayers = new HashSet<>();
-    private BukkitTask bossBarUpdater;
+    private SchedulerUtil.TaskWrapper bossBarUpdater;
     private boolean warned = false;
 
     public CustomBossBossBar(CustomBossEntity customBossEntity) {
@@ -111,12 +110,10 @@ public class CustomBossBossBar {
     }
 
     public void start() {
-        bossBarUpdater = new BukkitRunnable() {
-            @Override
-            public void run() {
-                //This can happen on phase changes where boss bars might not be configured on subsequent entities
+        bossBarUpdater = SchedulerUtil.runTaskTimer((task) -> {
+//This can happen on phase changes where boss bars might not be configured on subsequent entities
                 if (!customBossEntity.exists() || customBossEntity.getCustomBossesConfigFields().getLocationMessage() == null) {
-                    cancel();
+                    task.cancel();
                     remove();
                     return;
                 }
@@ -144,8 +141,7 @@ public class CustomBossBossBar {
                             if (!freshIteration.contains((Player) entity))
                                 createBossBar((Player) entity);
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+            }, 0, 5);
     }
 
     private void createBossBar(Player player) {

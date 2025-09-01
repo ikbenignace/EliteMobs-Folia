@@ -12,8 +12,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SkeletonTrackingArrow extends MajorPower implements Listener {
 
@@ -22,27 +22,23 @@ public class SkeletonTrackingArrow extends MajorPower implements Listener {
     }
 
     private static void trackingArrowLoop(Player player, Arrow arrow) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (player.isValid() && arrow.isValid() && arrow.getWorld().equals(player.getWorld())
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (player.isValid() && arrow.isValid() && arrow.getWorld().equals(player.getWorld())
                         && player.getLocation().distanceSquared(arrow.getLocation()) < 900 && !arrow.isOnGround()) {
-                    if (counter % 10 == 0)
+                    if (counter[0] % 10 == 0)
                         arrow.setVelocity(arrow.getVelocity().add(arrowAdjustmentVector(arrow, player)));
                     arrow.getWorld().spawnParticle(Particle.FLAME, arrow.getLocation(), 10, 0.01, 0.01, 0.01, 0.01);
                 } else {
                     arrow.setGravity(true);
-                    cancel();
+                    task.cancel();
                 }
-                if (counter > 20 * 60) {
+                if (counter[0] > 20 * 60) {
                     arrow.setGravity(true);
-                    cancel();
+                    task.cancel();
                 }
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                counter[0]++;
+            }, 0, 1);
     }
 
     private static Vector arrowAdjustmentVector(Arrow arrow, Player player) {
@@ -60,13 +56,10 @@ public class SkeletonTrackingArrow extends MajorPower implements Listener {
     }
 
     private void repeatingTrackingArrowTask(EliteEntity eliteEntity, SkeletonTrackingArrow skeletonTrackingArrow) {
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
                     skeletonTrackingArrow.setFiring(false);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 for (Entity nearbyEntity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
@@ -78,9 +71,7 @@ public class SkeletonTrackingArrow extends MajorPower implements Listener {
                             arrow.setGravity(false);
                             trackingArrowLoop((Player) nearbyEntity, arrow);
                         }
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 8);
+            }, 0, 20 * 8);
     }
 
 }

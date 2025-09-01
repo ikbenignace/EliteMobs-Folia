@@ -10,6 +10,7 @@ import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.RegionalBossEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,46 +42,39 @@ public class SpiritWalk extends BossPower implements Listener {
         Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
         eliteEntity.setCombatGracePeriod(20 * 20);
 
-        new BukkitRunnable() {
-
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter > 20 * 10) {
+                if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter[0] > 20 * 10) {
 
                     eliteEntity.getLivingEntity().teleport(finalLocation);
                     eliteEntity.getLivingEntity().setAI(true);
                     eliteEntity.getLivingEntity().setInvulnerable(false);
                     eliteEntity.getLivingEntity().removePotionEffect(PotionEffectType.GLOWING);
-                    cancel();
+                    task.cancel();
 
                 }
 
                 eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
 
-                counter++;
+                counter[0]++;
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 
     public static void spiritWalkRegionalBossAnimation(EliteEntity eliteEntity, Location entityLocation, Location finalLocation) {
-        Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, bukkitTask -> {
+        SchedulerUtil.runTask(() -> {
                     if (eliteEntity.getLivingEntity() == null) return;
                     eliteEntity.getLivingEntity().setAI(false);
                     eliteEntity.getLivingEntity().setInvulnerable(true);
                     Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
 
-                    Entity vehicle = null;
+                    final Entity vehicle;
 
                     if (eliteEntity.getLivingEntity().isInsideVehicle()) {
                         vehicle = eliteEntity.getLivingEntity().getVehicle();
@@ -90,24 +83,21 @@ public class SpiritWalk extends BossPower implements Listener {
                         vehicle.setInvulnerable(true);
                         if (((CustomBossEntity) eliteEntity).getPhaseBossEntity() != null)
                             vehicle.remove();
+                    } else {
+                        vehicle = null;
                     }
 
-                    new BukkitRunnable() {
-                        final Entity vehicle = eliteEntity.getLivingEntity().getVehicle();
-
-                        int counter = 0;
-
-                        @Override
-                        public void run() {
-                            if (!eliteEntity.isValid()) {
-                                cancel();
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                                task.cancel();
                                 return;
                             }
 
                             if (eliteEntity.getLivingEntity().isInsideVehicle())
                                 eliteEntity.getLivingEntity().leaveVehicle();
 
-                            if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter > 20 * 10) {
+                            if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter[0] > 20 * 10) {
 
                                 eliteEntity.getLivingEntity().setAI(true);
                                 eliteEntity.getLivingEntity().setInvulnerable(false);
@@ -126,15 +116,12 @@ public class SpiritWalk extends BossPower implements Listener {
                                     }
 
                                     vehicle.setInvulnerable(false);
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            PreventMountExploit.bypass = true;
-                                            vehicle.addPassenger(eliteEntity.getLivingEntity());
-                                        }
-                                    }.runTaskLater(MetadataHandler.PLUGIN, 1);
+                                    SchedulerUtil.runTaskLater(() -> {
+                                        PreventMountExploit.bypass = true;
+                                        vehicle.addPassenger(eliteEntity.getLivingEntity());
+                                    }, 1);
                                 }
-                                cancel();
+                                task.cancel();
 
                                 Bukkit.getServer().getPluginManager().callEvent(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.SPIRIT_WALK));
                                 if (eliteEntity.getLivingEntity() instanceof Mob)
@@ -148,11 +135,9 @@ public class SpiritWalk extends BossPower implements Listener {
                             }
                             eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
 
-                            counter++;
+                            counter[0]++;
 
-                        }
-
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                        }, 0, 1);
                 }
 
         );
@@ -201,15 +186,10 @@ public class SpiritWalk extends BossPower implements Listener {
     }
 
     public void initializeSpiritWalk(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-
-            int counter = 1;
-
-            @Override
-            public void run() {
-
-                if (counter > 3 || !eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {1};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 3 || !eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
@@ -221,7 +201,7 @@ public class SpiritWalk extends BossPower implements Listener {
                     double randomizedY = ThreadLocalRandom.current().nextDouble() * 5;
                     double randomizedZ = (ThreadLocalRandom.current().nextDouble() - 0.5) * 5;
 
-                    Vector normalizedVector = new Vector(randomizedX, randomizedY, randomizedZ).normalize().multiply(7).multiply(counter);
+                    Vector normalizedVector = new Vector(randomizedX, randomizedY, randomizedZ).normalize().multiply(7).multiply(counter[0]);
 
                     Location newSimulatedLocation = bossLocation.add(normalizedVector).clone();
 
@@ -229,17 +209,15 @@ public class SpiritWalk extends BossPower implements Listener {
 
                     if (newValidLocation != null) {
                         spiritWalkAnimation(eliteEntity, eliteEntity.getLivingEntity().getLocation(), newValidLocation.add(new Vector(0.5, 1, 0.5)));
-                        cancel();
+                        task.cancel();
                         break;
                     }
 
                 }
 
-                counter++;
+                counter[0]++;
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

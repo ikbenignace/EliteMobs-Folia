@@ -12,10 +12,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class Thunderstorm extends BossPower implements Listener {
 
@@ -26,20 +26,17 @@ public class Thunderstorm extends BossPower implements Listener {
     public static void doThunderstorm(EliteEntity eliteEntity) {
         if (eliteEntity == null || !eliteEntity.getLivingEntity().isValid()) return;
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
-                if (counter > 20 * 5 || eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                if (counter[0] > 20 * 5 || eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
+                    task.cancel();
                     if (eliteEntity.getLivingEntity() != null)
                         eliteEntity.getLivingEntity().setAI(true);
                     return;
                 }
 
-                if (counter % 2 == 0) {
+                if (counter[0] % 2 == 0) {
                     Location randomLocation = eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(
                             ThreadLocalRandom.current().nextInt(-20, 20),
                             0,
@@ -48,32 +45,27 @@ public class Thunderstorm extends BossPower implements Listener {
                 }
 
 
-                if (counter % 20 == 0) {
+                if (counter[0] % 20 == 0) {
                     for (Entity entity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
                         if (entity.getType().equals(EntityType.PLAYER))
                             lightningTask(entity.getLocation());
                 }
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     public static void lightningTask(Location location) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
-                if (counter > 20 * 3) {
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+counter[0]++;
+                if (counter[0] > 20 * 3) {
                     LightningSpawnBypass.bypass();
                     location.getWorld().strikeLightning(location);
-                    cancel();
+                    task.cancel();
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.CRIT, location, 10, 0.5, 1.5, 0.5, 0.3);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

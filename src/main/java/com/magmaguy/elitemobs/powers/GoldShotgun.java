@@ -12,12 +12,12 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class GoldShotgun extends BossPower implements Listener {
 
@@ -42,32 +42,26 @@ public class GoldShotgun extends BossPower implements Listener {
         eliteEntity.getLivingEntity().setAI(false);
         Vector shotVector = player.getLocation().add(new Vector(0, 1, 0)).toVector().subtract(eliteEntity.getLivingEntity().getLocation().toVector()).normalize().multiply(.5);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
-                if (counter % 10 == 0)
+                if (counter[0] % 10 == 0)
                     doSmokeEffect(eliteEntity, shotVector);
-                counter++;
+                counter[0]++;
 
-                if (counter < 20 * 3) return;
+                if (counter[0] < 20 * 3) return;
 
-                cancel();
+                task.cancel();
                 eliteEntity.getLivingEntity().setAI(true);
                 List<Item> nuggetList = generateVisualItems(eliteEntity, shotVector);
                 if (nuggetList == null) return;
                 ProjectileDamage.doGoldNuggetDamage(nuggetList, eliteEntity);
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 

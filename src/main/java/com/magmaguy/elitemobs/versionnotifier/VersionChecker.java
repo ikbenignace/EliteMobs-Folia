@@ -3,6 +3,7 @@ package com.magmaguy.elitemobs.versionnotifier;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.dungeons.EMPackage;
 import com.magmaguy.elitemobs.utils.DiscordLinks;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import com.magmaguy.magmacore.util.SpigotMessage;
@@ -11,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -64,58 +64,55 @@ public class VersionChecker {
     }
 
     private static void checkPluginVersion() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
-                boolean snapshot = false;
-                if (currentVersion.contains("SNAPSHOT")) {
-                    snapshot = true;
-                    currentVersion = currentVersion.split("-")[0];
-                }
-                String publicVersion = "";
+        SchedulerUtil.runTaskAsync(() -> {
+            String currentVersion = MetadataHandler.PLUGIN.getDescription().getVersion();
+            boolean snapshot = false;
+            if (currentVersion.contains("SNAPSHOT")) {
+                snapshot = true;
+                currentVersion = currentVersion.split("-")[0];
+            }
+            String publicVersion = "";
 
-                try {
-                    publicVersion = VersionChecker.readStringFromURL("https://api.spigotmc.org/legacy/update.php?resource=40090");
-                    Logger.info("Latest public release is " + publicVersion);
-                    Logger.info("Your version is " + MetadataHandler.PLUGIN.getDescription().getVersion());
-                } catch (IOException e) {
-                    handleConnectionError("plugin version check", e);
-                    return;
-                }
+            try {
+                publicVersion = VersionChecker.readStringFromURL("https://api.spigotmc.org/legacy/update.php?resource=40090");
+                Logger.info("Latest public release is " + publicVersion);
+                Logger.info("Your version is " + MetadataHandler.PLUGIN.getDescription().getVersion());
+            } catch (IOException e) {
+                handleConnectionError("plugin version check", e);
+                return;
+            }
 
-                if (Double.parseDouble(currentVersion.split("\\.")[0]) < Double.parseDouble(publicVersion.split("\\.")[0])) {
+            if (Double.parseDouble(currentVersion.split("\\.")[0]) < Double.parseDouble(publicVersion.split("\\.")[0])) {
+                outOfDateHandler();
+                return;
+            }
+
+            if (Double.parseDouble(currentVersion.split("\\.")[0]) == Double.parseDouble(publicVersion.split("\\.")[0])) {
+
+                if (Double.parseDouble(currentVersion.split("\\.")[1]) < Double.parseDouble(publicVersion.split("\\.")[1])) {
                     outOfDateHandler();
                     return;
                 }
 
-                if (Double.parseDouble(currentVersion.split("\\.")[0]) == Double.parseDouble(publicVersion.split("\\.")[0])) {
-
-                    if (Double.parseDouble(currentVersion.split("\\.")[1]) < Double.parseDouble(publicVersion.split("\\.")[1])) {
+                if (Double.parseDouble(currentVersion.split("\\.")[1]) == Double.parseDouble(publicVersion.split("\\.")[1])) {
+                    if (Double.parseDouble(currentVersion.split("\\.")[2]) < Double.parseDouble(publicVersion.split("\\.")[2])) {
                         outOfDateHandler();
                         return;
                     }
-
-                    if (Double.parseDouble(currentVersion.split("\\.")[1]) == Double.parseDouble(publicVersion.split("\\.")[1])) {
-                        if (Double.parseDouble(currentVersion.split("\\.")[2]) < Double.parseDouble(publicVersion.split("\\.")[2])) {
-                            outOfDateHandler();
-                            return;
-                        }
-                    }
                 }
-
-                if (!snapshot)
-                    Logger.info("You are running the latest version!");
-                else
-                    Logger.info("You are running a snapshot version! You can check for updates in the #releases channel on the EliteMobs Discord!");
-
-                pluginIsUpToDate = true;
             }
-        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+
+            if (!snapshot)
+                Logger.info("You are running the latest version!");
+            else
+                Logger.info("You are running a snapshot version! You can check for updates in the #releases channel on the EliteMobs Discord!");
+
+            pluginIsUpToDate = true;
+        });
     }
 
     private static void checkContentVersion() {
-        Bukkit.getScheduler().runTaskAsynchronously(MetadataHandler.PLUGIN, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 String remoteVersions = readStringFromURL("https://www.magmaguy.com/api/elitemobs_content");
                 connectionFailed = false; // Reset the flag if successful
@@ -203,7 +200,7 @@ public class VersionChecker {
                         " seconds (Attempt " + connectionRetryCount + "/" + MAX_RETRY_ATTEMPTS + ")");
 
                 // Schedule a retry after delay
-                Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN,
+                SchedulerUtil.runTaskLaterAsync(
                         () -> checkContentVersion(), 20L * RETRY_DELAY_SECONDS);
             } else {
                 Logger.warn("Failed to connect for " + checkType + " after " + MAX_RETRY_ATTEMPTS +
@@ -242,9 +239,7 @@ public class VersionChecker {
 
             if (!event.getPlayer().hasPermission("elitemobs.versionnotification")) return;
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+            SchedulerUtil.runTaskLater(() -> {
                     if (!event.getPlayer().isOnline()) return;
 
                     if (connectionFailed && event.getPlayer().hasPermission("elitemobs.admin")) {
@@ -309,8 +304,7 @@ public class VersionChecker {
                     if (SHA1Updated) {
                         event.getPlayer().sendMessage(ChatColorConverter.convert("&8[EliteMobs] &cThe EliteMobs resource pack has updated! This means that the current resource pack will not fully work until you restart your server. You only need to restart once!"));
                     }
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20L * 3);
+                }, 20L * 3);
         }
     }
 }

@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.quests.objectives.*;
 import com.magmaguy.elitemobs.treasurechest.TreasureChest;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.wormhole.Wormhole;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.SpigotMessage;
@@ -29,8 +30,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -46,8 +45,8 @@ public class QuestTracking {
     private final CustomQuest customQuest;
     private final List<Location> turnInNPCs = new ArrayList<>();
     private List<ObjectiveDestinations> objectiveDestinations = new ArrayList<>();
-    private BukkitTask locationRefresher;
-    private BukkitTask compassTask;
+    private SchedulerUtil.TaskWrapper locationRefresher;
+    private SchedulerUtil.TaskWrapper compassTask;
     private BossBar compassBar;
     private boolean questIsDone = false;
 
@@ -95,16 +94,13 @@ public class QuestTracking {
     }
 
     private void startLocationGetter() {
-        locationRefresher = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isValid()) {
-                    stop();
-                    return;
-                }
-                updateLocations(customQuest);
+        locationRefresher = SchedulerUtil.runTaskTimerAsync((task) -> {
+            if (!player.isValid()) {
+                stop();
+                return;
             }
-        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 0L, 20L * 60L);
+            updateLocations(customQuest);
+        }, 0L, 20L * 60L);
     }
 
     public void updateLocations(Quest quest) {
@@ -119,7 +115,7 @@ public class QuestTracking {
                         destinations.addAll(getDialogLocations((DialogObjective) objective));
                     else if (objective instanceof CustomFetchObjective)
                         destinations.addAll(getFetchLocations((CustomFetchObjective) objective));
-            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, () -> objectiveDestinations = destinations);
+            SchedulerUtil.runTask(() -> objectiveDestinations = destinations);
         } else {
             questIsDone = true;
             getTurnInNPC();
@@ -181,12 +177,7 @@ public class QuestTracking {
 
     public void stop() {
         playerTrackingQuests.remove(player);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            }
-        }.runTask(MetadataHandler.PLUGIN);
+        SchedulerUtil.runTask(() -> {player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());});
         locationRefresher.cancel();
         compassTask.cancel();
         compassBar.removeAll();
@@ -194,16 +185,13 @@ public class QuestTracking {
 
     private void startCompass() {
         compassBar = Bukkit.createBossBar("", BarColor.GREEN, BarStyle.SOLID, BarFlag.PLAY_BOSS_MUSIC);
-        compassTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline()) {
-                    stop();
-                    return;
-                }
-                updateCompassContents();
+        compassTask = SchedulerUtil.runTaskTimer((task) -> {
+            if (!player.isOnline()) {
+                stop();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 1L);
+            updateCompassContents();
+        }, 0L, 1L);
     }
 
     private void updateCompassContents() {

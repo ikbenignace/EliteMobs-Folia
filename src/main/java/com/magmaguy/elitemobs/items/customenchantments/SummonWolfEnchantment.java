@@ -14,11 +14,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class SummonWolfEnchantment extends CustomEnchantment {
 
@@ -75,12 +75,7 @@ public class SummonWolfEnchantment extends CustomEnchantment {
         public void onRightClick(PlayerInteractEvent event) {
             if (playerCooldowns.contains(event.getPlayer())) return;
             playerCooldowns.add(event.getPlayer());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerCooldowns.remove(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60L);
+            SchedulerUtil.runTaskLater(() -> {playerCooldowns.remove(event.getPlayer());}, 20 * 60L);
             if (!(event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))
                 return;
             if (getEnchantment(event.getPlayer().getInventory().getItemInMainHand().getItemMeta()) > 0)

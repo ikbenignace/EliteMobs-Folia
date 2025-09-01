@@ -13,12 +13,12 @@ import org.bukkit.entity.Giant;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class ZombieBloat extends MajorPower implements Listener {
 
@@ -38,33 +38,26 @@ public class ZombieBloat extends MajorPower implements Listener {
         /*
         Create early warning that entity is about to bloat
          */
-        new BukkitRunnable() {
-
-            final LivingEntity eventZombie = (LivingEntity) event.getEntity();
-            int timer = 0;
-
-            @Override
-            public void run() {
-
-                if (timer > 40) {
+                final LivingEntity eventZombie = (LivingEntity) event.getEntity();
+        final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (timer[0] > 40) {
                     bloatEffect(eventZombie);
-                    cancel();
+                    task.cancel();
                 }
 
-                if (timer == 21)
+                if (timer[0] == 21)
                     eventZombie.setAI(false);
 
 
                 if (MobCombatSettingsConfig.isEnableWarningVisualEffects())
                     eventZombie.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, new Location(eventZombie.getWorld(),
                                     eventZombie.getLocation().getX(), eventZombie.getLocation().getY() +
-                                    eventZombie.getHeight(), eventZombie.getLocation().getZ()), 20, timer / 24,
-                            timer / 9d, timer / 24d, 0.1);
+                                    eventZombie.getHeight(), eventZombie.getLocation().getZ()), 20, timer[0] / 24,
+                            timer[0] / 9d, timer[0] / 24d, 0.1);
 
-                timer++;
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                timer[0]++;
+            }, 0, 1);
     }
 
     private void bloatEffect(LivingEntity eventZombie) {
@@ -111,15 +104,10 @@ public class ZombieBloat extends MajorPower implements Listener {
         /*
         Effect is done, start task to remove giant
          */
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                giant.remove();
-                eventZombie.setAI(true);
-            }
-
-        }.runTaskLater(MetadataHandler.PLUGIN, 10);
+        SchedulerUtil.runTaskLater(() -> {
+            giant.remove();
+            eventZombie.setAI(true);
+        }, 10);
 
     }
 
@@ -128,13 +116,10 @@ public class ZombieBloat extends MajorPower implements Listener {
         if (!MobCombatSettingsConfig.isEnableWarningVisualEffects())
             return;
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 1.5 * 20)
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 1.5 * 20)
+                    task.cancel();
                 for (LivingEntity livingEntity : livingEntities)
                     if (!(livingEntity == null || livingEntity.isDead() || !livingEntity.isValid()))
                         livingEntity.getWorld().spawnParticle(Particle.CLOUD, new Location(livingEntity.getWorld(),
@@ -142,10 +127,8 @@ public class ZombieBloat extends MajorPower implements Listener {
                                         livingEntity.getLocation().getY() + livingEntity.getHeight() - 1,
                                         livingEntity.getLocation().getZ()),
                                 0, 0, 0, 0);
-                counter++;
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                counter[0]++;
+            }, 0, 1);
     }
 
 }

@@ -10,18 +10,17 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class CustomBossTrail {
 
     private final CustomBossEntity customBossEntity;
-    private final ArrayList<BukkitTask> bukkitTasks = new ArrayList<>();
+    private final ArrayList<SchedulerUtil.TaskWrapper> bukkitTasks = new ArrayList<>();
     private LivingEntity livingEntity;
 
     public CustomBossTrail(CustomBossEntity customBossEntity) {
@@ -57,53 +56,41 @@ public class CustomBossTrail {
                 particle.equals(Particle.ITEM) ||
                 particle.equals(Particle.DUST))
             return;
-        bukkitTasks.add(new BukkitRunnable() {
-            @Override
-            public void run() {
-                //In case of boss death or chunk unload, stop the effect
-                if (!livingEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-                //All conditions cleared, do the boss flair effect
-                Location entityCenter = livingEntity.getLocation().clone().add(0, livingEntity.getHeight() / 2, 0);
-                livingEntity.getWorld().spawnParticle(particle, entityCenter, 1, 0.1, 0.1, 0.1, 0.05);
+        bukkitTasks.add(SchedulerUtil.runTaskTimer((task) -> {
+            //In case of boss death or chunk unload, stop the effect
+            if (!livingEntity.isValid()) {
+                task.cancel();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1));
+            //All conditions cleared, do the boss flair effect
+            Location entityCenter = livingEntity.getLocation().clone().add(0, livingEntity.getHeight() / 2, 0);
+            livingEntity.getWorld().spawnParticle(particle, entityCenter, 1, 0.1, 0.1, 0.1, 0.05);
+        }, 0, 1));
     }
 
     private void doItemTrail(Material material) {
-        bukkitTasks.add(new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                //In case of boss death, stop the effect
-                if (!livingEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-                //All conditions cleared, do the boss flair effect
-                Location entityCenter = livingEntity.getLocation().clone().add(0, livingEntity.getHeight() / 2, 0);
-                Item item = VisualItemInitializer.initializeItem(ItemStackGenerator.generateItemStack
-                        (material, "visualItem", List.of(ThreadLocalRandom.current().nextDouble() + "")), entityCenter);
-                item.setVelocity(new Vector(
-                        ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
-                        ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
-                        ThreadLocalRandom.current().nextDouble() / 5 - 0.10));
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        item.remove();
-                        EntityTracker.unregister(item, RemovalReason.EFFECT_TIMEOUT);
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20);
-
+        bukkitTasks.add(SchedulerUtil.runTaskTimer((task) -> {
+            //In case of boss death, stop the effect
+            if (!livingEntity.isValid()) {
+                task.cancel();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5));
+            //All conditions cleared, do the boss flair effect
+            Location entityCenter = livingEntity.getLocation().clone().add(0, livingEntity.getHeight() / 2, 0);
+            Item item = VisualItemInitializer.initializeItem(ItemStackGenerator.generateItemStack
+                    (material, "visualItem", List.of(ThreadLocalRandom.current().nextDouble() + "")), entityCenter);
+            item.setVelocity(new Vector(
+                    ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
+                    ThreadLocalRandom.current().nextDouble() / 5 - 0.10,
+                    ThreadLocalRandom.current().nextDouble() / 5 - 0.10));
+            SchedulerUtil.runTaskLater(() -> {item.remove();
+                    EntityTracker.unregister(item, RemovalReason.EFFECT_TIMEOUT);}, 20);
+
+        }, 0, 5));
     }
 
     public void terminateTrails() {
-        for (BukkitTask bukkitTask : bukkitTasks) bukkitTask.cancel();
+        for (SchedulerUtil.TaskWrapper bukkitTask : bukkitTasks) bukkitTask.cancel();
         bukkitTasks.clear();
     }
 

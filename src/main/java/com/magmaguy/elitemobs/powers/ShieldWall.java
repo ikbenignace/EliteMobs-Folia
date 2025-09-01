@@ -9,6 +9,7 @@ import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.ElitePower;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
 import lombok.Getter;
 import lombok.Setter;
@@ -199,7 +200,7 @@ public class ShieldWall extends MinorPower {
     }
 
     private void armorStandTracker(EliteEntity eliteEntity) {
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
+        SchedulerUtil.runTaskTimer((task) -> {
             if (!eliteEntity.isValid() || (northHealthPool == 0 && southHealthPool == 0 && eastHealthPool == 0 && westHealthPool == 0) || !isActive) {
                 task.cancel();
                 setActive(false);

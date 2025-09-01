@@ -3,6 +3,7 @@ package com.magmaguy.elitemobs.api;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.config.CombatTagConfig;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatMessageType;
@@ -10,7 +11,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class PlayerPreTeleportEvent extends Event implements Cancellable {
 
@@ -49,13 +49,10 @@ public class PlayerPreTeleportEvent extends Event implements Cancellable {
     }
 
     public void startTeleport() {
-        new BukkitRunnable() {
-            int timerLeft = 3;
-
-            @Override
-            public void run() {
-                if (!player.isValid()) {
-                    cancel();
+                final int[] timerLeft = {3};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!player.isValid()) {
+                    task.cancel();
                     return;
                 }
 
@@ -69,24 +66,23 @@ public class PlayerPreTeleportEvent extends Event implements Cancellable {
                 if (isCancelled) {
                     player.spigot().sendMessage(chatMessageType,
                             TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportCancelled())));
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
                 player.spigot().sendMessage(chatMessageType,
                         TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportTimeLeft())
-                                .replace("$time", timerLeft + "")));
+                                .replace("$time", timerLeft[0] + "")));
 
 
-                if (timerLeft == 0) {
+                if (timerLeft[0] == 0) {
                     PlayerTeleportEvent.teleportPlayer(player, destination);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
-                timerLeft--;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+                timerLeft[0]--;
+            }, 0, 20);
     }
 
     @Override

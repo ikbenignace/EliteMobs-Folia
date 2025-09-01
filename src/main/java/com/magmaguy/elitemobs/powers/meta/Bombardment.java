@@ -6,13 +6,12 @@ import com.magmaguy.elitemobs.api.EliteMobExitCombatEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.utils.EnderDragonPhaseSimplifier;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,7 +22,7 @@ public abstract class Bombardment extends MajorPower implements Listener {
     public int firingTimer = 0;
     private boolean isActive = false;
     private boolean firing = false;
-    private BukkitTask task = null;
+    private SchedulerUtil.TaskWrapper task = null;
 
     public Bombardment(PowersConfigFields powersConfigFields) {
         super(powersConfigFields);
@@ -35,13 +34,9 @@ public abstract class Bombardment extends MajorPower implements Listener {
         if (isActive) return;
         isActive = true;
 
-        task = new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                counter++;
+        final int[] counter = {0};
+        task = SchedulerUtil.runTaskTimer((task) -> {
+            counter[0]++;
 
                 if (stopCondition(eliteEntity))
                     return;
@@ -70,8 +65,7 @@ public abstract class Bombardment extends MajorPower implements Listener {
                     }
                 }
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+            }, 0, 5);
     }
 
     public void deactivate() {
@@ -106,21 +100,17 @@ public abstract class Bombardment extends MajorPower implements Listener {
 
         firingTimer = 0;
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                firingTimer++;
+        SchedulerUtil.runTaskTimer((task) -> {
+firingTimer++;
                 if (stopCondition(eliteEntity) || firingTimer > 20 * 5) {
-                    cancel();
+                    task.cancel();
                     firing = false;
                     return;
                 }
 
                 taskBehavior(eliteEntity);
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     public abstract void taskBehavior(EliteEntity eliteEntity);

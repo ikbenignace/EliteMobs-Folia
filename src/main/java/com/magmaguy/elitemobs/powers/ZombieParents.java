@@ -10,9 +10,9 @@ import com.magmaguy.elitemobs.powers.meta.MajorPower;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 13/05/2017.
@@ -24,17 +24,14 @@ public class ZombieParents extends MajorPower implements Listener {
     }
 
     private static void startDialog(CustomBossEntity reinforcementMom, CustomBossEntity reinforcementDad, EliteEntity bossEntity) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!bossEntity.isValid()) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!bossEntity.isValid()) {
                     doDeathMessages(reinforcementDad, reinforcementMom);
-                    cancel();
+                    task.cancel();
                 } else {
                     doDialog(reinforcementDad, reinforcementMom, bossEntity);
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20, 20L * 8);
+            }, 20, 20L * 8);
     }
 
     private static void doDeathMessages(CustomBossEntity reinforcementDad, CustomBossEntity reinforcementMom) {
@@ -73,13 +70,10 @@ public class ZombieParents extends MajorPower implements Listener {
 
     private static void nameClearer(EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20L * 3);
+        SchedulerUtil.runTaskLater(() -> {
+            if (eliteEntity.isValid())
+                eliteEntity.setName(eliteEntity.getName(), true);
+        }, 20L * 3);
 
     }
 

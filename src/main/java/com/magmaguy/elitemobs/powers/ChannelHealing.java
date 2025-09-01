@@ -8,8 +8,8 @@ import com.magmaguy.elitemobs.powers.meta.CombatEnterScanPower;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 
 public class ChannelHealing extends CombatEnterScanPower {
@@ -19,16 +19,12 @@ public class ChannelHealing extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+        super.bukkitTask = SchedulerUtil.runTaskTimer((task) -> {
+if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
                     return;
                 }
                 doPower(eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 2);
+            }, 0, 20 * 2);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -47,16 +43,13 @@ public class ChannelHealing extends CombatEnterScanPower {
         super.setInCooldown(healer, true);
         healer.getLivingEntity().setAI(false);
         damagedEntity.setHealing(true);
-        new BukkitRunnable() {
-            int timer = 0;
-
-            @Override
-            public void run() {
-                if (!healer.isValid() ||
+                final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!healer.isValid() ||
                         !damagedEntity.isValid() ||
                         damagedEntity.getHealth() / damagedEntity.getMaxHealth() > .8 ||
                         healer.getLocation().distance(damagedEntity.getLocation()) > 25) {
-                    cancel();
+                    task.cancel();
                     setInCooldown(healer, false);
                     doCooldown(healer);
                     damagedEntity.setHealing(false);
@@ -65,7 +58,7 @@ public class ChannelHealing extends CombatEnterScanPower {
                     return;
                 }
 
-                if (timer % 10 == 0 && timer > 0) {
+                if (timer[0] % 10 == 0 && timer[0] > 0) {
                     double healAmount = healer.getLevel() / 2d;
                     damagedEntity.heal(healAmount);
                     damagedEntity.getLocation().getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, damagedEntity.getLocation().add(new Vector(0, 1, 0)), 20, 0.1, 0.1, 0.1);
@@ -84,10 +77,9 @@ public class ChannelHealing extends CombatEnterScanPower {
                         break;
                 }
 
-                timer++;
+                timer[0]++;
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 2L);
+            }, 0L, 2L);
     }
 
     @Override

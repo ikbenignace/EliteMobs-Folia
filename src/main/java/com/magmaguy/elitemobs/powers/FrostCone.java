@@ -8,6 +8,7 @@ import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
 import com.magmaguy.elitemobs.powers.meta.ProjectileTagger;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -21,7 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -42,36 +43,32 @@ public class FrostCone extends BossPower implements Listener {
             return;
         eliteEntity.getLivingEntity().setAI(false);
 
-        new BukkitRunnable() {
-            int counter = 0;
+        // Use array to hold counter value for closure access
+        final int[] counter = {0};
+        
+        SchedulerUtil.runTaskTimer((task) -> {
+            counter[0]++;
 
-            @Override
-            public void run() {
-                counter++;
-
-                //ending phase
-                if (counter > 20 * 6 || !isPowerStillValid(eliteEntity, damager)) {
-                    cancel();
-                    if (eliteEntity.getLivingEntity() != null && !eliteEntity.getLivingEntity().isDead())
-                        eliteEntity.getLivingEntity().setAI(true);
-                    frostCone.setFiring(false);
-                    return;
-                }
-
-                //warning phase
-                if (counter < 20 * 3) {
-                    doSmokeEffect(eliteEntity, damager);
-                    return;
-                }
-
-                //firing phase
-                for (int i = 0; i < 10; i++)
-                    createSnowball(eliteEntity, damager);
-
+            //ending phase
+            if (counter[0] > 20 * 6 || !isPowerStillValid(eliteEntity, damager)) {
+                task.cancel();
+                if (eliteEntity.getLivingEntity() != null && !eliteEntity.getLivingEntity().isDead())
+                    eliteEntity.getLivingEntity().setAI(true);
+                frostCone.setFiring(false);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
 
+            //warning phase
+            if (counter[0] < 20 * 3) {
+                doSmokeEffect(eliteEntity, damager);
+                return;
+            }
 
+            //firing phase
+            for (int i = 0; i < 10; i++)
+                createSnowball(eliteEntity, damager);
+
+        }, 0, 1);
     }
 
     private static void doSmokeEffect(EliteEntity eliteEntity, Location location) {
@@ -108,7 +105,7 @@ public class FrostCone extends BossPower implements Listener {
         Projectile snowball = EliteProjectile.create(EntityType.SNOWBALL, eliteEntity.getLivingEntity(), getShotVector(eliteEntity, location), false);
         ProjectileTagger.tagProjectileWithCustomDamage(snowball, 2);
         snowball.getPersistentDataContainer().set(frostConeSnowballKey, PersistentDataType.STRING, "true");
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, snowball::remove, 20L * 3);
+        SchedulerUtil.runTaskLater(snowball::remove, 20L * 3);
         return (Snowball) snowball;
     }
 
@@ -133,16 +130,14 @@ public class FrostCone extends BossPower implements Listener {
         else
             frostconePlayer.put(event.getPlayer(), frostconePlayer.get(event.getPlayer()) + 1);
         event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20 * 7, frostconePlayer.get(event.getPlayer())));
-        new BukkitRunnable() {
-            final int amount = frostconePlayer.get(event.getPlayer());
-
-            @Override
-            public void run() {
-                if (!frostconePlayer.containsKey(event.getPlayer())) return;
-                if (amount != frostconePlayer.get(event.getPlayer())) return;
-                frostconePlayer.remove(event.getPlayer());
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20L * 5);
+        
+        // Use captured final variable for the delay task
+        final int amount = frostconePlayer.get(event.getPlayer());
+        SchedulerUtil.runTaskLater(() -> {
+            if (!frostconePlayer.containsKey(event.getPlayer())) return;
+            if (amount != frostconePlayer.get(event.getPlayer())) return;
+            frostconePlayer.remove(event.getPlayer());
+        }, 20L * 5);
     }
 
 }

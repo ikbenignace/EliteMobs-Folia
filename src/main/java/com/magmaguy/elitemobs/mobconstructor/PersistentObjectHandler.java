@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.InstancedDungeonRemoveEvent;
 import com.magmaguy.elitemobs.utils.ChunkVectorizer;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -147,7 +148,7 @@ public class PersistentObjectHandler {
         public void chunkLoadEvent(ChunkLoadEvent event) {
             int chunkLocation = chunkLocation(event.getChunk());
             List<PersistentObjectHandler> simplePersistentEntityList = new ArrayList<>(persistentObjects.get(chunkLocation + ""));
-            Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, () -> loadChunk(simplePersistentEntityList), 1L);
+            SchedulerUtil.scheduleSyncDelayedTask(() -> loadChunk(simplePersistentEntityList), 1L);
         }
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)

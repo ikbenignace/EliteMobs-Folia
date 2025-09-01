@@ -7,6 +7,7 @@ import com.magmaguy.elitemobs.config.EventsConfig;
 import com.magmaguy.elitemobs.config.customevents.CustomEventsConfig;
 import com.magmaguy.elitemobs.config.customevents.CustomEventsConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -103,7 +104,7 @@ public class ActionEvent extends CustomEvent {
     @Override
     public void startModifiers() {
         playerCooldowns.add(player);
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> playerCooldowns.remove(player), 20L * 60L * EventsConfig.getActionEventMinimumCooldown());
+        SchedulerUtil.runTaskLater(() -> playerCooldowns.remove(player), 20L * 60L * EventsConfig.getActionEventMinimumCooldown());
     }
 
     @Override

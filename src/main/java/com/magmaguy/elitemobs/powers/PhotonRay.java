@@ -14,12 +14,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class PhotonRay extends CombatEnterScanPower {
 
@@ -44,15 +44,12 @@ public class PhotonRay extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+        super.bukkitTask = SchedulerUtil.runTaskTimer((task) -> {
+if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
                     return;
                 }
                 doPower(eliteEntity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -69,31 +66,27 @@ public class PhotonRay extends CombatEnterScanPower {
     private void createRay(Player target, Location sourceLocation, EliteEntity sourceEntity) {
         sourceEntity.getLivingEntity().setAI(false);
 
-        new BukkitRunnable() {
-            int counter = 0;
-            Vector laserVector = generateRayVector(sourceLocation, target.getLocation());
-
-            @Override
-            public void run() {
-                if (counter > 30 ||
+                final int[] counter = {0};
+        final Vector[] laserVector = {generateRayVector(sourceLocation, target.getLocation())};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 30 ||
                         !target.isValid() ||
                         !target.getLocation().getWorld().equals(sourceLocation.getWorld()) ||
                         target.getLocation().distanceSquared(sourceLocation) > range * range ||
                         !sourceEntity.isValid()) {
                     if (sourceEntity.getLivingEntity() != null)
                         sourceEntity.getLivingEntity().setAI(true);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
-                laserVector = dragTarget(laserVector, sourceEntity.getLocation(), target.getLocation());
+                laserVector[0] = dragTarget(laserVector[0], sourceEntity.getLocation(), target.getLocation());
 
-                doRaytraceLaser(laserVector, sourceEntity.getLocation(), counter < 20 / 4d, sourceEntity);
+                doRaytraceLaser(laserVector[0], sourceEntity.getLocation(), counter[0] < 20 / 4d, sourceEntity);
 
-                counter++;
+                counter[0]++;
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 2);
+            }, 0, 2);
     }
 
     private void doRaytraceLaser(Vector laserVector, Location source, boolean warningPhase, EliteEntity eliteEntity) {

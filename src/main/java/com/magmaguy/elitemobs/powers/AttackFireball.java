@@ -11,8 +11,8 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 06/05/2017.
@@ -71,14 +71,10 @@ public class AttackFireball extends MinorPower implements Listener {
 
     private void repeatingFireballTask(Monster monster, AttackFireball attackFireball) {
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-
-                if (!monster.isValid() || monster.getTarget() == null) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!monster.isValid() || monster.getTarget() == null) {
                     attackFireball.setFiring(false);
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
@@ -98,9 +94,7 @@ public class AttackFireball extends MinorPower implements Listener {
                     }
                 }
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20L * 8);
+            }, 0, 20L * 8);
 
     }
 

@@ -7,6 +7,7 @@ import com.magmaguy.elitemobs.explosionregen.Explosion;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.CombatEnterScanPower;
 import com.magmaguy.elitemobs.utils.EnderDragonPhaseSimplifier;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -14,7 +15,6 @@ import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -38,11 +38,8 @@ public class EnderDragonShockwave extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+        super.bukkitTask = SchedulerUtil.runTaskTimer((task) -> {
+if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
                     return;
                 }
 
@@ -53,51 +50,45 @@ public class EnderDragonShockwave extends CombatEnterScanPower {
 
                 doPower(eliteEntity);
 
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+            }, 0, 10);
     }
 
     private void doPower(EliteEntity eliteEntity) {
         doCooldown(eliteEntity);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (eliteEntity.isValid())
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (eliteEntity.isValid())
                     if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
                         ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
 
                 if (doExit(eliteEntity) || eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) &&
                         !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
-                    cancel();
+                    task.cancel();
                     return;
                 }
 
-                if (counter == 0) {
+                if (counter[0] == 0) {
                     setAffectedBlocks();
                     generateRealCircle(eliteEntity);
                     warningPhaseCounter = 0;
                     damagePhaseCounter = 0;
                 }
 
-                if (counter < 20 * 3) {
+                if (counter[0] < 20 * 3) {
                     doWarningPhase(eliteEntity);
                 }
 
-                if (counter > 20 * 3) {
+                if (counter[0] > 20 * 3) {
                     doDamagePhase(eliteEntity);
                 }
 
-                if (counter >= 20 * (3 + 6)) {
-                    cancel();
+                if (counter[0] >= 20 * (3 + 6)) {
+                    task.cancel();
                 }
 
-                counter++;
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                counter[0]++;
+            }, 0, 1);
     }
 
     //todo: move this to its own class, make sure it only generates once ever and then just randomizes rotations

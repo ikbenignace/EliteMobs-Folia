@@ -59,6 +59,7 @@ import com.magmaguy.elitemobs.thirdparty.placeholderapi.Placeholders;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardCompatibility;
 import com.magmaguy.elitemobs.treasurechest.TreasureChest;
 import com.magmaguy.elitemobs.utils.BossBarUtil;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.elitemobs.versionnotifier.VersionChecker;
 import com.magmaguy.elitemobs.wormhole.Wormhole;
 import com.magmaguy.elitemobs.wormhole.WormholeManager;
@@ -302,7 +303,7 @@ public class EliteMobs extends JavaPlugin {
     public void onDisable() {
         Logger.info("Starting EliteMobs shutdown sequence...");
         Explosion.regenerateAllPendingBlocks();
-        Bukkit.getServer().getScheduler().cancelTasks(MetadataHandler.PLUGIN);
+        SchedulerUtil.cancelAllTasks();
         Wormhole.shutdown();
         RegionalBossEntity.save();
         RegionalBossEntity.getTrackableCustomBosses().clear();

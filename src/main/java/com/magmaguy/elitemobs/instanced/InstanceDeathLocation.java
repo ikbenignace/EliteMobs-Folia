@@ -4,6 +4,7 @@ import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -11,7 +12,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class InstanceDeathLocation {
@@ -67,19 +67,16 @@ public class InstanceDeathLocation {
 
     //This is necessary because physics updates might remove the banner while it should still be on there
     public void bannerWatchdog() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
-                    cancel();
-                    return;
-                }
-                if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
-                EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
-                findBannerLocation(deathLocation);
+        SchedulerUtil.runTaskTimer((task) -> {
+            if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
+                task.cancel();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 5, 5);
+            if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
+            EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
+            findBannerLocation(deathLocation);
+        }, 5, 5);
     }
 }

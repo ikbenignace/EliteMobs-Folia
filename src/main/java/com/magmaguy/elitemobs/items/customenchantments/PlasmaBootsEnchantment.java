@@ -2,6 +2,7 @@ package com.magmaguy.elitemobs.items.customenchantments;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -14,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -31,10 +31,10 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
 
     public static void doPlasmaBootsEnchantment(int level, Player player) {
         player.setVelocity(new Vector(0, .8, 0));
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
+        SchedulerUtil.runTaskTimer((plasmaTask) -> {
             if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
                     && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                task.cancel();
+                plasmaTask.cancel();
                 doLanding(level, player);
                 return;
             }
@@ -64,22 +64,19 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
     }
 
     private static void createProjectile(Vector shotVector, Location sourceLocation, Player player) {
-        new BukkitRunnable() {
-            final Location currentLocation = sourceLocation.clone();
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (counter > 20 * 3) {
-                    cancel();
+                final Location currentLocation = sourceLocation.clone();
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (counter[0] > 20 * 3) {
+                    task.cancel();
                     return;
                 }
-                counter++;
+                counter[0]++;
                 for (Entity entity : Objects.requireNonNull(currentLocation.getWorld())
                         .getNearbyEntities(currentLocation, 0.1, 0.1, 0.1)) {
                     if (!(entity instanceof LivingEntity)) continue;
                     if (entity.getType().equals(EntityType.PLAYER)) continue;
-                    cancel();
+                    task.cancel();
                     doDamage(player, (LivingEntity) entity);
                     break;
                 }
@@ -88,10 +85,9 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
 
                 currentLocation.add(shotVector);
                 if (!currentLocation.getBlock().isPassable()) {
-                    cancel();
+                    task.cancel();
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
     private static void doDamage(Player player, LivingEntity livingEntity) {
@@ -123,12 +119,12 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
             if (plasmaBootLevel < 1) return;
             if (!players.contains(event.getPlayer().getUniqueId())) {
                 players.add(event.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> players.remove(event.getPlayer().getUniqueId()), 10);
+                SchedulerUtil.runTaskLater(task -> players.remove(event.getPlayer().getUniqueId()), 10);
                 return;
             }
             players.remove(event.getPlayer().getUniqueId());
             cooldownPlayers.add(event.getPlayer().getUniqueId());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
+            SchedulerUtil.runTaskLater(task -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
 
             doPlasmaBootsEnchantment((int) plasmaBootLevel, event.getPlayer());
 

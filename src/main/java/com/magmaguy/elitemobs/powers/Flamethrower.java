@@ -12,12 +12,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class Flamethrower extends BossPower implements Listener {
 
@@ -53,27 +53,21 @@ public class Flamethrower extends BossPower implements Listener {
 
         eliteEntity.getLivingEntity().setAI(false);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
                 doParticleEffect(eliteEntity, fixedPlayerLocation, Particle.SMOKE);
-                counter++;
+                counter[0]++;
 
-                if (counter < 20 * 2) return;
+                if (counter[0] < 20 * 2) return;
                 doFlamethrowerPhase2(eliteEntity, fixedPlayerLocation);
-                cancel();
+                task.cancel();
 
-            }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
     }
 
@@ -111,24 +105,20 @@ public class Flamethrower extends BossPower implements Listener {
      */
     private void doFlamethrowerPhase2(EliteEntity eliteEntity, Location fixedPlayerLocation) {
         List<Location> damagePoints = generateDamagePoints(eliteEntity, fixedPlayerLocation);
-        new BukkitRunnable() {
-            int timer = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
 
                 doParticleEffect(eliteEntity, fixedPlayerLocation, Particle.FLAME);
                 doDamage(damagePoints, eliteEntity);
-                timer++;
-                if (timer < 20 * 3) return;
+                timer[0]++;
+                if (timer[0] < 20 * 3) return;
                 doFlamethrowerPhase3(eliteEntity, fixedPlayerLocation);
-                cancel();
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                task.cancel();
+            }, 0, 1);
     }
 
     /**
@@ -137,22 +127,18 @@ public class Flamethrower extends BossPower implements Listener {
      * @param eliteEntity
      */
     private void doFlamethrowerPhase3(EliteEntity eliteEntity, Location fixedPlayerLocation) {
-        new BukkitRunnable() {
-            int timer = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
+                final int[] timer = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!eliteEntity.isValid()) {
+                    task.cancel();
                     return;
                 }
-                timer++;
+                timer[0]++;
                 doParticleEffect(eliteEntity, fixedPlayerLocation, Particle.SMOKE);
-                if (timer < 20) return;
-                cancel();
+                if (timer[0] < 20) return;
+                task.cancel();
                 eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
     }
 
 }

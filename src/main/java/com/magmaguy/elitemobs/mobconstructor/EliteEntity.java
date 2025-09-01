@@ -21,6 +21,7 @@ import com.magmaguy.elitemobs.powerstances.MajorPowerPowerStance;
 import com.magmaguy.elitemobs.powerstances.MinorPowerPowerStance;
 import com.magmaguy.elitemobs.tagger.PersistentTagger;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -33,7 +34,6 @@ import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -599,22 +599,12 @@ public class EliteEntity {
 
     public void doCooldown() {
         setInCooldown(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 15);
+        SchedulerUtil.runTaskLater(() -> {setInCooldown(false);}, 20 * 15);
     }
 
     public void doGlobalPowerCooldown(int ticks) {
         setInCooldown(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        SchedulerUtil.runTaskLater(() -> {setInCooldown(false);}, ticks);
     }
 
     public void setTriggeredAntiExploit(boolean triggeredAntiExploit) {
@@ -639,22 +629,12 @@ public class EliteEntity {
 
     public void setInAntiExploitCooldown() {
         this.inAntiExploitCooldown = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                inAntiExploitCooldown = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20);
+        SchedulerUtil.runTaskLater(() -> {inAntiExploitCooldown = false;}, 20);
     }
 
     public void setCombatGracePeriod(int delayInTicks) {
         this.inCombatGracePeriod = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                inCombatGracePeriod = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, delayInTicks);
+        SchedulerUtil.runTaskLater(() -> {inCombatGracePeriod = false;}, delayInTicks);
     }
 
     public void addGlobalReinforcement(CustomBossEntity customBossEntity) {

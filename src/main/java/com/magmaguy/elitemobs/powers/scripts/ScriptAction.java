@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
 import com.magmaguy.elitemobs.powers.meta.CustomSummonPower;
 import com.magmaguy.elitemobs.powers.scripts.caching.ScriptActionBlueprint;
 import com.magmaguy.elitemobs.powers.scripts.enums.ActionType;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
@@ -27,7 +28,6 @@ import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -134,12 +134,9 @@ public class ScriptAction {
         }
 
         if (blueprint.getWait().getValue() > 0) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    runScriptTask(scriptActionData);
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, blueprint.getWait().getValue());
+            SchedulerUtil.runTaskLater(() -> {
+                runScriptTask(scriptActionData);
+            }, blueprint.getWait().getValue());
         } else {
             runScriptTask(scriptActionData);
         }
@@ -153,31 +150,27 @@ public class ScriptAction {
     private void runScriptTask(ScriptActionData scriptActionData) {
         if (blueprint.getRepeatEvery().getValue() > 0) {
             // If it's a repeating task, schedule it accordingly.
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    counter++;
-                    if (blueprint.getConditionsBlueprint() != null
-                            && !scriptConditions.meetsActionConditions(scriptActionData)) {
-                        cancel();
-                        return;
-                    }
-
-                    if (blueprint.getTimes().getValue() > 0 && counter > blueprint.getTimes().getValue()) {
-                        cancel();
-                        return;
-                    }
-
-                    if (blueprint.getTimes().getValue() < 0 && !scriptActionData.getEliteEntity().isValid()) {
-                        cancel();
-                        return;
-                    }
-
-                    runActions(scriptActionData);
+            final int[] counter = {0};
+            SchedulerUtil.runTaskTimer((task) -> {
+                counter[0]++;
+                if (blueprint.getConditionsBlueprint() != null
+                        && !scriptConditions.meetsActionConditions(scriptActionData)) {
+                    task.cancel();
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, blueprint.getRepeatEvery().getValue());
+
+                if (blueprint.getTimes().getValue() > 0 && counter[0] > blueprint.getTimes().getValue()) {
+                    task.cancel();
+                    return;
+                }
+
+                if (blueprint.getTimes().getValue() < 0 && !scriptActionData.getEliteEntity().isValid()) {
+                    task.cancel();
+                    return;
+                }
+
+                runActions(scriptActionData);
+            }, 0, blueprint.getRepeatEvery().getValue());
         } else {
             if (blueprint.getConditionsBlueprint() != null
                     && !scriptConditions.meetsActionConditions(scriptActionData)) {
@@ -384,7 +377,7 @@ public class ScriptAction {
             if (target instanceof Player player) {
                 bossBar.addPlayer(player);
                 if (blueprint.getDuration().getValue() > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, bossBar::removeAll, blueprint.getDuration().getValue());
+                    SchedulerUtil.runTaskLater(bossBar::removeAll, blueprint.getDuration().getValue());
                 }
             } else {
                 Logger.warn("BOSS_BAR_MESSAGE actions must target players! Problematic script: '" + blueprint.getScriptName() + "' in file '" + blueprint.getScriptFilename() + "'");
@@ -623,7 +616,7 @@ public class ScriptAction {
         getTargets(scriptActionData).forEach(target -> {
             target.setAI(aiEnabled);
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> target.setAI(!aiEnabled), duration);
+                SchedulerUtil.runTaskLater(() -> target.setAI(!aiEnabled), duration);
             }
         });
     }
@@ -641,7 +634,7 @@ public class ScriptAction {
             if (target instanceof Mob mob) {
                 mob.setAware(aware);
                 if (duration > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> mob.setAware(!aware), duration);
+                    SchedulerUtil.runTaskLater(() -> mob.setAware(!aware), duration);
                 }
             } else {
                 Logger.warn("SET_MOB_AWARE action must target mobs! Problematic script: '" + blueprint.getScriptName() + "' in file '" + blueprint.getScriptFilename() + "'");
@@ -686,19 +679,16 @@ public class ScriptAction {
 
         // Delay the push by one tick to avoid interference with other events.
         Vector localFinalVelocity = velocity;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Vector finalVelocity = localFinalVelocity;
-                getTargets(scriptActionData).forEach(target -> {
-                    if (additive) {
-                        target.setVelocity(target.getVelocity().add(finalVelocity));
-                    } else {
-                        target.setVelocity(finalVelocity);
-                    }
-                });
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+        SchedulerUtil.runTaskLater(() -> {
+            Vector finalVelocity = localFinalVelocity;
+            getTargets(scriptActionData).forEach(target -> {
+                if (additive) {
+                    target.setVelocity(target.getVelocity().add(finalVelocity));
+                } else {
+                    target.setVelocity(finalVelocity);
+                }
+            });
+        }, 1);
     }
 
     /**
@@ -801,7 +791,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     target.setInvulnerable(!invulnerable);
                     if (target instanceof Player player) {
                         if (invulnerable) {
@@ -836,7 +826,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     if (bossEntity != null) {
                         bossEntity.removeTags(tags);
                     }
@@ -872,7 +862,7 @@ public class ScriptAction {
                 }
             }
             if (duration > 0) {
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                SchedulerUtil.runTaskLater(() -> {
                     if (bossEntity != null) {
                         bossEntity.addTags(tags);
                     }
@@ -924,25 +914,19 @@ public class ScriptAction {
                         world.setThundering(false);
                         world.setWeatherDuration(duration > 0 ? duration : 6000);
                         if (duration > 0) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    world.setStorm(false);
-                                }
-                            }.runTaskLater(MetadataHandler.PLUGIN, duration + 1);
+                            SchedulerUtil.runTaskLater(() -> {
+                                world.setStorm(false);
+                            }, duration + 1);
                         }
                     }
                     case THUNDER -> {
                         world.setStorm(true);
                         world.setThundering(true);
                         world.setThunderDuration(duration > 0 ? duration : 6000);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                world.setStorm(false);
-                                world.setThundering(false);
-                            }
-                        }.runTaskLater(MetadataHandler.PLUGIN, duration + 1);
+                        SchedulerUtil.runTaskLater(() -> {
+                            world.setStorm(false);
+                            world.setThundering(false);
+                        }, duration + 1);
                     }
                 }
             } catch (Exception e) {
@@ -1040,19 +1024,15 @@ public class ScriptAction {
 
                 if (!blueprint.getLandingScripts().isEmpty()) {
                     FallingEntityDataPair dataPair = new FallingEntityDataPair(this, scriptActionData);
-                    new BukkitRunnable() {
-                        final int maxTicks = 20 * 60 * 5;
-                        int counter = 0;
-
-                        @Override
-                        public void run() {
-                            if (!entity.isValid() || entity.isOnGround() || counter > maxTicks) {
+                            final int[] maxTicks = {20 * 60 * 5};
+        final int[] counter = {0};
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!entity.isValid() || entity.isOnGround() || counter[0] > maxTicks[0]) {
                                 ScriptListener.runEvent(dataPair, entity.getLocation());
-                                cancel();
+                                task.cancel();
                             }
-                            counter++;
-                        }
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                            counter[0]++;
+                        }, 1, 1);
                 }
             } catch (Exception e) {
                 Logger.warn("Failed to summon entity at location '" + location + "' in script '" + blueprint.getScriptName() + "': " + e.getMessage());
@@ -1101,7 +1081,7 @@ public class ScriptAction {
             if (attribute != null) {
                 attribute.setBaseValue(scaleValue);
                 if (duration > 0) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> attribute.setBaseValue(1.0), duration);
+                    SchedulerUtil.runTaskLater(() -> attribute.setBaseValue(1.0), duration);
                 }
             }
         });

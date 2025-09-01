@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'io.github.goooler.shadow' version '8.1.7'
     id 'signing'
 }
 
@@ -17,7 +17,7 @@ configurations.all {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -48,6 +48,11 @@ repositories {
 
     mavenCentral()
     mavenLocal()
+    
+    //PaperMC repository for Folia API
+    maven {
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
 
     //Spigot API & CloudCommands
     maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots" }
@@ -84,8 +89,8 @@ repositories {
 }
 
 dependencies {
-    //Spigot API
-    compileOnly "org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT"
+    //Folia API
+    compileOnly("dev.folia:folia-api:1.21.8-R0.1-SNAPSHOT")
     //WorldGuard API
     compileOnly group: 'com.sk89q.worldguard', name: 'worldguard-bukkit', version: '7.0.7'
     //Vault
@@ -147,7 +152,7 @@ shadowJar {
 
     archiveClassifier.set(null)
     archiveFileName.set(project.name + ".jar")
-    destinationDirectory.set(new File("testbed/plugins"))
+    destinationDirectory.set(new File("build/libs"))
 }
 
 publishing {

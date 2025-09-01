@@ -10,9 +10,9 @@ import com.magmaguy.elitemobs.powers.meta.MajorPower;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 /**
  * Created by MagmaGuy on 18/05/2017.
@@ -37,10 +37,8 @@ public class ZombieFriends extends MajorPower implements Listener {
         CustomBossEntity reinforcement2 = CustomBossEntity.createCustomBossEntity("zombie_friends_friend.yml");
         reinforcement2.spawn(event.getEntity().getLocation(), event.getEliteMobEntity().getLevel(), false);
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!event.getEliteMobEntity().isValid() || !reinforcement1.isValid() && !reinforcement2.isValid()) {
+        SchedulerUtil.runTaskTimer((task) -> {
+if (!event.getEliteMobEntity().isValid() || !reinforcement1.isValid() && !reinforcement2.isValid()) {
 
                     if (reinforcement1 != null && reinforcement1.isValid()) {
                         nameClearer(reinforcement1);
@@ -54,7 +52,7 @@ public class ZombieFriends extends MajorPower implements Listener {
                                 .get(ThreadLocalRandom.current().nextInt(ZombieFriendsConfig.friendDeathMessage.size()))));
                     }
 
-                    cancel();
+                    task.cancel();
 
                 } else {
 
@@ -77,20 +75,16 @@ public class ZombieFriends extends MajorPower implements Listener {
                     }
 
                 }
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20, 20 * 8);
+            }, 20, 20 * 8);
 
     }
 
     private void nameClearer(EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3);
+        SchedulerUtil.runTaskLater(() -> {
+            if (eliteEntity.isValid())
+                eliteEntity.setName(eliteEntity.getName(), true);
+        }, 20 * 3);
 
     }
 

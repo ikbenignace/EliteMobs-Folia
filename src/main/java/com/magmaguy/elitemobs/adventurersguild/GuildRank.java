@@ -10,9 +10,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
+import com.magmaguy.elitemobs.utils.SchedulerUtil;
 
 public class GuildRank {
 
@@ -234,15 +234,10 @@ public class GuildRank {
     public static class GuildRankEvents implements Listener {
         @EventHandler
         public void onPlayerJoin(PlayerJoinEvent event) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (event.getPlayer().isOnline())
+            SchedulerUtil.runTaskLater(() -> {if (event.getPlayer().isOnline())
                         setMaxHealth(event.getPlayer(),
                                 GuildRank.getActiveGuildRank(event.getPlayer(), true),
-                                GuildRank.getGuildPrestigeRank(event.getPlayer(), true));
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3);
+                                GuildRank.getGuildPrestigeRank(event.getPlayer(), true));}, 20 * 3);
         }
     }
 
