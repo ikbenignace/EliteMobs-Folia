@@ -19,14 +19,14 @@ public class RareDropEffect implements Listener {
                 ItemQualityColorizer.getItemQuality(item.getItemStack()).equals(ItemQualityColorizer.ItemQuality.GOLD)))
             return;
 
-        new BukkitRunnable() {
+        
             int counter = 0;
 
-            @Override
-            public void run() {
+            
+            FoliaScheduler.runTimer(() -> {
 
                 if (item == null || !item.isValid() || item.isDead()) {
-                    cancel();
+                    
                     return;
                 }
 
@@ -34,10 +34,10 @@ public class RareDropEffect implements Listener {
 
                 counter += 20;
                 if (counter > 20 * 60 * 2)
-                    cancel();
+                    
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+        }, 0, 20);
 
     }
 

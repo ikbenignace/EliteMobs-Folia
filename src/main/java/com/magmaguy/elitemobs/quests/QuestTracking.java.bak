@@ -108,16 +108,16 @@ public class QuestTracking {
     }
 
     private void startLocationGetter() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
+        locationRefresher = new BukkitRunnable() {
+            @Override
+            public void run() {
                 if (!player.isValid()) {
                     stop();
                     return;
                 }
                 updateLocations(customQuest);
             }
-        FoliaScheduler.runAsync(() -> { }, 0L, 20L * 60L);
+        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 0L, 20L * 60L);
     }
 
     public void updateLocations(Quest quest) {
@@ -132,7 +132,7 @@ public class QuestTracking {
                         destinations.addAll(getDialogLocations((DialogObjective) objective));
                     else if (objective instanceof CustomFetchObjective)
                         destinations.addAll(getFetchLocations((CustomFetchObjective) objective));
-            FoliaScheduler.runLater(() -> objectiveDestinations = destinations);
+            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, () -> objectiveDestinations = destinations);
         } else {
             questIsDone = true;
             getTurnInNPC();
@@ -194,29 +194,29 @@ public class QuestTracking {
 
     public void stop() {
         playerTrackingQuests.remove(player);
-        
-            
-            FoliaScheduler.runTimer(() -> {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
                 player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
             }
-        }.runLater(MetadataHandler.PLUGIN);
-        locationRefresher.
-        compassTask.
+        }.runTask(MetadataHandler.PLUGIN);
+        locationRefresher.cancel();
+        compassTask.cancel();
         compassBar.removeAll();
     }
 
     private void startCompass() {
         compassBar = Bukkit.createBossBar("", BarColor.GREEN, BarStyle.SOLID, BarFlag.PLAY_BOSS_MUSIC);
-        compassTask = 
-            
-            FoliaScheduler.runTimer(() -> {
+        compassTask = new BukkitRunnable() {
+            @Override
+            public void run() {
                 if (!player.isOnline()) {
                     stop();
                     return;
                 }
                 updateCompassContents();
             }
-        }, 0L, 1L);
+        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 1L);
     }
 
     private void updateCompassContents() {

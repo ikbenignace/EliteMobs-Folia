@@ -41,9 +41,9 @@ public class DynamicQuest extends Quest {
     }
 
     public static void startRandomizingQuests() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
+        randomizerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
                 for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
                     List<QuestObjectives> questObjectives = new ArrayList<>();
                     for (int questNumber = 0; questNumber < 3; questNumber++) {
@@ -52,13 +52,13 @@ public class DynamicQuest extends Quest {
                     threeRandomDynamicObjectives.put(activeLevel, questObjectives);
                 }
             }
-        }, 0, 20 * 60L);
+        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 60L);
     }
 
     public static void shutdown() {
         threeRandomDynamicObjectives.clear();
         if (randomizerTask != null)
-            randomizerTask.
+            randomizerTask.cancel();
     }
 
     public static List<DynamicQuest> generateQuests(Player player) {

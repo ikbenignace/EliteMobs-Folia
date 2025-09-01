@@ -103,31 +103,34 @@ public class PlayerData {
         }
         PermissionAttachment permissionAttachment = player.addAttachment(MetadataHandler.PLUGIN);
         permissionAttachment.setPermission("elitequest.*", false);
-        FoliaScheduler.runAsync(() -> {
-            Statement statement = null;
-            try {
-                statement = getConnection().createStatement();
-                ResultSet resultSet = statement.executeQuery("SELECT * FROM " + PLAYER_DATA_TABLE_NAME + " WHERE PlayerUUID = '" + uuid + "';");
-                if (resultSet.next()) {
-                    readExistingData(statement, uuid, resultSet);
-                } else {
-                    writeNewData(statement, uuid);
-                }
-                resultSet.close();
-                statement.close();
-            } catch (Exception e) {
-                if (statement != null) {
-                    try {
-                        statement.close();
-                    } catch (SQLException throwables) {
-                        Logger.warn("Failed to close statement after failing player data creation!");
-                        throwables.printStackTrace();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Statement statement = null;
+                try {
+                    statement = getConnection().createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM " + PLAYER_DATA_TABLE_NAME + " WHERE PlayerUUID = '" + uuid + "';");
+                    if (resultSet.next()) {
+                        readExistingData(statement, uuid, resultSet);
+                    } else {
+                        writeNewData(statement, uuid);
                     }
+                    resultSet.close();
+                    statement.close();
+                } catch (Exception e) {
+                    if (statement != null) {
+                        try {
+                            statement.close();
+                        } catch (SQLException throwables) {
+                            Logger.warn("Failed to close statement after failing player data creation!");
+                            throwables.printStackTrace();
+                        }
+                    }
+                    Logger.warn("Something went wrong while generating a new player entry. This is bad! Tell the dev.");
+                    Logger.warn(e.getClass().getName() + ": " + e.getMessage());
                 }
-                Logger.warn("Something went wrong while generating a new player entry. This is bad! Tell the dev.");
-                Logger.warn(e.getClass().getName() + ": " + e.getMessage());
             }
-        });
+        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
     }
 
     public static PlayerData getPlayerData(UUID player) {
@@ -335,9 +338,9 @@ public class PlayerData {
     }
 
     public static void setDatabaseValue(UUID uuid, String key, Object value) {
-        
-            
-            FoliaScheduler.runTimer(() -> {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
                 Statement statement = null;
                 try {
                     statement = getConnection().createStatement();
@@ -356,7 +359,7 @@ public class PlayerData {
                     e.printStackTrace();
                 }
             }
-        });
+        }.runTaskAsynchronously(MetadataHandler.PLUGIN);
     }
 
     private static Object getDatabaseBlob(UUID uuid, String value) {
@@ -708,24 +711,24 @@ public class PlayerData {
     public static class PlayerDataEvents implements Listener {
         @EventHandler(priority = EventPriority.LOWEST)
         public void onPlayerLogin(PlayerJoinEvent event) {
-            
-                
-                FoliaScheduler.runTimer(() -> {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
                     if (Bukkit.getPlayer(event.getPlayer().getUniqueId()) == null) return;
                     new PlayerData(event.getPlayer().getUniqueId());
                 }
-            }.runTaskLaterAsynchronously(20);
+            }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20);
         }
 
         @EventHandler
         public void onPlayerLogout(PlayerQuitEvent event) {
-            
-                
-                FoliaScheduler.runTimer(() -> {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
                     clearPlayerData(event.getPlayer().getUniqueId());
                     setDisplayName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
                 }
-            }.runTaskLaterAsynchronously(20);
+            }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20);
         }
     }
 

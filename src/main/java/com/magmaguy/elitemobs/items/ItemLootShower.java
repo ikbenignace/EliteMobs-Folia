@@ -53,14 +53,14 @@ public class ItemLootShower implements Listener {
 
         if (Math.abs(mobLevel - ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false))
                 > ItemSettingsConfig.getLootLevelDifferenceLockout()) {
-            new BukkitRunnable() {
+            
                 int counter = 0;
 
-                @Override
-                public void run() {
+                
+                FoliaScheduler.runTimer(() -> {
                     counter++;
                     if (!player.isValid() || counter > 20 * 5) {
-                        cancel();
+                        
                         return;
                     }
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(
@@ -68,7 +68,7 @@ public class ItemLootShower implements Listener {
                                     .replace("$playerLevel", ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false) + "")
                                     .replace("$bossLevel", (int) mobLevel + "")));
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
             return;
         }
         if (ItemSettingsConfig.isPutLootDirectlyIntoPlayerInventory())
@@ -85,11 +85,11 @@ public class ItemLootShower implements Listener {
     private static void sendCurrencyNotification(Player player) {
         if (playerCurrencyPickup.containsKey(player)) return;
 
-        new BukkitRunnable() {
+        
             double oldAmount = 0;
 
-            @Override
-            public void run() {
+            
+            FoliaScheduler.runTimer(() -> {
 
                 if (!playerCurrencyPickup.containsKey(player)) {
                     playerCurrencyPickup.put(player, 0.0);
@@ -108,11 +108,11 @@ public class ItemLootShower implements Listener {
                 playerCurrencyPickup.remove(player);
                 sendAdventurersGuildNotification(player);
 
-                cancel();
+                
 
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 40);
+        }, 0, 40);
 
     }
 
@@ -122,14 +122,14 @@ public class ItemLootShower implements Listener {
     }
 
     private void addIndirectly(Location location, int currencyAmount2) {
-        new BukkitRunnable() {
+        
             int currencyAmount = currencyAmount2;
 
-            @Override
-            public void run() {
+            
+            FoliaScheduler.runTimer(() -> {
 
                 if (currencyAmount <= 0) {
-                    cancel();
+                    
                     return;
                 }
 
@@ -184,7 +184,7 @@ public class ItemLootShower implements Listener {
                     currencyAmount--;
                 }
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 2, 2);
+        }, 2, 2);
     }
 
     private int getCurrencyAmount(double eliteMobTier) {
@@ -400,29 +400,29 @@ public class ItemLootShower implements Listener {
             coinValues.put(item.getUniqueId(), this);
             pickupable = false;
             item.setGravity(false);
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+            
+                
+                FoliaScheduler.runTimer(() -> {
                     if (coinValues.containsKey(item.getUniqueId())) {
                         if (Bukkit.getEntity(item.getUniqueId()) != null)
                             Bukkit.getEntity(item.getUniqueId()).remove();
                         coinValues.remove(item.getUniqueId());
                     }
                 }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60 * 5);
+            }.runLater(20 * 60 * 5);
 
-            new BukkitRunnable() {
+            
                 int counter = 0;
 
-                @Override
-                public void run() {
+                
+                FoliaScheduler.runTimer(() -> {
 
                     if (!item.isValid() ||
                             !player.isValid() ||
                             !player.getWorld().equals(item.getWorld()) ||
                             counter > 20 * 4 ||
                             item.getLocation().distanceSquared(player.getLocation()) > 900) {
-                        cancel();
+                        
                         pickupable = true;
                         item.setGravity(true);
                         return;
@@ -447,13 +447,13 @@ public class ItemLootShower implements Listener {
                                                 .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
                                                 .replace("$amount", Round.twoDecimalPlaces(playerCurrencyPickup.get(player)) + ""))));
                         coinValues.remove(item.getUniqueId());
-                        cancel();
+                        
                         return;
                     }
 
                     counter++;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+            }, 1, 1);
         }
     }
 

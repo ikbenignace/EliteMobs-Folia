@@ -78,9 +78,12 @@ public class QuestInteractionHandler {
             player.sendMessage(QuestsConfig.getQuestPrerequisitesMissingMessage());
 
         if (!customQuestList.isEmpty())
-            FoliaScheduler.runLater(() -> {
-                QuestMenu.generateCustomQuestMenu(customQuestList, player, npcEntity);
-            }, 1);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    QuestMenu.generateCustomQuestMenu(customQuestList, player, npcEntity);
+                }
+            }.runTaskLater(MetadataHandler.PLUGIN, 1);
     }
 
     private static void scanQuestTakerNPC(NPCEntity npcEntity, List<Quest> activeQuests, List<CustomQuest> npcQuests, Player player) {

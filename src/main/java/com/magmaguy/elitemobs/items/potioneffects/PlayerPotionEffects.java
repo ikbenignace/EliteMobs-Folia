@@ -28,9 +28,9 @@ import java.util.HashSet;
 public class PlayerPotionEffects implements Listener {
 
     public PlayerPotionEffects() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        
+            
+            FoliaScheduler.runTimer(() -> {
                 //scan through what players are wearing
                 for (Player player : Bukkit.getOnlinePlayers())
                     if (ElitePlayerInventory.playerInventories.get(player.getUniqueId()) != null &&
@@ -38,17 +38,17 @@ public class PlayerPotionEffects implements Listener {
                         for (ElitePotionEffect elitePotionEffect : ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getContinuousPotionEffects(true))
                             doContinuousPotionEffect(elitePotionEffect, player);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20L, 20L);
+        }, 20L, 20L);
     }
 
     public static void addOnHitCooldown(HashSet<Player> cooldownList, Player player, long delay) {
         cooldownList.add(player);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        
+            
+            FoliaScheduler.runTimer(() -> {
                 cooldownList.remove(player);
             }
-        }.runTaskLater(MetadataHandler.PLUGIN, delay);
+        }.runLater(delay);
     }
 
     private void doContinuousPotionEffect(ElitePotionEffect elitePotionEffect, Player player) {

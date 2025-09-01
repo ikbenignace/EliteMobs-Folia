@@ -103,7 +103,7 @@ public class TreasureChest implements PersistentObject {
             if (time < 0)
                 generateChest();
             else
-                Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::generateChest, time);
+                FoliaScheduler.scheduleSyncDelayedTask(this::generateChest, time);
         }
     }
 
@@ -147,12 +147,12 @@ public class TreasureChest implements PersistentObject {
                 blacklistedPlayersInstance.add(player.getUniqueId());
             } else if (customTreasureChestConfigFields.getRestockTimers() != null) {
                 customTreasureChestConfigFields.getRestockTimers().add(cooldownStringConstructor(player));
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
+                
+                    
+                    FoliaScheduler.runTimer(() -> {
                         customTreasureChestConfigFields.getRestockTimers().removeIf(restockTime -> restockTime.split(":")[0].equals(player.getUniqueId().toString()));
                     }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+                }.runLater(20L * 60 * customTreasureChestConfigFields.getRestockTimer());
             }
             return;
         }
@@ -163,7 +163,7 @@ public class TreasureChest implements PersistentObject {
         customTreasureChestConfigFields.setRestockTime(location, restockTime);
 
         if (!customTreasureChestConfigFields.isInstanced())
-            Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+            FoliaScheduler.scheduleSyncDelayedTask(this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
 
     }
 
@@ -242,33 +242,33 @@ public class TreasureChest implements PersistentObject {
         treasureChestHashMap.remove(location);
     }
 
-    @Override
+    
     public void chunkLoad() {
     }
 
-    @Override
+    
     public void chunkUnload() {
     }
 
-    @Override
+    
     public void worldLoad(World world) {
         this.location = ConfigurationLocation.serialize(locationString);
         initializeChest();
         treasureChestHashMap.put(location, this);
     }
 
-    @Override
+    
     public void worldUnload() {
         treasureChestHashMap.remove(location);
         //todo stop restock timer here
     }
 
-    @Override
+    
     public Location getPersistentLocation() {
         return getLocation();
     }
 
-    @Override
+    
     public String getWorldName() {
         return worldName;
     }

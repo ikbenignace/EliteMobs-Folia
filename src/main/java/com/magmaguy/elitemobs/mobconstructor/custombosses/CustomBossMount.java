@@ -46,9 +46,9 @@ public class CustomBossMount {
                 mountEntity.setMount(true);
                 mountEntity.spawn(false);
 
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
+                
+                    
+                    FoliaScheduler.runTimer(() -> {
                         if (!mountEntity.isValid()) return;
                         if (customBossEntity.getLivingEntity() == null) return;
                         if (mountEntity.getCustomModel() != null)
@@ -60,7 +60,7 @@ public class CustomBossMount {
                         }
                         customBossEntity.customBossMount = mountEntity;
                     }
-                }.runTaskLater(MetadataHandler.PLUGIN, 5);
+                }.runLater(5);
                 return mountEntity;
             }
 

@@ -233,7 +233,7 @@ public class WormholeManager {
      */
     public void shutdown() {
         if (wormholeTask != null) {
-            wormholeTask.cancel();
+            wormholeTask.
             wormholeTask = null;
         }
 
@@ -245,13 +245,13 @@ public class WormholeManager {
      * Starts the main task for processing wormholes
      */
     private void startWormholeTask() {
-        wormholeTask = new BukkitRunnable() {
-            @Override
-            public void run() {
+        wormholeTask = 
+            
+            FoliaScheduler.runTimer(() -> {
                 // Process all wormholes in a single task
                 processWormholes();
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+        }, 0, 5);
     }
 
     /**

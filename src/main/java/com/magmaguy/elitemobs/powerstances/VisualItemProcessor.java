@@ -6,7 +6,6 @@ import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Item;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
@@ -40,17 +39,17 @@ public class VisualItemProcessor {
     private void rotateExistingEffects(Object[][] multiDimensionalTrailTracker, Vector[][] cachedVectorPositions,
                                        int pointsPerRotation, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
+        
 
             final boolean isObfuscated = eliteEntity.isVisualEffectObfuscated();
             int counter = 0;
 
-            @Override
-            public void run() {
+            
+            FoliaScheduler.runTimer(() -> {
 
                 if (!eliteEntity.isValid() || !hasValidEffect) {
                     VisualItemRemover.removeItems(multiDimensionalTrailTracker);
-                    cancel();
+                    
                     return;
                 }
 
@@ -90,10 +89,10 @@ public class VisualItemProcessor {
                  */
                 if (isObfuscated != eliteEntity.isVisualEffectObfuscated()) {
                     VisualItemRemover.removeItems(multiDimensionalTrailTracker);
-                    cancel();
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
+                    
+                    
+                        
+                        FoliaScheduler.runTimer(() -> {
                             eliteEntity.setVisualEffectObfuscated(false);
                             if (Arrays.deepEquals(cachedVectorPositions, MinorPowerStanceMath.cachedVectors)) {
                                 eliteEntity.setMinorVisualEffect(false);
@@ -104,13 +103,13 @@ public class VisualItemProcessor {
                                 new MajorPowerPowerStance(eliteEntity);
                             }
                         }
-                    }.runTask(MetadataHandler.PLUGIN);
+                    }.runLater(MetadataHandler.PLUGIN);
 
                 }
 
             }
 
-        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 0, 5);
+        FoliaScheduler.runAsync(() -> { }, 0, 5);
 
     }
 

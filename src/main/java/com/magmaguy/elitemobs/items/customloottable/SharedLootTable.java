@@ -45,7 +45,7 @@ public class SharedLootTable {
         sharedLootTables.put(eliteEntity, this);
         damagers.forEach(damager -> lootMenus.add(new LootMenu(damager, this, getPlayerTable(damager))));
         if (damagers.size() > 1)
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, this::messagePlayers, 1);
+            FoliaScheduler.runLater(this::messagePlayers, 1);
         endLoot();
     }
 
@@ -63,21 +63,21 @@ public class SharedLootTable {
 
     private void endLoot() {
         if (damagers.size() < 2) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+            
+                
+                FoliaScheduler.runTimer(() -> {
                     distribute();
                 }
-            }.runTaskLater(MetadataHandler.PLUGIN, 1);
+            }.runLater(1);
             return;
         }
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        
+            
+            FoliaScheduler.runTimer(() -> {
                 distribute();
             }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20L * durationInSeconds);
+        }.runLater(20L * durationInSeconds);
     }
 
     private void distribute() {
