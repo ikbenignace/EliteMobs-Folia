@@ -1,3 +1,4 @@
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 package com.magmaguy.elitemobs.powerstances;
 
 import com.magmaguy.elitemobs.MetadataHandler;

@@ -1,3 +1,4 @@
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 package com.magmaguy.elitemobs.playerdata;
 
 import com.magmaguy.elitemobs.MetadataHandler;
@@ -102,7 +103,7 @@ public class ElitePlayerInventory {
 
     private boolean updateLock() {
         isUpdateLock = true;
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> isUpdateLock = false, 1);
+        FoliaScheduler.runLater(() -> isUpdateLock = false, 1);
         return true;
     }
 

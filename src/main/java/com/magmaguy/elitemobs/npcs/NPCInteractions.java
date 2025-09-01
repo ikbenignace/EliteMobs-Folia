@@ -19,7 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 
 import java.util.HashSet;
 
@@ -32,7 +32,7 @@ public class NPCInteractions implements Listener {
 
         if (cooldowns.contains(event.getPlayer())) return;
         cooldowns.add(event.getPlayer());
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> cooldowns.remove(event.getPlayer()), 1);
+        FoliaScheduler.runLater(() -> cooldowns.remove(event.getPlayer()), 1);
         if (event.isCancelled()) return;
 
         NPCEntity npcEntity = EntityTracker.getNPCEntity(event.getRightClicked());

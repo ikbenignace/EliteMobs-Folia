@@ -1,19 +1,25 @@
 package com.magmaguy.elitemobs.items.customloottable;
 
 import com.magmaguy.elitemobs.MetadataHandler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.api.utils.EliteItemManager;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.items.EliteItemLore;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customenchantments.SoulbindEnchantment;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customitems.CustomItem;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.menus.LootMenu;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
