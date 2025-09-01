@@ -5,6 +5,7 @@ import com.magmaguy.elitemobs.dungeons.EliteMobsWorld;
 import com.magmaguy.elitemobs.dungeons.WorldDungeonPackage;
 import com.magmaguy.elitemobs.dungeons.WorldPackage;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
+import com.magmaguy.magmacore.util.Logger;
 import com.magmaguy.magmacore.util.TemporaryWorldManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -33,16 +34,35 @@ public class DungeonUtils {
         String worldName = worldPackage.getContentPackagesConfigFields().getWorldName();
         World.Environment environment = worldPackage.getContentPackagesConfigFields().getEnvironment();
         World world = loadWorld(worldName, environment, worldPackage.getContentPackagesConfigFields());
-        if (worldPackage.getContentPackagesConfigFields().getWormholeWorldName() != null)
-            loadWorld(worldPackage.getContentPackagesConfigFields().getWormholeWorldName(), environment, worldPackage.getContentPackagesConfigFields());
-        if (world != null) worldPackage.setInstalled(true);
+        
+        // Handle wormhole world loading with proper error handling
+        if (worldPackage.getContentPackagesConfigFields().getWormholeWorldName() != null) {
+            World wormholeWorld = loadWorld(worldPackage.getContentPackagesConfigFields().getWormholeWorldName(), environment, worldPackage.getContentPackagesConfigFields());
+            if (wormholeWorld == null) {
+                Logger.warn("Failed to load wormhole world for package: " + worldPackage.getContentPackagesConfigFields().getWormholeWorldName());
+            }
+        }
+        
+        if (world != null) {
+            worldPackage.setInstalled(true);
+        } else {
+            Logger.warn("Failed to install world package '" + worldName + "' - world loading failed");
+        }
         return world;
     }
 
     public static World loadWorld(String worldName, World.Environment environment, ContentPackagesConfigFields contentPackagesConfigFields) {
-        World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
-        if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
-        return world;
+        try {
+            World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
+            if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+            return world;
+        } catch (UnsupportedOperationException e) {
+            Logger.warn("Failed to load world '" + worldName + "' - dynamic world creation is not supported on this server platform (Folia). Some dungeon features may be unavailable.");
+            return null;
+        } catch (Exception e) {
+            Logger.warn("Failed to load world '" + worldName + "' due to an unexpected error: " + e.getMessage());
+            return null;
+        }
     }
 
     public static boolean unloadWorld(WorldPackage worldPackage) {
