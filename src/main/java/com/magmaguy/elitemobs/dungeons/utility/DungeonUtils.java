@@ -15,6 +15,25 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class DungeonUtils {
+    private static Boolean isFolia = null;
+    
+    /**
+     * Check if the server is running on Folia
+     * @return true if running on Folia, false otherwise
+     */
+    private static boolean isFolia() {
+        if (isFolia == null) {
+            try {
+                // Try to access a Folia-specific class
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+                isFolia = true;
+            } catch (ClassNotFoundException e) {
+                isFolia = false;
+            }
+        }
+        return isFolia;
+    }
+    
     public static Pair getLowestAndHighestLevels(List<CustomBossEntity> customBossEntities) {
         int lowestLevel = 0;
         int highestLevel = 0;
@@ -52,12 +71,18 @@ public class DungeonUtils {
     }
 
     public static World loadWorld(String worldName, World.Environment environment, ContentPackagesConfigFields contentPackagesConfigFields) {
+        // Check if running on Folia and skip world creation to prevent UnsupportedOperationException
+        if (isFolia()) {
+            Logger.warn("Skipping world creation for '" + worldName + "' - dynamic world creation is not supported on Folia. Some dungeon features may be unavailable.");
+            return null;
+        }
+        
         try {
             World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
             if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
             return world;
         } catch (UnsupportedOperationException e) {
-            Logger.warn("Failed to load world '" + worldName + "' - dynamic world creation is not supported on this server platform (Folia). Some dungeon features may be unavailable.");
+            Logger.warn("Failed to load world '" + worldName + "' - dynamic world creation is not supported on this server platform. Some dungeon features may be unavailable.");
             return null;
         } catch (Exception e) {
             Logger.warn("Failed to load world '" + worldName + "' due to an unexpected error: " + e.getMessage());
