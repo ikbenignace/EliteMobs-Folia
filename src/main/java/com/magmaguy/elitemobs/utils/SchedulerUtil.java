@@ -7,6 +7,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 /**
  * Utility class for cross-server scheduler compatibility between Folia and Paper/Spigot
@@ -14,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class SchedulerUtil {
     private static boolean isFolia = false;
     private static boolean foliaChecked = false;
+    // Track active tasks for proper cleanup during shutdown
+    private static final Set<TaskWrapper> activeTasks = ConcurrentHashMap.newKeySet();
 
     static {
         checkFolia();
@@ -39,11 +43,18 @@ public class SchedulerUtil {
 
         public TaskWrapper(Object task) {
             this.task = task;
+            // Track this task for cleanup during shutdown
+            if (task != null) {
+                activeTasks.add(this);
+            }
         }
 
         public void cancel() {
             if (cancelled || task == null) return;
             cancelled = true;
+            
+            // Remove from active tasks tracking
+            activeTasks.remove(this);
             
             if (isFolia) {
                 // For Folia, task is a ScheduledTask, use reflection to call cancel()
@@ -188,6 +199,13 @@ public class SchedulerUtil {
     }
 
     /**
+     * Helper method to remove completed tasks from tracking
+     */
+    private static void removeCompletedTask(TaskWrapper taskWrapper) {
+        activeTasks.remove(taskWrapper);
+    }
+
+    /**
      * Runs a task later on the main thread.
      * Uses appropriate scheduler based on server type.
      */
@@ -196,11 +214,27 @@ public class SchedulerUtil {
         if (delay < 1) delay = 1;
         
         if (isFolia) {
-            Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
-            return new TaskWrapper(foliaTask);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = foliaTask;
+            return wrapper;
         } else {
-            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task, delay);
-            return new TaskWrapper(bukkitTask);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = bukkitTask;
+            return wrapper;
         }
     }
 
@@ -213,15 +247,25 @@ public class SchedulerUtil {
         if (delay < 1) delay = 1;
         
         if (isFolia) {
+            TaskWrapper wrapper = new TaskWrapper(null);
             Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
-                TaskWrapper wrapper = new TaskWrapper(scheduledTask);
-                task.run(wrapper);
+                wrapper.task = scheduledTask;
+                try {
+                    task.run(wrapper);
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
             }, delay);
-            return new TaskWrapper(foliaTask);
+            wrapper.task = foliaTask;
+            return wrapper;
         } else {
             TaskWrapper wrapper = new TaskWrapper(null);
             BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
-                task.run(wrapper);
+                try {
+                    task.run(wrapper);
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
             }, delay);
             wrapper.task = bukkitTask;
             return wrapper;
@@ -254,12 +298,28 @@ public class SchedulerUtil {
         if (delay < 1) delay = 1;
         
         if (isFolia) {
+            TaskWrapper wrapper = new TaskWrapper(null);
             // Convert ticks to milliseconds (1 tick = 50ms)
-            Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
-            return new TaskWrapper(foliaTask);
+            Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay * 50, TimeUnit.MILLISECONDS);
+            wrapper.task = foliaTask;
+            return wrapper;
         } else {
-            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN, task, delay);
-            return new TaskWrapper(bukkitTask);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN, () -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = bukkitTask;
+            return wrapper;
         }
     }
 
@@ -348,12 +408,28 @@ public class SchedulerUtil {
         if (delay < 1) delay = 1;
         
         if (isFolia) {
+            TaskWrapper wrapper = new TaskWrapper(null);
             // Convert ticks to milliseconds (1 tick = 50ms)
-            Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay * 50, TimeUnit.MILLISECONDS);
-            return new TaskWrapper(foliaTask);
+            Object foliaTask = Bukkit.getAsyncScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay * 50, TimeUnit.MILLISECONDS);
+            wrapper.task = foliaTask;
+            return wrapper;
         } else {
-            int taskId = Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
-            return new TaskWrapper(taskId);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            int taskId = Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, () -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = taskId;
+            return wrapper;
         }
     }
 
@@ -366,11 +442,27 @@ public class SchedulerUtil {
         if (delay < 1) delay = 1;
         
         if (isFolia) {
-            Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> task.run(), delay);
-            return new TaskWrapper(foliaTask);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            Object foliaTask = Bukkit.getGlobalRegionScheduler().runDelayed(MetadataHandler.PLUGIN, (scheduledTask) -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = foliaTask;
+            return wrapper;
         } else {
-            int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, task, delay);
-            return new TaskWrapper(taskId);
+            TaskWrapper wrapper = new TaskWrapper(null);
+            int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, () -> {
+                try {
+                    task.run();
+                } finally {
+                    removeCompletedTask(wrapper);
+                }
+            }, delay);
+            wrapper.task = taskId;
+            return wrapper;
         }
     }
 
@@ -418,8 +510,25 @@ public class SchedulerUtil {
         return null;
     }
     public static void cancelAllTasks() {
-        // For plugin shutdown, we need to cancel all tasks regardless of Folia/Paper
-        // This is appropriate since we're shutting down the entire plugin
-        Bukkit.getServer().getScheduler().cancelTasks(MetadataHandler.PLUGIN);
+        if (isFolia) {
+            // For Folia, we need to cancel tasks individually since bulk cancellation isn't supported
+            // Create a copy of the set to avoid ConcurrentModificationException
+            Set<TaskWrapper> tasksToCancel = ConcurrentHashMap.newKeySet();
+            tasksToCancel.addAll(activeTasks);
+            
+            for (TaskWrapper taskWrapper : tasksToCancel) {
+                try {
+                    taskWrapper.cancel();
+                } catch (Exception e) {
+                    // Continue cancelling other tasks even if one fails
+                }
+            }
+            activeTasks.clear();
+        } else {
+            // For Paper/Spigot, use the traditional bulk cancellation method
+            Bukkit.getServer().getScheduler().cancelTasks(MetadataHandler.PLUGIN);
+            // Also clear our tracking set since all tasks are cancelled
+            activeTasks.clear();
+        }
     }
 }
