@@ -10,7 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,28 +18,24 @@ import java.util.concurrent.ThreadLocalRandom;
 public class EnderCrystalLightningRod {
 
     public EnderCrystalLightningRod(EliteEntity eliteEntity, EnderCrystal enderCrystal) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid() || !enderCrystal.isValid()) {
-                    cancel();
-                    return;
-                }
-
-                if (counter % 5 == 0) {
-                    Vector randomVector = new Vector(
-                            ThreadLocalRandom.current().nextInt(-15, 15),
-                            0,
-                            ThreadLocalRandom.current().nextInt(-15, 15));
-
-                    EnderDragonEmpoweredLightning.lightningTask(enderCrystal.getLocation().clone().add(randomVector));
-                }
-
-                counter++;
+        final int[] counter = {0};
+        
+        FoliaScheduler.runAtEntityTimer(enderCrystal, () -> {
+            if (!eliteEntity.isValid() || !enderCrystal.isValid()) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+
+            if (counter[0] % 5 == 0) {
+                Vector randomVector = new Vector(
+                        ThreadLocalRandom.current().nextInt(-15, 15),
+                        0,
+                        ThreadLocalRandom.current().nextInt(-15, 15));
+
+                EnderDragonEmpoweredLightning.lightningTask(enderCrystal.getLocation().clone().add(randomVector));
+            }
+
+            counter[0]++;
+        }, 0, 20);
     }
 
     public static class EnderCrystalLightningRodEvents implements Listener {

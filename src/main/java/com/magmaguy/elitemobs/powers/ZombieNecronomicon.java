@@ -20,7 +20,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -64,42 +64,37 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
         if (!MobCombatSettingsConfig.isEnableWarningVisualEffects())
             return;
 
-        new BukkitRunnable() {
-            final HashMap<Integer, List<Item>> fourTrack = new HashMap<>();
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (!livingEntity.isValid() || livingEntity.hasAI()) {
-                    for (List<Item> itemList : fourTrack.values())
-                        for (Item item : itemList)
-                            item.remove();
-                    if (livingEntity.isValid())
-                        livingEntity.setCustomName(EntityTracker.getEliteMobEntity(livingEntity).getName());
-                    zombieNecronomicon.setFiring(false);
-                    cancel();
-                    return;
-                }
-
-                if (counter == 0) {
-
-                    //establish 4tracks
-                    for (int i = 0; i < 8; i++) {
-                        List<Item> itemList = new ArrayList<>();
-                        for (int j = 0; j < 4; j++) {
-                            ItemStack itemStack = new ItemStack(Material.WRITTEN_BOOK, 1);
-                            Item item = VisualItemInitializer.initializeItem(itemStack, livingEntity.getLocation());
-                            itemList.add(item);
-                        }
-                        fourTrack.put(i, itemList);
-                    }
-                } else
-                    itemMover(fourTrack, livingEntity, counter);
-
-                counter++;
+        final HashMap<Integer, List<Item>> fourTrack = new HashMap<>();
+        final int[] counter = {0};
+        
+        FoliaScheduler.runAtEntityTimer(livingEntity, () -> {
+            if (!livingEntity.isValid() || livingEntity.hasAI()) {
+                for (List<Item> itemList : fourTrack.values())
+                    for (Item item : itemList)
+                        item.remove();
+                if (livingEntity.isValid())
+                    livingEntity.setCustomName(EntityTracker.getEliteMobEntity(livingEntity).getName());
+                zombieNecronomicon.setFiring(false);
+                return;
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 5, 5);
+            if (counter[0] == 0) {
+
+                //establish 4tracks
+                for (int i = 0; i < 8; i++) {
+                    List<Item> itemList = new ArrayList<>();
+                    for (int j = 0; j < 4; j++) {
+                        ItemStack itemStack = new ItemStack(Material.WRITTEN_BOOK, 1);
+                        Item item = VisualItemInitializer.initializeItem(itemStack, livingEntity.getLocation());
+                        itemList.add(item);
+                    }
+                    fourTrack.put(i, itemList);
+                }
+            } else
+                itemMover(fourTrack, livingEntity, counter[0]);
+
+            counter[0]++;
+        }, 5, 5);
 
     }
 
@@ -148,26 +143,20 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
     private void nameScroller(LivingEntity livingEntity, ZombieNecronomicon zombieNecronomicon) {
 
-        new BukkitRunnable() {
-            final String fullChant = convert(PowersConfig.getPower("zombie_necronomicon.yml").getFileConfiguration().getString("summoningChant"));
+        final String fullChant = convert(PowersConfig.getPower("zombie_necronomicon.yml").getFileConfiguration().getString("summoningChant"));
 
-            @Override
-            public void run() {
-
-                if (!livingEntity.isValid() || livingEntity.hasAI()) {
-                    cancel();
-                    return;
-                }
-
-                if (zombieNecronomicon.chantIndex + 31 > fullChant.length())
-                    zombieNecronomicon.chantIndex = 0;
-
-                String subString = fullChant.substring(zombieNecronomicon.chantIndex, zombieNecronomicon.chantIndex + 31);
-                livingEntity.setCustomName(subString);
-                zombieNecronomicon.chantIndex++;
+        FoliaScheduler.runAtEntityTimer(livingEntity, () -> {
+            if (!livingEntity.isValid() || livingEntity.hasAI()) {
+                return;
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            if (zombieNecronomicon.chantIndex + 31 > fullChant.length())
+                zombieNecronomicon.chantIndex = 0;
+
+            String subString = fullChant.substring(zombieNecronomicon.chantIndex, zombieNecronomicon.chantIndex + 31);
+            livingEntity.setCustomName(subString);
+            zombieNecronomicon.chantIndex++;
+        }, 0, 1);
 
     }
 
@@ -175,92 +164,80 @@ public class ZombieNecronomicon extends MajorPower implements Listener {
 
         LivingEntity targetter = eliteEntity.getLivingEntity();
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(targetter, () -> {
+            if (!eliteEntity.isValid() || !targetted.isValid() || !targetter.isValid() || targetted.getWorld() != targetter.getWorld()
+                    || targetted.getLocation().distance(targetter.getLocation()) > 30) {
 
-            @Override
-            public void run() {
+                for (CustomBossEntity entity : entityList)
+                    if (entity.isValid())
+                        entity.remove(RemovalReason.REINFORCEMENT_CULL);
 
-                if (!eliteEntity.isValid() || !targetted.isValid() || !targetter.isValid() || targetted.getWorld() != targetter.getWorld()
-                        || targetted.getLocation().distance(targetter.getLocation()) > 30) {
-
-                    for (CustomBossEntity entity : entityList)
-                        if (entity.isValid())
-                            entity.remove(RemovalReason.REINFORCEMENT_CULL);
-
-                    if (eliteEntity.isValid())
-                        targetter.setAI(true);
-                    cancel();
-                    return;
-
-                }
-
-                int randomizedNumber = ThreadLocalRandom.current().nextInt(5) + 1;
-
-                entityList.removeIf(currentEntity -> !currentEntity.exists());
-
-                if (entityList.size() < 11) {
-
-                    targetter.setAI(false);
-
-                    if (!zombieNecronomicon.isFiring())
-                        necronomiconVisualEffect(eliteEntity, zombieNecronomicon);
-
-                    if (randomizedNumber < 5) {
-
-                        CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity("necronomicon_zombie.yml");
-                        if (customBossEntity == null) {
-                            Logger.warn("necronomicon_zombie.yml is not valid!");
-                            return;
-                        }
-                        customBossEntity.spawn(targetter.getLocation(), eliteEntity.getLevel(), false);
-
-                        if (!customBossEntity.exists() || !customBossEntity.getLivingEntity().isValid()) {
-                            targetter.setAI(true);
-                            cancel();
-                            targetter.setAI(true);
-                            cancel();
-                            return;
-                        }
-
-                        customBossEntity.getLivingEntity().setVelocity(new Vector((ThreadLocalRandom.current().nextDouble() - 0.5) / 30, 0.5,
-                                (ThreadLocalRandom.current().nextDouble() - 0.5) / 30));
-
-                        eliteEntity.addReinforcement(customBossEntity);
-
-                        entityList.add(customBossEntity);
-
-                    } else {
-
-                        CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity("necronomicon_skeleton.yml");
-                        if (customBossEntity == null) {
-                            Logger.warn("necronomicon_skeleton.yml is not valid!");
-                            targetter.setAI(true);
-                            cancel();
-                            return;
-                        }
-                        customBossEntity.spawn(targetter.getLocation(), eliteEntity.getLevel(), false);
-
-                        if (!customBossEntity.getLivingEntity().isValid()) {
-                            targetter.setAI(true);
-                            cancel();
-                            return;
-                        }
-
-                        customBossEntity.getLivingEntity().setVelocity(new Vector((ThreadLocalRandom.current().nextDouble() - 0.5) / 30, 0.5,
-                                (ThreadLocalRandom.current().nextDouble() - 0.5) / 30));
-
-                        eliteEntity.addReinforcement(customBossEntity);
-
-                        entityList.add(customBossEntity);
-
-                    }
-
-                } else
+                if (eliteEntity.isValid())
                     targetter.setAI(true);
+                return;
 
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20 * 3L, 20 * 3L);
+            int randomizedNumber = ThreadLocalRandom.current().nextInt(5) + 1;
+
+            entityList.removeIf(currentEntity -> !currentEntity.exists());
+
+            if (entityList.size() < 11) {
+
+                targetter.setAI(false);
+
+                if (!zombieNecronomicon.isFiring())
+                    necronomiconVisualEffect(eliteEntity, zombieNecronomicon);
+
+                if (randomizedNumber < 5) {
+
+                    CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity("necronomicon_zombie.yml");
+                    if (customBossEntity == null) {
+                        Logger.warn("necronomicon_zombie.yml is not valid!");
+                        return;
+                    }
+                    customBossEntity.spawn(targetter.getLocation(), eliteEntity.getLevel(), false);
+
+                    if (!customBossEntity.exists() || !customBossEntity.getLivingEntity().isValid()) {
+                        targetter.setAI(true);
+                        targetter.setAI(true);
+                        return;
+                    }
+
+                    customBossEntity.getLivingEntity().setVelocity(new Vector((ThreadLocalRandom.current().nextDouble() - 0.5) / 30, 0.5,
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) / 30));
+
+                    eliteEntity.addReinforcement(customBossEntity);
+
+                    entityList.add(customBossEntity);
+
+                } else {
+
+                    CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity("necronomicon_skeleton.yml");
+                    if (customBossEntity == null) {
+                        Logger.warn("necronomicon_skeleton.yml is not valid!");
+                        targetter.setAI(true);
+                        return;
+                    }
+                    customBossEntity.spawn(targetter.getLocation(), eliteEntity.getLevel(), false);
+
+                    if (!customBossEntity.getLivingEntity().isValid()) {
+                        targetter.setAI(true);
+                        return;
+                    }
+
+                    customBossEntity.getLivingEntity().setVelocity(new Vector((ThreadLocalRandom.current().nextDouble() - 0.5) / 30, 0.5,
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) / 30));
+
+                    eliteEntity.addReinforcement(customBossEntity);
+
+                    entityList.add(customBossEntity);
+
+                }
+
+            } else
+                targetter.setAI(true);
+        }, 20 * 3L, 20 * 3L);
 
     }
 

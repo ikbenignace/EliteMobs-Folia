@@ -11,7 +11,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,36 +43,28 @@ public class SkeletonPillar extends MajorPower implements Listener {
         Location location2 = event.getEliteMobEntity().getLivingEntity().getLocation().clone()
                 .add(locationMover(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), 20, -7));
 
-        new BukkitRunnable() {
+        final int[] timer = {1};
 
-            int timer = 1;
+        FoliaScheduler.runAtEntityTimer(event.getEliteMobEntity().getLivingEntity(), () -> {
+            if (timer[0] > 20 * 7 || !event.getEliteMobEntity().isValid()) {
 
-            @Override
-            public void run() {
+                if (event.getEliteMobEntity().getLivingEntity() != null)
+                    event.getEliteMobEntity().getLivingEntity().setAI(true);
 
-                if (timer > 20 * 7 || !event.getEliteMobEntity().isValid()) {
+            } else if (timer[0] > 20 && timer[0] < 20 * 7) {
 
-                    if (event.getEliteMobEntity().getLivingEntity() != null)
-                        event.getEliteMobEntity().getLivingEntity().setAI(true);
-                    cancel();
+                pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer[0], 7);
+                pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer[0], -7);
 
-                } else if (timer > 20 && timer < 20 * 7) {
+            } else {
 
-                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer, 7);
-                    pillarEffect(event.getEliteMobEntity().getLivingEntity().getLocation().clone(), timer, -7);
-
-                } else {
-
-                    pillarWarningEffect(location1);
-                    pillarWarningEffect(location2);
-
-                }
-
-                timer++;
+                pillarWarningEffect(location1);
+                pillarWarningEffect(location2);
 
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            timer[0]++;
+        }, 0, 1);
 
     }
 
@@ -106,153 +98,149 @@ public class SkeletonPillar extends MajorPower implements Listener {
 
     private void playPillarSong(Location location) {
         soundLocation = location;
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                counter++;
-                switch (counter) {
-                    case 1:
-                        playSound(d());
-                        break;
-                    case 2:
-                        playSound(d());
-                        break;
-                    case 4:
-                        playSound(eHigher());
-                        break;
-                    case 7:
-                        playSound(aHigher());
-                        break;
-                    case 10:
-                        playSound(aSharpHigher());
-                        break;
-                    case 12:
-                        playSound(gHigher());
-                        break;
-                    case 14:
-                        playSound(f());
-                        break;
-                    case 16:
-                        playSound(f());
-                        break;
-                    case 17:
-                        playSound(d());
-                        break;
-                    case 18:
-                        playSound(f());
-                        break;
-                    case 19:
-                        playSound(gHigher());
-                        break;
-                    case 21:
-                        playSound(c());
-                        break;
-                    case 22:
-                        playSound(c());
-                        break;
-                    case 24:
-                        playSound(eHigher());
-                        break;
-                    case 27:
-                        playSound(aHigher());
-                        break;
-                    case 30:
-                        playSound(aSharpHigher());
-                        break;
-                    case 32:
-                        playSound(gHigher());
-                        break;
-                    case 34:
-                        playSound(f());
-                        break;
-                    case 36:
-                        playSound(f());
-                        break;
-                    case 37:
-                        playSound(d());
-                        break;
-                    case 38:
-                        playSound(f());
-                        break;
-                    case 39:
-                        playSound(gHigher());
-                        break;
-                    case 41:
-                        playSound(b());
-                        break;
-                    case 42:
-                        playSound(b());
-                        break;
-                    case 44:
-                        playSound(eHigher());
-                        break;
-                    case 47:
-                        playSound(aHigher());
-                        break;
-                    case 50:
-                        playSound(aSharpHigher());
-                        break;
-                    case 52:
-                        playSound(gHigher());
-                        break;
-                    case 54:
-                        playSound(f());
-                        break;
-                    case 56:
-                        playSound(f());
-                        break;
-                    case 57:
-                        playSound(d());
-                        break;
-                    case 58:
-                        playSound(f());
-                        break;
-                    case 59:
-                        playSound(gHigher());
-                        break;
-                    case 61:
-                        playSound(aSharp());
-                        break;
-                    case 62:
-                        playSound(aSharp());
-                        break;
-                    case 64:
-                        playSound(eHigher());
-                        break;
-                    case 67:
-                        playSound(aHigher());
-                        break;
-                    case 70:
-                        playSound(aSharpHigher());
-                        break;
-                    case 72:
-                        playSound(gHigher());
-                        break;
-                    case 74:
-                        playSound(f());
-                        break;
-                    case 76:
-                        playSound(f());
-                        break;
-                    case 77:
-                        playSound(d());
-                        break;
-                    case 78:
-                        playSound(f());
-                        break;
-                    case 79:
-                        playSound(gHigher());
-                        break;
-                    case 80:
-                        cancel();
-                        break;
-                    default:
-                        break;
-                }
+        final int[] counter = {0};
+        
+        FoliaScheduler.runAtLocationTimer(location, () -> {
+            counter[0]++;
+            switch (counter[0]) {
+                case 1:
+                    playSound(d());
+                    break;
+                case 2:
+                    playSound(d());
+                    break;
+                case 4:
+                    playSound(eHigher());
+                    break;
+                case 7:
+                    playSound(aHigher());
+                    break;
+                case 10:
+                    playSound(aSharpHigher());
+                    break;
+                case 12:
+                    playSound(gHigher());
+                    break;
+                case 14:
+                    playSound(f());
+                    break;
+                case 16:
+                    playSound(f());
+                    break;
+                case 17:
+                    playSound(d());
+                    break;
+                case 18:
+                    playSound(f());
+                    break;
+                case 19:
+                    playSound(gHigher());
+                    break;
+                case 21:
+                    playSound(c());
+                    break;
+                case 22:
+                    playSound(c());
+                    break;
+                case 24:
+                    playSound(eHigher());
+                    break;
+                case 27:
+                    playSound(aHigher());
+                    break;
+                case 30:
+                    playSound(aSharpHigher());
+                    break;
+                case 32:
+                    playSound(gHigher());
+                    break;
+                case 34:
+                    playSound(f());
+                    break;
+                case 36:
+                    playSound(f());
+                    break;
+                case 37:
+                    playSound(d());
+                    break;
+                case 38:
+                    playSound(f());
+                    break;
+                case 39:
+                    playSound(gHigher());
+                    break;
+                case 41:
+                    playSound(b());
+                    break;
+                case 42:
+                    playSound(b());
+                    break;
+                case 44:
+                    playSound(eHigher());
+                    break;
+                case 47:
+                    playSound(aHigher());
+                    break;
+                case 50:
+                    playSound(aSharpHigher());
+                    break;
+                case 52:
+                    playSound(gHigher());
+                    break;
+                case 54:
+                    playSound(f());
+                    break;
+                case 56:
+                    playSound(f());
+                    break;
+                case 57:
+                    playSound(d());
+                    break;
+                case 58:
+                    playSound(f());
+                    break;
+                case 59:
+                    playSound(gHigher());
+                    break;
+                case 61:
+                    playSound(aSharp());
+                    break;
+                case 62:
+                    playSound(aSharp());
+                    break;
+                case 64:
+                    playSound(eHigher());
+                    break;
+                case 67:
+                    playSound(aHigher());
+                    break;
+                case 70:
+                    playSound(aSharpHigher());
+                    break;
+                case 72:
+                    playSound(gHigher());
+                    break;
+                case 74:
+                    playSound(f());
+                    break;
+                case 76:
+                    playSound(f());
+                    break;
+                case 77:
+                    playSound(d());
+                    break;
+                case 78:
+                    playSound(f());
+                    break;
+                case 79:
+                    playSound(gHigher());
+                    break;
+                case 80:
+                    break;
+                default:
+                    break;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 2);
+        }, 1, 2);
     }
 
     private void playSound(float pitch) {
