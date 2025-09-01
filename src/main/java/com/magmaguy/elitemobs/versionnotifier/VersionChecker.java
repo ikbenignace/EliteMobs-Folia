@@ -200,8 +200,7 @@ public class VersionChecker {
                         " seconds (Attempt " + connectionRetryCount + "/" + MAX_RETRY_ATTEMPTS + ")");
 
                 // Schedule a retry after delay
-                Bukkit.getScheduler().runTaskLaterAsynchronously(MetadataHandler.PLUGIN,
-                        () -> checkContentVersion(), 20L * RETRY_DELAY_SECONDS);
+                FoliaScheduler.runAsync(() -> checkContentVersion(), 20L * RETRY_DELAY_SECONDS);
             } else {
                 Logger.warn("Failed to connect for " + checkType + " after " + MAX_RETRY_ATTEMPTS +
                         " attempts. Will continue without version checking. Error: " + e.getMessage());

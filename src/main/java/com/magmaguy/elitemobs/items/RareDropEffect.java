@@ -8,7 +8,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 
 public class RareDropEffect implements Listener {
 

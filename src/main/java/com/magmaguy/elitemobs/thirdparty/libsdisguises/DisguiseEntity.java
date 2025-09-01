@@ -5,7 +5,7 @@ import com.magmaguy.elitemobs.config.DefaultConfig;
 import com.magmaguy.magmacore.util.Logger;
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.*;
-import org.bukkit.Bukkit;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
@@ -90,7 +90,7 @@ public class DisguiseEntity {
 
     private static void scheduleDisguise(Disguise disguise, Entity entity) {
         applyDisguise(disguise, entity);
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> {
+        FoliaScheduler.runLater(() -> {
             applyDisguise(disguise, entity);
         }, 20);
     }

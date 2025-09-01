@@ -9,14 +9,14 @@ import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import lombok.NonNull;
-import org.bukkit.Bukkit;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 

@@ -4,13 +4,13 @@ import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.magmacore.util.AttributeManager;
-import org.bukkit.Bukkit;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.GameMode;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 
 import java.util.HashSet;
 import java.util.Objects;
