@@ -14,8 +14,8 @@ import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 public class GrapplingHookEnchantment extends CustomEnchantment {
     public static String key = "grappling_hook";
@@ -29,7 +29,7 @@ public class GrapplingHookEnchantment extends CustomEnchantment {
     }
 
     public static void trackGrapplingHook(AbstractArrow arrow, Player player) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(arrow, new Runnable() {
             int counter = 0;
 
             @Override
@@ -42,17 +42,16 @@ public class GrapplingHookEnchantment extends CustomEnchantment {
                             arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
                         }
                     }
-                    cancel();
                     return;
                 }
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+        }, 1, 1);
     }
 
     private static void zipline(Player player, Location location) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20 * 10, 1));
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(player, new Runnable() {
             int timer = 0;
 
             @Override
@@ -61,13 +60,12 @@ public class GrapplingHookEnchantment extends CustomEnchantment {
                     player.setGravity(true);
                     player.removePotionEffect(PotionEffectType.LEVITATION);
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 20 * 3, 1));
-                    cancel();
                     return;
                 }
                 player.setVelocity(location.clone().subtract(player.getLocation()).toVector().normalize().multiply(.5));
                 timer++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1L, 1L);
+        }, 1L, 1L);
     }
 
     private static Location getTargetBlock(Location airLocation) {
