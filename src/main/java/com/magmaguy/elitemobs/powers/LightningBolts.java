@@ -1,18 +1,17 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.collateralminecraftchanges.LightningSpawnBypass;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 
@@ -38,17 +37,14 @@ public class LightningBolts extends BossPower implements Listener {
                 }
             }
         }
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
-                    eliteEntity.getLivingEntity().setAI(true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 4L * 20);
+        FoliaScheduler.runAtEntityLater(eliteEntity.getLivingEntity(), () -> {
+            if (eliteEntity != null && eliteEntity.getLivingEntity() != null)
+                eliteEntity.getLivingEntity().setAI(true);
+        }, 4L * 20);
     }
 
     public static void lightningTask(Location location, int counter) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -57,12 +53,11 @@ public class LightningBolts extends BossPower implements Listener {
                 if (counter > 20 * 2) {
                     LightningSpawnBypass.bypass();
                     location.getWorld().strikeLightning(location);
-                    cancel();
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.CRIT, location, 10, 0.5, 1.5, 0.5, 0.3);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, counter * 5L, 1);
+        }, counter * 5L, 1);
 
     }
 
