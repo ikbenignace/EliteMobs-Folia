@@ -29,7 +29,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -147,12 +147,9 @@ public class TreasureChest implements PersistentObject {
                 blacklistedPlayersInstance.add(player.getUniqueId());
             } else if (customTreasureChestConfigFields.getRestockTimers() != null) {
                 customTreasureChestConfigFields.getRestockTimers().add(cooldownStringConstructor(player));
-                
-                    
-                    FoliaScheduler.runTimer(() -> {
-                        customTreasureChestConfigFields.getRestockTimers().removeIf(restockTime -> restockTime.split(":")[0].equals(player.getUniqueId().toString()));
-                    }
-                }.runLater(20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+                FoliaScheduler.runTimer(() -> {
+                    customTreasureChestConfigFields.getRestockTimers().removeIf(restockTime -> restockTime.split(":")[0].equals(player.getUniqueId().toString()));
+                }, 20L * 60 * customTreasureChestConfigFields.getRestockTimer(), 0);
             }
             return;
         }

@@ -3,7 +3,7 @@ package com.magmaguy.elitemobs.playerdata;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.items.MobTierCalculator;
 import com.magmaguy.elitemobs.items.potioneffects.ElitePotionEffect;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;

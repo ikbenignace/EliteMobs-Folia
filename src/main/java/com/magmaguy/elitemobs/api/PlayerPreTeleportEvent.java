@@ -10,7 +10,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 public class PlayerPreTeleportEvent extends Event implements Cancellable {
 

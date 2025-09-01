@@ -1,8 +1,8 @@
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 package com.magmaguy.elitemobs.powerstances;
 
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Item;
@@ -89,27 +89,19 @@ public class VisualItemProcessor {
                  */
                 if (isObfuscated != eliteEntity.isVisualEffectObfuscated()) {
                     VisualItemRemover.removeItems(multiDimensionalTrailTracker);
-                    
-                    
-                        
-                        FoliaScheduler.runTimer(() -> {
-                            eliteEntity.setVisualEffectObfuscated(false);
-                            if (Arrays.deepEquals(cachedVectorPositions, MinorPowerStanceMath.cachedVectors)) {
-                                eliteEntity.setMinorVisualEffect(false);
-                                new MinorPowerPowerStance(eliteEntity);
-                            }
-                            if (Arrays.deepEquals(cachedVectorPositions, MajorPowerStanceMath.cachedVectors)) {
-                                eliteEntity.setMajorVisualEffect(false);
-                                new MajorPowerPowerStance(eliteEntity);
-                            }
+                    FoliaScheduler.runTimer(() -> {
+                        eliteEntity.setVisualEffectObfuscated(false);
+                        if (Arrays.deepEquals(cachedVectorPositions, MinorPowerStanceMath.cachedVectors)) {
+                            eliteEntity.setMinorVisualEffect(false);
+                            new MinorPowerPowerStance(eliteEntity);
                         }
-                    }.runLater(MetadataHandler.PLUGIN);
-
+                        if (Arrays.deepEquals(cachedVectorPositions, MajorPowerStanceMath.cachedVectors)) {
+                            eliteEntity.setMajorVisualEffect(false);
+                            new MajorPowerPowerStance(eliteEntity);
+                        }
+                    }, 1, 0);
                 }
-
-            }
-
-        FoliaScheduler.runAsync(() -> { }, 0, 5);
+            }, 0, 5);
 
     }
 

@@ -2,7 +2,7 @@ package com.magmaguy.elitemobs.mobconstructor;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.magmaguy.elitemobs.api.InstancedDungeonRemoveEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ChunkVectorizer;
 import lombok.Getter;
 import org.bukkit.Bukkit;

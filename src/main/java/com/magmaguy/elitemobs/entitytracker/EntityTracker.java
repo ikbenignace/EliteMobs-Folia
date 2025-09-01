@@ -25,7 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;

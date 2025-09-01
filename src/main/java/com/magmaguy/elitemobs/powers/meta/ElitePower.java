@@ -11,7 +11,7 @@ import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.reflections.Reflections;
 
 import java.util.HashMap;

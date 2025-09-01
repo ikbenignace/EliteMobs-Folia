@@ -12,7 +12,7 @@ import com.magmaguy.elitemobs.powers.meta.MinorPower;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
 import lombok.Getter;
 import lombok.Setter;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;

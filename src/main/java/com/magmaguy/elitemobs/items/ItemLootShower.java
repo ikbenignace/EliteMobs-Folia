@@ -27,7 +27,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -54,20 +54,17 @@ public class ItemLootShower implements Listener {
         if (Math.abs(mobLevel - ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false))
                 > ItemSettingsConfig.getLootLevelDifferenceLockout()) {
             
-                int counter = 0;
+            final int[] counter = {0};
 
-                
-                FoliaScheduler.runTimer(() -> {
-                    counter++;
-                    if (!player.isValid() || counter > 20 * 5) {
-                        
-                        return;
-                    }
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(
-                            ChatColorConverter.convert(ItemSettingsConfig.getLevelRangeTooDifferent())
-                                    .replace("$playerLevel", ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false) + "")
-                                    .replace("$bossLevel", (int) mobLevel + "")));
+            FoliaScheduler.runTimer(() -> {
+                counter[0]++;
+                if (!player.isValid() || counter[0] > 20 * 5) {
+                    return;
                 }
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(
+                        ChatColorConverter.convert(ItemSettingsConfig.getLevelRangeTooDifferent())
+                                .replace("$playerLevel", ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getFullPlayerTier(false) + "")
+                                .replace("$bossLevel", (int) mobLevel + "")));
             }, 0, 1);
             return;
         }
@@ -85,35 +82,26 @@ public class ItemLootShower implements Listener {
     private static void sendCurrencyNotification(Player player) {
         if (playerCurrencyPickup.containsKey(player)) return;
 
-        
-            double oldAmount = 0;
+        final double[] oldAmount = {0};
 
-            
-            FoliaScheduler.runTimer(() -> {
-
-                if (!playerCurrencyPickup.containsKey(player)) {
-                    playerCurrencyPickup.put(player, 0.0);
-                    return;
-                }
-
-                if (oldAmount != playerCurrencyPickup.get(player)) {
-                    oldAmount = playerCurrencyPickup.get(player);
-                    return;
-                }
-
-                player.sendMessage(ChatColorConverter.convert(EconomySettingsConfig.getChatCurrencyShowerMessage()
-                        .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
-                        .replace("$amount", playerCurrencyPickup.get(player) + "")));
-
-                playerCurrencyPickup.remove(player);
-                sendAdventurersGuildNotification(player);
-
-                
-
+        FoliaScheduler.runTimer(() -> {
+            if (!playerCurrencyPickup.containsKey(player)) {
+                playerCurrencyPickup.put(player, 0.0);
+                return;
             }
 
-        }, 0, 40);
+            if (oldAmount[0] != playerCurrencyPickup.get(player)) {
+                oldAmount[0] = playerCurrencyPickup.get(player);
+                return;
+            }
 
+            player.sendMessage(ChatColorConverter.convert(EconomySettingsConfig.getChatCurrencyShowerMessage()
+                    .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
+                    .replace("$amount", playerCurrencyPickup.get(player) + "")));
+
+            playerCurrencyPickup.remove(player);
+            sendAdventurersGuildNotification(player);
+        }, 0, 40);
     }
 
     private static void sendAdventurersGuildNotification(Player player) {
@@ -122,67 +110,57 @@ public class ItemLootShower implements Listener {
     }
 
     private void addIndirectly(Location location, int currencyAmount2) {
-        
-            int currencyAmount = currencyAmount2;
+        final int[] currencyAmount = {currencyAmount2};
 
-            
-            FoliaScheduler.runTimer(() -> {
+        FoliaScheduler.runTimer(() -> {
+            if (currencyAmount[0] <= 0) {
+                return;
+            }
 
-                if (currencyAmount <= 0) {
-                    
+            if (currencyAmount[0] >= 1000) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropOneThousand(location);
+                    currencyAmount[0] -= 1000;
                     return;
                 }
+            }
 
-                if (currencyAmount >= 1000) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropOneThousand(location);
-                        currencyAmount -= 1000;
-                        return;
-                    }
+            if (currencyAmount[0] >= 500) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropFiveHundred(location);
+                    currencyAmount[0] -= 500;
+                    return;
                 }
+            }
 
-                if (currencyAmount >= 500) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropFiveHundred(location);
-                        currencyAmount -= 500;
-                        return;
-                    }
+            if (currencyAmount[0] >= 100) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropOneHundred(location);
+                    currencyAmount[0] -= 100;
                 }
-
-                if (currencyAmount >= 100) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropOneHundred(location);
-                        currencyAmount -= 100;
-                    }
-
-                } else if (currencyAmount >= 50) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropFifty(location);
-                        currencyAmount -= 50;
-                    }
-
-                } else if (currencyAmount >= 20) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropTwenty(location);
-                        currencyAmount -= 20;
-                    }
-
-                } else if (currencyAmount >= 10) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropTen(location);
-                        currencyAmount -= 10;
-                    }
-
-                } else if (currencyAmount >= 5) {
-                    if (ThreadLocalRandom.current().nextDouble() < 0.65) {
-                        dropFive(location);
-                        currencyAmount -= 5;
-                    }
-
-                } else {
-                    dropOne(location);
-                    currencyAmount--;
+            } else if (currencyAmount[0] >= 50) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropFifty(location);
+                    currencyAmount[0] -= 50;
                 }
+            } else if (currencyAmount[0] >= 20) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropTwenty(location);
+                    currencyAmount[0] -= 20;
+                }
+            } else if (currencyAmount[0] >= 10) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropTen(location);
+                    currencyAmount[0] -= 10;
+                }
+            } else if (currencyAmount[0] >= 5) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.65) {
+                    dropFive(location);
+                    currencyAmount[0] -= 5;
+                }
+            } else {
+                dropOne(location);
+                currencyAmount[0]--;
             }
         }, 2, 2);
     }
@@ -401,58 +379,50 @@ public class ItemLootShower implements Listener {
             pickupable = false;
             item.setGravity(false);
             
-                
-                FoliaScheduler.runTimer(() -> {
-                    if (coinValues.containsKey(item.getUniqueId())) {
-                        if (Bukkit.getEntity(item.getUniqueId()) != null)
-                            Bukkit.getEntity(item.getUniqueId()).remove();
-                        coinValues.remove(item.getUniqueId());
-                    }
+            FoliaScheduler.runTimer(() -> {
+                if (coinValues.containsKey(item.getUniqueId())) {
+                    if (Bukkit.getEntity(item.getUniqueId()) != null)
+                        Bukkit.getEntity(item.getUniqueId()).remove();
+                    coinValues.remove(item.getUniqueId());
                 }
-            }.runLater(20 * 60 * 5);
+            }, 20 * 60 * 5, 0);
 
-            
-                int counter = 0;
+            final int[] counter = {0};
 
-                
-                FoliaScheduler.runTimer(() -> {
-
-                    if (!item.isValid() ||
-                            !player.isValid() ||
-                            !player.getWorld().equals(item.getWorld()) ||
-                            counter > 20 * 4 ||
-                            item.getLocation().distanceSquared(player.getLocation()) > 900) {
-                        
-                        pickupable = true;
-                        item.setGravity(true);
-                        return;
-                    }
-
-                    item.setVelocity(player.getLocation().clone().subtract(item.getLocation()).toVector().normalize().multiply(0.2));
-
-                    if (player.getLocation().distanceSquared(item.getLocation()) <= 1) {
-                        item.remove();
-                        EconomyHandler.addCurrency(player.getUniqueId(), value);
-                        sendCurrencyNotification(player);
-
-                        //cache for counting how much coin they're getting over a short amount of time
-                        if (playerCurrencyPickup.containsKey(player))
-                            playerCurrencyPickup.put(player, playerCurrencyPickup.get(player) + value);
-                        else
-                            playerCurrencyPickup.put(player, value);
-
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                TextComponent.fromLegacyText(
-                                        ChatColorConverter.convert(EconomySettingsConfig.getActionBarCurrencyShowerMessage()
-                                                .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
-                                                .replace("$amount", Round.twoDecimalPlaces(playerCurrencyPickup.get(player)) + ""))));
-                        coinValues.remove(item.getUniqueId());
-                        
-                        return;
-                    }
-
-                    counter++;
+            FoliaScheduler.runTimer(() -> {
+                if (!item.isValid() ||
+                        !player.isValid() ||
+                        !player.getWorld().equals(item.getWorld()) ||
+                        counter[0] > 20 * 4 ||
+                        item.getLocation().distanceSquared(player.getLocation()) > 900) {
+                    pickupable = true;
+                    item.setGravity(true);
+                    return;
                 }
+
+                item.setVelocity(player.getLocation().clone().subtract(item.getLocation()).toVector().normalize().multiply(0.2));
+
+                if (player.getLocation().distanceSquared(item.getLocation()) <= 1) {
+                    item.remove();
+                    EconomyHandler.addCurrency(player.getUniqueId(), value);
+                    sendCurrencyNotification(player);
+
+                    //cache for counting how much coin they're getting over a short amount of time
+                    if (playerCurrencyPickup.containsKey(player))
+                        playerCurrencyPickup.put(player, playerCurrencyPickup.get(player) + value);
+                    else
+                        playerCurrencyPickup.put(player, value);
+
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                            TextComponent.fromLegacyText(
+                                    ChatColorConverter.convert(EconomySettingsConfig.getActionBarCurrencyShowerMessage()
+                                            .replace("$currency_name", EconomySettingsConfig.getCurrencyName())
+                                            .replace("$amount", Round.twoDecimalPlaces(playerCurrencyPickup.get(player)) + ""))));
+                    coinValues.remove(item.getUniqueId());
+                    return;
+                }
+
+                counter[0]++;
             }, 1, 1);
         }
     }

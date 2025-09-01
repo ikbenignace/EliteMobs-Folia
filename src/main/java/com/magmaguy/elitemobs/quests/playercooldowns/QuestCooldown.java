@@ -6,7 +6,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.metadata.LazyMetadataValue;
 import org.bukkit.permissions.PermissionAttachment;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.Serializable;

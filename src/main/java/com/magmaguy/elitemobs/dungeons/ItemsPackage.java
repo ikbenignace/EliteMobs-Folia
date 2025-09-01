@@ -6,7 +6,7 @@ import com.magmaguy.elitemobs.config.contentpackages.ContentPackagesConfigFields
 import com.magmaguy.elitemobs.config.customitems.CustomItemsConfig;
 import com.magmaguy.elitemobs.config.customitems.CustomItemsConfigFields;
 import com.magmaguy.magmacore.util.Logger;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

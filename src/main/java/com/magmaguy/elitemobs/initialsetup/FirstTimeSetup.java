@@ -7,7 +7,7 @@ import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 public class FirstTimeSetup implements Listener {
     @EventHandler

@@ -8,7 +8,7 @@ import com.magmaguy.elitemobs.utils.CommandRunner;
 import com.magmaguy.elitemobs.utils.EntitySearch;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.magmacore.util.AttributeManager;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;

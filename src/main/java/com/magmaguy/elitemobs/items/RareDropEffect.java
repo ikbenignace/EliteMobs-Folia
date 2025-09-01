@@ -8,7 +8,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 public class RareDropEffect implements Listener {
 
@@ -19,24 +19,18 @@ public class RareDropEffect implements Listener {
                 ItemQualityColorizer.getItemQuality(item.getItemStack()).equals(ItemQualityColorizer.ItemQuality.GOLD)))
             return;
 
-        
-            int counter = 0;
+        final int[] counter = {0};
 
-            
-            FoliaScheduler.runTimer(() -> {
-
-                if (item == null || !item.isValid() || item.isDead()) {
-                    
-                    return;
-                }
-
-                item.getWorld().spawnParticle(Particle.PORTAL, item.getLocation(), 5, 0.01, 0.01, 0.01, 0.5);
-
-                counter += 20;
-                if (counter > 20 * 60 * 2)
-                    
+        FoliaScheduler.runTimer(() -> {
+            if (item == null || !item.isValid() || item.isDead()) {
+                return;
             }
 
+            item.getWorld().spawnParticle(Particle.PORTAL, item.getLocation(), 5, 0.01, 0.01, 0.01, 0.5);
+
+            counter[0] += 20;
+            if (counter[0] > 20 * 60 * 2)
+                return;
         }, 0, 20);
 
     }

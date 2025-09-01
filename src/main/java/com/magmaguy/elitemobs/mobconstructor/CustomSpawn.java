@@ -13,7 +13,7 @@ import com.magmaguy.elitemobs.events.MoonPhaseDetector;
 import com.magmaguy.elitemobs.events.TimedEvent;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardFlagChecker;
 import com.magmaguy.magmacore.instance.MatchInstance;
 import com.magmaguy.magmacore.util.Logger;

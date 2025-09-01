@@ -1,19 +1,19 @@
 package com.magmaguy.elitemobs.items.customloottable;
 
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.api.utils.EliteItemManager;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.items.EliteItemLore;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customenchantments.SoulbindEnchantment;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customitems.CustomItem;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.menus.LootMenu;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -63,21 +63,15 @@ public class SharedLootTable {
 
     private void endLoot() {
         if (damagers.size() < 2) {
-            
-                
-                FoliaScheduler.runTimer(() -> {
-                    distribute();
-                }
-            }.runLater(1);
+            FoliaScheduler.runTimer(() -> {
+                distribute();
+            }, 1, 0);
             return;
         }
 
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                distribute();
-            }
-        }.runLater(20L * durationInSeconds);
+        FoliaScheduler.runTimer(() -> {
+            distribute();
+        }, 20L * durationInSeconds, 0);
     }
 
     private void distribute() {

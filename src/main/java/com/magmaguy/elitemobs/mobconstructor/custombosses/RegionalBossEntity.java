@@ -3,31 +3,31 @@ package com.magmaguy.elitemobs.mobconstructor.custombosses;
 import com.google.common.collect.ArrayListMultimap;
 import com.magmaguy.easyminecraftgoals.NMSManager;
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.ItemSettingsConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfigFields;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.PersistentMovingEntity;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.PersistentObject;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.transitiveblocks.TransitiveBlock;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.pathfinding.Navigation;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.powers.SpiritWalk;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
@@ -135,12 +135,9 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     }
 
     public static void regionalDataSaver() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                save();
-            }
-        FoliaScheduler.runAsync(() -> { }, 20L * 5, 20L * 5);
+        FoliaScheduler.runTimer(() -> {
+            save();
+        }, 20L * 5, 20L * 5);
     }
 
     public static void save() {
@@ -204,21 +201,18 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     public void queueSpawn(boolean silent) {
         RegionalBossEntity regionalBossEntity = this;
         this.isRespawning = true;
-        respawnTask = 
-            
-            FoliaScheduler.runTimer(() -> {
-                if (phaseBossEntity != null) phaseBossEntity.silentReset();
-                ticksBeforeRespawn = 0;
-                //Reminder: this might not spawn a living entity as it gets queued for when the chunk loads
-                regionalBossEntity.spawn(silent);
-                regionalBossEntity.getDamagers().clear();
-            }
-        }.runLater(ticksBeforeRespawn);
+        respawnTask = FoliaScheduler.runTimer(() -> {
+            if (phaseBossEntity != null) phaseBossEntity.silentReset();
+            ticksBeforeRespawn = 0;
+            //Reminder: this might not spawn a living entity as it gets queued for when the chunk loads
+            regionalBossEntity.spawn(silent);
+            regionalBossEntity.getDamagers().clear();
+        }, ticksBeforeRespawn, 0);
     }
 
     public void forceRespawn() {
         if (respawnTask == null) return;
-        respawnTask.
+        respawnTask.cancel();
         ticksBeforeRespawn = 0;
         spawn(false);
         getDamagers().clear();
@@ -241,7 +235,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
         if (leashRadius < 1)
             return;
         RegionalBossEntity regionalBossEntity = this;
-        if (leashTask != null) leashTask.
+        if (leashTask != null) leashTask.cancel();
         leashTask = FoliaScheduler.runAsync(() -> {
             try {
                 if (!isValid()) {
@@ -259,7 +253,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
 
     private void cancelLeash() {
         if (leashTask == null) return;
-        leashTask.
+        leashTask.cancel();
         leashTask = null;
     }
 

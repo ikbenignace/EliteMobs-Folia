@@ -5,7 +5,7 @@ import com.magmaguy.elitemobs.config.DefaultConfig;
 import com.magmaguy.magmacore.util.Logger;
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.*;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 

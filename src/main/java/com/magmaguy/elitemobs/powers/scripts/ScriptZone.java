@@ -16,7 +16,7 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.*;
 import java.util.stream.Collectors;

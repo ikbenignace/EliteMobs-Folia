@@ -7,7 +7,7 @@ import com.magmaguy.elitemobs.instanced.MatchInstance;
 import com.magmaguy.elitemobs.quests.CustomQuest;
 import com.magmaguy.elitemobs.quests.Quest;
 import com.magmaguy.elitemobs.quests.playercooldowns.PlayerQuestCooldowns;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.ObjectSerializer;
 import com.magmaguy.magmacore.util.Logger;

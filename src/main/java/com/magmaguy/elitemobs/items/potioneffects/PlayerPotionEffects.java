@@ -18,7 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.potion.PotionEffectType;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.HashSet;
 
@@ -28,27 +28,21 @@ import java.util.HashSet;
 public class PlayerPotionEffects implements Listener {
 
     public PlayerPotionEffects() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                //scan through what players are wearing
-                for (Player player : Bukkit.getOnlinePlayers())
-                    if (ElitePlayerInventory.playerInventories.get(player.getUniqueId()) != null &&
-                            PlayerData.getPlayerData(player.getUniqueId()) != null)
-                        for (ElitePotionEffect elitePotionEffect : ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getContinuousPotionEffects(true))
-                            doContinuousPotionEffect(elitePotionEffect, player);
-            }
+        FoliaScheduler.runTimer(() -> {
+            //scan through what players are wearing
+            for (Player player : Bukkit.getOnlinePlayers())
+                if (ElitePlayerInventory.playerInventories.get(player.getUniqueId()) != null &&
+                        PlayerData.getPlayerData(player.getUniqueId()) != null)
+                    for (ElitePotionEffect elitePotionEffect : ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getContinuousPotionEffects(true))
+                        doContinuousPotionEffect(elitePotionEffect, player);
         }, 20L, 20L);
     }
 
     public static void addOnHitCooldown(HashSet<Player> cooldownList, Player player, long delay) {
         cooldownList.add(player);
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                cooldownList.remove(player);
-            }
-        }.runLater(delay);
+        FoliaScheduler.runTimer(() -> {
+            cooldownList.remove(player);
+        }, delay, 0);
     }
 
     private void doContinuousPotionEffect(ElitePotionEffect elitePotionEffect, Player player) {
