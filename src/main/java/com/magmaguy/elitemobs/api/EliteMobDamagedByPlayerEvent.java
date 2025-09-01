@@ -18,7 +18,7 @@ import com.magmaguy.elitemobs.utils.EntityFinder;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.magmacore.util.Round;
 import lombok.Getter;
-import org.bukkit.Bukkit;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -244,7 +244,7 @@ public class EliteMobDamagedByPlayerEvent extends EliteDamageEvent {
                 ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.DYING);
                 eliteEntity.setDying(true);
                 //remove the dragon after it is done with the light show, this death doesn't show up on events
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> new EventCaller(new EliteMobDeathEvent(eliteEntity)), 200);
+                FoliaScheduler.runLater(() -> new EventCaller(new EliteMobDeathEvent(eliteEntity)), 200);
             }
 
             event.setDamage(EntityDamageEvent.DamageModifier.BASE, damage);

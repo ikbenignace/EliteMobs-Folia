@@ -10,7 +10,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 
 public class PlayerPreTeleportEvent extends Event implements Cancellable {
 
@@ -49,44 +49,38 @@ public class PlayerPreTeleportEvent extends Event implements Cancellable {
     }
 
     public void startTeleport() {
-        new BukkitRunnable() {
-            int timerLeft = 3;
-
-            @Override
-            public void run() {
-                if (!player.isValid()) {
-                    cancel();
-                    return;
-                }
-
-                if (player.getLocation().getX() != originalLocation.getX() ||
-                        player.getLocation().getY() != originalLocation.getY() ||
-                        player.getLocation().getZ() != originalLocation.getZ())
-                    isCancelled = true;
-
-                ChatMessageType chatMessageType = CombatTagConfig.isUseActionBarMessagesInsteadOfChat() ? ChatMessageType.ACTION_BAR : ChatMessageType.CHAT;
-
-                if (isCancelled) {
-                    player.spigot().sendMessage(chatMessageType,
-                            TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportCancelled())));
-                    cancel();
-                    return;
-                }
-
-                player.spigot().sendMessage(chatMessageType,
-                        TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportTimeLeft())
-                                .replace("$time", timerLeft + "")));
-
-
-                if (timerLeft == 0) {
-                    PlayerTeleportEvent.teleportPlayer(player, destination);
-                    cancel();
-                    return;
-                }
-
-                timerLeft--;
+        final int[] timerLeft = {3};
+        
+        FoliaScheduler.runAtEntityTimer(player, () -> {
+            if (!player.isValid()) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+
+            if (player.getLocation().getX() != originalLocation.getX() ||
+                    player.getLocation().getY() != originalLocation.getY() ||
+                    player.getLocation().getZ() != originalLocation.getZ())
+                isCancelled = true;
+
+            ChatMessageType chatMessageType = CombatTagConfig.isUseActionBarMessagesInsteadOfChat() ? ChatMessageType.ACTION_BAR : ChatMessageType.CHAT;
+
+            if (isCancelled) {
+                player.spigot().sendMessage(chatMessageType,
+                        TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportCancelled())));
+                return;
+            }
+
+            player.spigot().sendMessage(chatMessageType,
+                    TextComponent.fromLegacyText(ChatColorConverter.convert(CombatTagConfig.getTeleportTimeLeft())
+                            .replace("$time", timerLeft[0] + "")));
+
+
+            if (timerLeft[0] == 0) {
+                PlayerTeleportEvent.teleportPlayer(player, destination);
+                return;
+            }
+
+            timerLeft[0]--;
+        }, 0, 20);
     }
 
     @Override

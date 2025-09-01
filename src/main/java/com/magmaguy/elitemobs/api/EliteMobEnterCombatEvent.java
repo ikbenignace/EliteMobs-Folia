@@ -8,6 +8,7 @@ import com.magmaguy.elitemobs.utils.CommandRunner;
 import com.magmaguy.elitemobs.utils.EntitySearch;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.magmacore.util.AttributeManager;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
@@ -35,10 +36,9 @@ public class EliteMobEnterCombatEvent extends Event {
             CommandRunner.runCommandFromList(customBossEntity.getCustomBossesConfigFields().getOnCombatEnterCommands(), new ArrayList<>());
         //Phase bosses can launch this event through phase switches
         if (!eliteEntity.isInCombat())
-            Bukkit.getScheduler().runTaskTimerAsynchronously(MetadataHandler.PLUGIN, task -> {
+            FoliaScheduler.runAsync(() -> {
                 if (!eliteEntity.isValid()) {
-                    task.cancel();
-                    Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, syncTask -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)));
+                    FoliaScheduler.runLater(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)), 0);
                     return;
                 }
                 if (!eliteEntity.isInCombatGracePeriod()) {
@@ -46,8 +46,7 @@ public class EliteMobEnterCombatEvent extends Event {
                     if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
                         followRange = 200;
                     if (EntitySearch.getNearbyCombatPlayers(eliteEntity.getLocation(), followRange).isEmpty()) {
-                        task.cancel();
-                        Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, syncTask -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.NO_NEARBY_PLAYERS)));
+                        FoliaScheduler.runLater(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.NO_NEARBY_PLAYERS)), 0);
                     }
                 }
             }, 20L, 20L);

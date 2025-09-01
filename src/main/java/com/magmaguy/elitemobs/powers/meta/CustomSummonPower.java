@@ -22,8 +22,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -59,35 +58,32 @@ public class CustomSummonPower extends ElitePower implements Listener {
         return customBossEntity;
     }
 
-    public static BukkitTask summonGlobalReinforcement(CustomBossReinforcement customBossReinforcement, CustomBossEntity summoningEntity) {
+    public static void summonGlobalReinforcement(CustomBossReinforcement customBossReinforcement, CustomBossEntity summoningEntity) {
         if (customBossReinforcement.customSpawn == null || customBossReinforcement.customSpawn.isEmpty()) {
             Logger.warn("Reinforcement for boss " + summoningEntity.getCustomBossesConfigFields().getFilename() + " has an incorrectly configured global reinforcement for " + customBossReinforcement.bossFileName);
-            return null;
+            return;
         }
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (summoningEntity.getGlobalReinforcementsCount() > 30 * summoningEntity.getSpawnLocation().getWorld().getPlayers().size())
+        FoliaScheduler.runTimer(() -> {
+            if (summoningEntity.getGlobalReinforcementsCount() > 30 * summoningEntity.getSpawnLocation().getWorld().getPlayers().size())
+                return;
+            for (int i = 0; i < customBossReinforcement.amount; i++) {
+                CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity(customBossReinforcement.bossFileName);
+                if (customBossEntity == null) {
+                    Logger.warn("Failed to spawn reinforcement because boss " + customBossReinforcement.bossFileName + " was invalid! Does the file exist? Is it configured correctly?");
                     return;
-                for (int i = 0; i < customBossReinforcement.amount; i++) {
-                    CustomBossEntity customBossEntity = CustomBossEntity.createCustomBossEntity(customBossReinforcement.bossFileName);
-                    if (customBossEntity == null) {
-                        Logger.warn("Failed to spawn reinforcement because boss " + customBossReinforcement.bossFileName + " was invalid! Does the file exist? Is it configured correctly?");
-                        return;
-                    }
-                    if (summoningEntity.isNormalizedCombat())
-                        customBossEntity.setNormalizedCombat();
-                    CustomSpawn customSpawn = new CustomSpawn(customBossReinforcement.customSpawn, customBossEntity);
-                    //Case if the spawn fails
-                    if (customSpawn.getCustomSpawnConfigFields() == null) continue;
-                    customSpawn.setWorld(summoningEntity.getSpawnLocation().getWorld());
-                    customSpawn.queueSpawn();
-                    summoningEntity.addGlobalReinforcement(customBossEntity);
-                    customBossReinforcement.isSummoned = true;
-                    customBossEntity.setSummoningEntity(summoningEntity);
                 }
+                if (summoningEntity.isNormalizedCombat())
+                    customBossEntity.setNormalizedCombat();
+                CustomSpawn customSpawn = new CustomSpawn(customBossReinforcement.customSpawn, customBossEntity);
+                //Case if the spawn fails
+                if (customSpawn.getCustomSpawnConfigFields() == null) continue;
+                customSpawn.setWorld(summoningEntity.getSpawnLocation().getWorld());
+                customSpawn.queueSpawn();
+                summoningEntity.addGlobalReinforcement(customBossEntity);
+                customBossReinforcement.isSummoned = true;
+                customBossEntity.setSummoningEntity(summoningEntity);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20L * 10);
+        }, 0, 20L * 10);
     }
 
     public List<CustomBossReinforcement> getCustomBossReinforcements() {
