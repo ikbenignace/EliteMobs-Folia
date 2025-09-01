@@ -108,16 +108,13 @@ public class QuestTracking {
     }
 
     private void startLocationGetter() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                if (!player.isValid()) {
-                    stop();
-                    return;
-                }
-                updateLocations(customQuest);
+        FoliaScheduler.runAtEntityTimer(player, () -> {
+            if (!player.isValid()) {
+                stop();
+                return;
             }
-        FoliaScheduler.runAsync(() -> { }, 0L, 20L * 60L);
+            updateLocations(customQuest);
+        }, 0L, 20L * 60L);
     }
 
     public void updateLocations(Quest quest) {
@@ -194,28 +191,24 @@ public class QuestTracking {
 
     public void stop() {
         playerTrackingQuests.remove(player);
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            }
-        }.runLater(MetadataHandler.PLUGIN);
-        locationRefresher.
-        compassTask.
+        FoliaScheduler.runLater(() -> {
+            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }, 1);
+        if (locationRefresher != null)
+            locationRefresher.cancel();
+        if (compassTask != null)
+            compassTask.cancel();
         compassBar.removeAll();
     }
 
     private void startCompass() {
         compassBar = Bukkit.createBossBar("", BarColor.GREEN, BarStyle.SOLID, BarFlag.PLAY_BOSS_MUSIC);
-        compassTask = 
-            
-            FoliaScheduler.runTimer(() -> {
-                if (!player.isOnline()) {
-                    stop();
-                    return;
-                }
-                updateCompassContents();
+        compassTask = FoliaScheduler.runAtEntityTimer(player, () -> {
+            if (!player.isOnline()) {
+                stop();
+                return;
             }
+            updateCompassContents();
         }, 0L, 1L);
     }
 

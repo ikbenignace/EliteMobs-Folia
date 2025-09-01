@@ -46,21 +46,18 @@ public class CustomBossMount {
                 mountEntity.setMount(true);
                 mountEntity.spawn(false);
 
-                
-                    
-                    FoliaScheduler.runTimer(() -> {
-                        if (!mountEntity.isValid()) return;
-                        if (customBossEntity.getLivingEntity() == null) return;
-                        if (mountEntity.getCustomModel() != null)
-                            mountEntity.getCustomModel().addPassenger(customBossEntity);
-                        else {
-                            PreventMountExploit.bypass = true;
-                            if (mountEntity.getLivingEntity() != null)
-                                mountEntity.getLivingEntity().addPassenger(customBossEntity.getLivingEntity());
-                        }
-                        customBossEntity.customBossMount = mountEntity;
+                FoliaScheduler.runLater(() -> {
+                    if (!mountEntity.isValid()) return;
+                    if (customBossEntity.getLivingEntity() == null) return;
+                    if (mountEntity.getCustomModel() != null)
+                        mountEntity.getCustomModel().addPassenger(customBossEntity);
+                    else {
+                        PreventMountExploit.bypass = true;
+                        if (mountEntity.getLivingEntity() != null)
+                            mountEntity.getLivingEntity().addPassenger(customBossEntity.getLivingEntity());
                     }
-                }.runLater(5);
+                    customBossEntity.customBossMount = mountEntity;
+                }, 5);
                 return mountEntity;
             }
 

@@ -1,23 +1,15 @@
 package com.magmaguy.elitemobs.playerdata.database;
 
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.AdventurersGuildConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.DatabaseConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.instanced.MatchInstance;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.CustomQuest;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.Quest;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.playercooldowns.PlayerQuestCooldowns;
 import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ObjectSerializer;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
 import lombok.Setter;
@@ -335,26 +327,23 @@ public class PlayerData {
     }
 
     public static void setDatabaseValue(UUID uuid, String key, Object value) {
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                Statement statement = null;
-                try {
-                    statement = getConnection().createStatement();
-                    String sql;
-                    if (value instanceof String) {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = '" + value + "' WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    } else if (value instanceof Boolean) {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + (((Boolean) value) ? 1 : 0) + " WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    } else {
-                        sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + value + " WHERE PlayerUUID = '" + uuid.toString() + "';";
-                    }
-                    statement.executeUpdate(sql);
-                    statement.close();
-                } catch (Exception e) {
-                    Logger.warn("Failed to update database value.");
-                    e.printStackTrace();
+        FoliaScheduler.runAsync(() -> {
+            Statement statement = null;
+            try {
+                statement = getConnection().createStatement();
+                String sql;
+                if (value instanceof String) {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = '" + value + "' WHERE PlayerUUID = '" + uuid.toString() + "';";
+                } else if (value instanceof Boolean) {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + (((Boolean) value) ? 1 : 0) + " WHERE PlayerUUID = '" + uuid.toString() + "';";
+                } else {
+                    sql = "UPDATE " + PLAYER_DATA_TABLE_NAME + " SET " + key + " = " + value + " WHERE PlayerUUID = '" + uuid.toString() + "';";
                 }
+                statement.executeUpdate(sql);
+                statement.close();
+            } catch (Exception e) {
+                Logger.warn("Failed to update database value.");
+                e.printStackTrace();
             }
         });
     }
@@ -708,24 +697,18 @@ public class PlayerData {
     public static class PlayerDataEvents implements Listener {
         @EventHandler(priority = EventPriority.LOWEST)
         public void onPlayerLogin(PlayerJoinEvent event) {
-            
-                
-                FoliaScheduler.runTimer(() -> {
-                    if (Bukkit.getPlayer(event.getPlayer().getUniqueId()) == null) return;
-                    new PlayerData(event.getPlayer().getUniqueId());
-                }
-            }.runTaskLaterAsynchronously(20);
+            FoliaScheduler.runLater(() -> {
+                if (Bukkit.getPlayer(event.getPlayer().getUniqueId()) == null) return;
+                new PlayerData(event.getPlayer().getUniqueId());
+            }, 20);
         }
 
         @EventHandler
         public void onPlayerLogout(PlayerQuitEvent event) {
-            
-                
-                FoliaScheduler.runTimer(() -> {
-                    clearPlayerData(event.getPlayer().getUniqueId());
-                    setDisplayName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
-                }
-            }.runTaskLaterAsynchronously(20);
+            FoliaScheduler.runLater(() -> {
+                clearPlayerData(event.getPlayer().getUniqueId());
+                setDisplayName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+            }, 20);
         }
     }
 

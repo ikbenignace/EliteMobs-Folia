@@ -1,33 +1,20 @@
 package com.magmaguy.elitemobs.mobconstructor;
 
 import com.magmaguy.elitemobs.EliteMobs;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.adventurersguild.GuildRank;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.ValidWorldsConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfigFields;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.customspawns.CustomSpawnConfig;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.customspawns.CustomSpawnConfigFields;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.dungeons.EliteMobsWorld;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.events.MoonPhaseDetector;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.events.TimedEvent;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
 import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardFlagChecker;
-import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.magmacore.instance.MatchInstance;
 import com.magmaguy.magmacore.util.Logger;
 import lombok.Getter;
@@ -121,11 +108,8 @@ public class CustomSpawn {
     public void queueSpawn() {
         //Make sure a location exists
         if (spawnLocation == null)
-            
-                
-                FoliaScheduler.runTimer(() -> {
-                    generateCustomSpawn();
-                }
+            FoliaScheduler.runAsync(() -> {
+                generateCustomSpawn();
             });
         else
             spawn();
@@ -133,46 +117,39 @@ public class CustomSpawn {
 
     private void spawn() {
         //Pass back to sync if it's in async
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                if (spawnLocation == null) {
-                    FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
-                    
-                    return;
-                }
-                //One last check
-                //Last line of defense - spawn a test mob. If some unknown protection system prevents spawning it should prevent this
-                LivingEntity testEntity = spawnLocation.getWorld().spawn(spawnLocation, Zombie.class);
-                if (!testEntity.isValid()) {
-                    spawnLocation = null;
-                    //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
-                    FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
-                    
-                    return;
-                }
-                testEntity.remove();
-
-                if (!keepTrying) 
-
-                if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
-                        spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
-                    return;
-
-                if (customSpawnConfigFields.getMoonPhase() != null)
-                    if (!MoonPhaseDetector.detectMoonPhase(spawnLocation.getWorld()).equals(customSpawnConfigFields.getMoonPhase()))
-                        return;
-
-                for (CustomBossEntity customBossEntity : customBossEntities)
-                    if (!customBossEntity.exists())
-                        customBossEntity.spawn(spawnLocation, isEvent);
-
-                
-
-                if (timedEvent != null)
-                    timedEvent.queueEvent();
-
+        FoliaScheduler.runAtLocationTimer(spawnLocation, () -> {
+            if (spawnLocation == null) {
+                FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
+                return;
             }
+            //One last check
+            //Last line of defense - spawn a test mob. If some unknown protection system prevents spawning it should prevent this
+            LivingEntity testEntity = spawnLocation.getWorld().spawn(spawnLocation, Zombie.class);
+            if (!testEntity.isValid()) {
+                spawnLocation = null;
+                //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
+                FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
+                return;
+            }
+            testEntity.remove();
+
+            if (!keepTrying) return;
+
+            if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
+                    spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
+                return;
+
+            if (customSpawnConfigFields.getMoonPhase() != null)
+                if (!MoonPhaseDetector.detectMoonPhase(spawnLocation.getWorld()).equals(customSpawnConfigFields.getMoonPhase()))
+                    return;
+
+            for (CustomBossEntity customBossEntity : customBossEntities)
+                if (!customBossEntity.exists())
+                    customBossEntity.spawn(spawnLocation, isEvent);
+
+            if (timedEvent != null)
+                timedEvent.queueEvent();
+
         }, 0, 1);
     }
 
@@ -199,12 +176,9 @@ public class CustomSpawn {
 
         if (spawnLocation == null) {
             if (keepTrying) {
-                
-                    
-                    FoliaScheduler.runTimer(() -> {
-                        generateCustomSpawn();
-                    }
-                }.runTaskLaterAsynchronously(20 * 60);
+                FoliaScheduler.runLater(() -> {
+                    generateCustomSpawn();
+                }, 20 * 60);
             } else {
                 customBossEntities.forEach((customBossEntity -> {
                     if (customBossEntity.summoningEntity != null)

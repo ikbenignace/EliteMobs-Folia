@@ -49,8 +49,7 @@ public class NPCInteractions implements Listener {
             case GUILD_GREETER:
                 if (event.getPlayer().hasPermission("elitemobs.rank.npc")) {
                     FoliaScheduler.runLater(() -> {
-                            GuildRankMenuHandler.initializeGuildRankMenu(event.getPlayer());
-                        }
+                        GuildRankMenuHandler.initializeGuildRankMenu(event.getPlayer());
                     }, 1);
                 }
                 break;
@@ -60,23 +59,19 @@ public class NPCInteractions implements Listener {
             case CUSTOM_SHOP:
                 if (event.getPlayer().hasPermission("elitemobs.shop.custom.npc"))
                     FoliaScheduler.runLater(() -> {
-                            CustomShopMenu.customShopInitializer(event.getPlayer());
-                        }
+                        CustomShopMenu.customShopInitializer(event.getPlayer());
                     }, 1);
-
                 break;
             case PROCEDURALLY_GENERATED_SHOP:
                 if (event.getPlayer().hasPermission("elitemobs.shop.dynamic.npc"))
                     FoliaScheduler.runLater(() -> {
-                            ProceduralShopMenu.shopInitializer(event.getPlayer());
-                        }
+                        ProceduralShopMenu.shopInitializer(event.getPlayer());
                     }, 1);
                 break;
             case QUEST_GIVER:
                 if (event.getPlayer().hasPermission("elitemobs.quest.npc"))
                     FoliaScheduler.runLater(() -> {
-                            QuestInteractionHandler.processDynamicQuests(event.getPlayer(), npcEntity);
-                        }
+                        QuestInteractionHandler.processDynamicQuests(event.getPlayer(), npcEntity);
                     }, 1);
                 break;
             case CUSTOM_QUEST_GIVER:
@@ -88,9 +83,8 @@ public class NPCInteractions implements Listener {
             case SELL:
                 if (event.getPlayer().hasPermission("elitemobs.shop.sell.npc"))
                     FoliaScheduler.runLater(() -> {
-                            SellMenu sellMenu = new SellMenu();
-                            sellMenu.constructSellMenu(event.getPlayer());
-                        }
+                        SellMenu sellMenu = new SellMenu();
+                        sellMenu.constructSellMenu(event.getPlayer());
                     }, 1);
                 break;
             case TELEPORT_BACK:
@@ -106,35 +100,31 @@ public class NPCInteractions implements Listener {
             case SCRAPPER:
                 if (event.getPlayer().hasPermission("elitemobs.scrap.npc")) {
                     FoliaScheduler.runLater(() -> {
-                            ScrapperMenu scrapperMenu = new ScrapperMenu();
-                            scrapperMenu.constructScrapMenu(event.getPlayer());
-                        }
+                        ScrapperMenu scrapperMenu = new ScrapperMenu();
+                        scrapperMenu.constructScrapMenu(event.getPlayer());
                     }, 1);
                 }
                 break;
             case REPAIRMAN:
                 if (event.getPlayer().hasPermission("elitemobs.repair.npc")) {
                     FoliaScheduler.runLater(() -> {
-                            RepairMenu repairMenu = new RepairMenu();
-                            repairMenu.constructRepairMenu(event.getPlayer());
-                        }
+                        RepairMenu repairMenu = new RepairMenu();
+                        repairMenu.constructRepairMenu(event.getPlayer());
                     }, 1);
                 }
                 break;
             case UNBINDER:
                 if (event.getPlayer().hasPermission("elitemobs.unbind.npc")) {
                     FoliaScheduler.runLater(() -> {
-                            UnbindMenu unbindMenu = new UnbindMenu();
-                            unbindMenu.constructUnbinderMenu(event.getPlayer());
-                        }
+                        UnbindMenu unbindMenu = new UnbindMenu();
+                        unbindMenu.constructUnbinderMenu(event.getPlayer());
                     }, 1);
                 }
                 break;
             case ARENA_MASTER:
                 FoliaScheduler.runLater(() -> {
-                        ArenaMenu arenaMenu = new ArenaMenu();
-                        arenaMenu.constructArenaMenu(event.getPlayer(), npcEntity.getNPCsConfigFields().getArenaFilename());
-                    }
+                    ArenaMenu arenaMenu = new ArenaMenu();
+                    arenaMenu.constructArenaMenu(event.getPlayer(), npcEntity.getNPCsConfigFields().getArenaFilename());
                 }, 1);
                 break;
             case NONE:
@@ -146,8 +136,7 @@ public class NPCInteractions implements Listener {
                     return;
                 }
                 FoliaScheduler.runLater(() -> {
-                        event.getPlayer().performCommand(npcEntity.getNPCsConfigFields().getCommand());
-                    }
+                    event.getPlayer().performCommand(npcEntity.getNPCsConfigFields().getCommand());
                 }, 1);
                 break;
             case ENHANCER:
@@ -161,15 +150,13 @@ public class NPCInteractions implements Listener {
             case ENCHANTER:
                 if (event.getPlayer().hasPermission("elitemobs.enchant.npc"))
                     FoliaScheduler.runLater(() -> {
-                            new ItemEnchantmentMenu(event.getPlayer());
-                        }
+                        new ItemEnchantmentMenu(event.getPlayer());
                     }, 1);
                 break;
             case SCROLL_APPLIER:
                 if (event.getPlayer().hasPermission("elitemobs.scroll.npc"))
                     FoliaScheduler.runLater(() -> {
-                            new EliteScrollMenu(event.getPlayer());
-                        }
+                        new EliteScrollMenu(event.getPlayer());
                     }, 1);
                 break;
         }

@@ -73,12 +73,9 @@ public class LootTables implements Listener {
             if (AdventurersGuildConfig.isGuildLootLimiter()) {
                 if (itemLevel > GuildRank.getActiveGuildRank(player) * 10) {
                     itemLevel = GuildRank.getActiveGuildRank(player) * 10D;
-                    
-                        
-                        FoliaScheduler.runTimer(() -> {
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(AdventurersGuildConfig.getLootLimiterMessage()));
-                        }
-                    }.runLater(20 * 10L);
+                    FoliaScheduler.runLater(() -> {
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(AdventurersGuildConfig.getLootLimiterMessage()));
+                    }, 20 * 10L);
                 }
             }
 

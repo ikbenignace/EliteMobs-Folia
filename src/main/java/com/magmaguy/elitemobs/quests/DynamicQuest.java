@@ -41,16 +41,13 @@ public class DynamicQuest extends Quest {
     }
 
     public static void startRandomizingQuests() {
-        
-            
-            FoliaScheduler.runTimer(() -> {
-                for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
-                    List<QuestObjectives> questObjectives = new ArrayList<>();
-                    for (int questNumber = 0; questNumber < 3; questNumber++) {
-                        questObjectives.add(new QuestObjectives(activeLevel));
-                    }
-                    threeRandomDynamicObjectives.put(activeLevel, questObjectives);
+        randomizerTask = FoliaScheduler.runTimer(() -> {
+            for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
+                List<QuestObjectives> questObjectives = new ArrayList<>();
+                for (int questNumber = 0; questNumber < 3; questNumber++) {
+                    questObjectives.add(new QuestObjectives(activeLevel));
                 }
+                threeRandomDynamicObjectives.put(activeLevel, questObjectives);
             }
         }, 0, 20 * 60L);
     }
@@ -58,7 +55,7 @@ public class DynamicQuest extends Quest {
     public static void shutdown() {
         threeRandomDynamicObjectives.clear();
         if (randomizerTask != null)
-            randomizerTask.
+            randomizerTask.cancel();
     }
 
     public static List<DynamicQuest> generateQuests(Player player) {
