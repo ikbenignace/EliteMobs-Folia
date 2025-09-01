@@ -6,6 +6,7 @@ import com.magmaguy.magmacore.util.Logger;
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.*;
 import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 

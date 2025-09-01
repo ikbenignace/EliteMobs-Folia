@@ -157,7 +157,7 @@ public class CustomSpawn {
         //If the global cooldown if enforced and this is a timed event wait for the cd to be over
 
         if (timedEvent != null && System.currentTimeMillis() < TimedEvent.getNextEventStartMinimum()) {
-            FoliaScheduler.scheduleAsyncDelayedTask(this::generateCustomSpawn, 20 * 60L);
+            FoliaScheduler.runLaterAsync(this::generateCustomSpawn, 20 * 60L);
             return;
         }
 

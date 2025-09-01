@@ -10,14 +10,15 @@ import com.magmaguy.magmacore.util.ChatColorConverter;
 import lombok.Getter;
 import lombok.NonNull;
 import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -37,7 +38,7 @@ public class WormholeManager {
     private final Map<UUID, PlayerWormholeData> playerTeleportData = new HashMap<>();
     // Maps to track rotation counters for each wormhole
     private final Map<WormholeEntry, Integer> rotationCounters = new HashMap<>();
-    private BukkitTask wormholeTask;
+    private WrappedTask wormholeTask;
 
     // Constructor
     private WormholeManager() {
@@ -233,7 +234,7 @@ public class WormholeManager {
      */
     public void shutdown() {
         if (wormholeTask != null) {
-            wormholeTask.
+            wormholeTask.cancel();
             wormholeTask = null;
         }
 

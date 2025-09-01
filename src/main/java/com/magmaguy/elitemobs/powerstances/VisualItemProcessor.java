@@ -42,9 +42,8 @@ public class VisualItemProcessor {
         
 
             final boolean isObfuscated = eliteEntity.isVisualEffectObfuscated();
-            int counter = 0;
+            final int[] counter = {0};
 
-            
             FoliaScheduler.runTimer(() -> {
 
                 if (!eliteEntity.isValid() || !hasValidEffect) {
@@ -61,7 +60,7 @@ public class VisualItemProcessor {
                                 pointsPerRotation,
                                 multiDimensionalTrailTracker[i].length,
                                 sectionCounter,
-                                counter);
+                                counter[0]);
 
                         Vector vector = cachedVectorPositions[i][adjustedEffectPositionInRotation];
 
@@ -80,9 +79,9 @@ public class VisualItemProcessor {
 
                 }
 
-                counter++;
-                if (counter >= pointsPerRotation)
-                    counter = 0;
+                counter[0]++;
+                if (counter[0] >= pointsPerRotation)
+                    counter[0] = 0;
 
                 /*
                 Check if the effect has ceased being obfuscated

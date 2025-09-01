@@ -103,7 +103,7 @@ public class TreasureChest implements PersistentObject {
             if (time < 0)
                 generateChest();
             else
-                FoliaScheduler.scheduleSyncDelayedTask(this::generateChest, time);
+                FoliaScheduler.runLater(this::generateChest, time);
         }
     }
 
@@ -160,7 +160,7 @@ public class TreasureChest implements PersistentObject {
         customTreasureChestConfigFields.setRestockTime(location, restockTime);
 
         if (!customTreasureChestConfigFields.isInstanced())
-            FoliaScheduler.scheduleSyncDelayedTask(this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
+            FoliaScheduler.runLater(this::generateChest, 20L * 60 * customTreasureChestConfigFields.getRestockTimer());
 
     }
 

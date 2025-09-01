@@ -36,7 +36,7 @@ public class EliteMobEnterCombatEvent extends Event {
             CommandRunner.runCommandFromList(customBossEntity.getCustomBossesConfigFields().getOnCombatEnterCommands(), new ArrayList<>());
         //Phase bosses can launch this event through phase switches
         if (!eliteEntity.isInCombat())
-            FoliaScheduler.runAsync(() -> {
+            FoliaScheduler.runTimerAsync(() -> {
                 if (!eliteEntity.isValid()) {
                     FoliaScheduler.runLater(() -> new EventCaller(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.ELITE_NOT_VALID)), 0);
                     return;

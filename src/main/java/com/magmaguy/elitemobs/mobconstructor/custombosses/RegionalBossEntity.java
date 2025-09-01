@@ -3,38 +3,26 @@ package com.magmaguy.elitemobs.mobconstructor.custombosses;
 import com.google.common.collect.ArrayListMultimap;
 import com.magmaguy.easyminecraftgoals.NMSManager;
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.ItemSettingsConfig;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfig;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfigFields;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.PersistentMovingEntity;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.PersistentObject;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.transitiveblocks.TransitiveBlock;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.pathfinding.Navigation;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.powers.SpiritWalk;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ChunkLocationChecker;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.ConfigurationLocation;
 import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.Logger;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -54,7 +42,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private long unixRespawnTime;
     private int respawnCoolDownInMinutes = -1;
     private boolean isRespawning = false;
-    private BukkitTask leashTask;
+    private WrappedTask leashTask;
     @Getter
     @Setter
     private List<TransitiveBlock> onSpawnTransitiveBlocks;
@@ -63,7 +51,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
     private List<TransitiveBlock> onRemoveTransitiveBlocks;
     @Getter
     private boolean removed = false;
-    private BukkitTask respawnTask = null;
+    private WrappedTask respawnTask = null;
 
     public RegionalBossEntity(CustomBossesConfigFields customBossesConfigFields, String rawString) {
         super(customBossesConfigFields);
@@ -236,7 +224,7 @@ public class RegionalBossEntity extends CustomBossEntity implements PersistentOb
             return;
         RegionalBossEntity regionalBossEntity = this;
         if (leashTask != null) leashTask.cancel();
-        leashTask = FoliaScheduler.runAsync(() -> {
+        leashTask = FoliaScheduler.runTimerAsync(() -> {
             try {
                 if (!isValid()) {
                     cancelLeash();

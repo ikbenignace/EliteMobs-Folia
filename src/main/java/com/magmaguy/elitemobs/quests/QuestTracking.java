@@ -44,6 +44,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -59,8 +60,8 @@ public class QuestTracking {
     private final CustomQuest customQuest;
     private final List<Location> turnInNPCs = new ArrayList<>();
     private List<ObjectiveDestinations> objectiveDestinations = new ArrayList<>();
-    private BukkitTask locationRefresher;
-    private BukkitTask compassTask;
+    private WrappedTask locationRefresher;
+    private WrappedTask compassTask;
     private BossBar compassBar;
     private boolean questIsDone = false;
 
@@ -129,7 +130,7 @@ public class QuestTracking {
                         destinations.addAll(getDialogLocations((DialogObjective) objective));
                     else if (objective instanceof CustomFetchObjective)
                         destinations.addAll(getFetchLocations((CustomFetchObjective) objective));
-            FoliaScheduler.runLater(() -> objectiveDestinations = destinations);
+            FoliaScheduler.runLater(() -> objectiveDestinations = destinations, 1);
         } else {
             questIsDone = true;
             getTurnInNPC();

@@ -21,6 +21,7 @@ import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class DynamicQuest extends Quest {
 
     //These are generated fresh every hour
     private static final HashMap<Integer, List<QuestObjectives>> threeRandomDynamicObjectives = new HashMap<>();
-    private static BukkitTask randomizerTask;
+    private static WrappedTask randomizerTask;
 
     public DynamicQuest(Player player, int questLevel, QuestObjectives questObjectives) {
         super(player, questObjectives, questLevel);

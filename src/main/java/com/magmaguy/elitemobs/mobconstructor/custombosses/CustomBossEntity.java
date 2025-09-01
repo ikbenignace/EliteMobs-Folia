@@ -65,7 +65,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     protected CustomBossTrail customBossTrail;
     @Getter
     protected CustomBossBossBar customBossBossBar;
-    protected Integer escapeMechanism;
+    protected Object escapeMechanism;
     @Getter
     protected PhaseBossEntity phaseBossEntity = null;
     protected String worldName;
@@ -310,7 +310,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
                 if (elitePower instanceof CustomSummonPower)
                     ((CustomSummonPower) elitePower).getCustomBossReinforcements().forEach((customBossReinforcement -> {
                         if (customBossReinforcement.summonType.equals(CustomSummonPower.SummonType.GLOBAL))
-                            globalReinforcements.add(CustomSummonPower.summonGlobalReinforcement(customBossReinforcement, this));
+                            CustomSummonPower.summonGlobalReinforcement(customBossReinforcement, this);
                     }));
 
         CommandRunner.runCommandFromList(customBossesConfigFields.getOnSpawnCommands(), new ArrayList<>());
@@ -531,7 +531,11 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
             if (!(this instanceof RegionalBossEntity) || this instanceof InstancedBossEntity)
                 EntityTracker.getEliteMobEntities().remove(super.eliteUUID);
             new EventCaller(new EliteMobRemoveEvent(this, removalReason));
-            if (escapeMechanism != null) Bukkit.getScheduler().cancelTask(escapeMechanism);
+            if (escapeMechanism != null) {
+                if (escapeMechanism instanceof com.tcoded.folialib.wrapper.task.WrappedTask) {
+                    ((com.tcoded.folialib.wrapper.task.WrappedTask) escapeMechanism).cancel();
+                }
+            }
             trackableCustomBosses.remove(this);
             if (persistentObjectHandler != null) {
                 persistentObjectHandler.remove();

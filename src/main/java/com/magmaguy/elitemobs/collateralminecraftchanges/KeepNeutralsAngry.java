@@ -5,12 +5,12 @@ import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.HashSet;
 import java.util.Objects;

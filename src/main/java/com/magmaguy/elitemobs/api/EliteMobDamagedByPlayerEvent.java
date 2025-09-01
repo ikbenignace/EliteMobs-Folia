@@ -18,6 +18,7 @@ import com.magmaguy.elitemobs.utils.EntityFinder;
 import com.magmaguy.elitemobs.utils.EventCaller;
 import com.magmaguy.magmacore.util.Round;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
