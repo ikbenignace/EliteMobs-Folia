@@ -18,7 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.HashSet;
 
@@ -28,27 +28,21 @@ import java.util.HashSet;
 public class PlayerPotionEffects implements Listener {
 
     public PlayerPotionEffects() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                //scan through what players are wearing
-                for (Player player : Bukkit.getOnlinePlayers())
-                    if (ElitePlayerInventory.playerInventories.get(player.getUniqueId()) != null &&
-                            PlayerData.getPlayerData(player.getUniqueId()) != null)
-                        for (ElitePotionEffect elitePotionEffect : ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getContinuousPotionEffects(true))
-                            doContinuousPotionEffect(elitePotionEffect, player);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20L, 20L);
+        FoliaScheduler.runTimer(() -> {
+            //scan through what players are wearing
+            for (Player player : Bukkit.getOnlinePlayers())
+                if (ElitePlayerInventory.playerInventories.get(player.getUniqueId()) != null &&
+                        PlayerData.getPlayerData(player.getUniqueId()) != null)
+                    for (ElitePotionEffect elitePotionEffect : ElitePlayerInventory.playerInventories.get(player.getUniqueId()).getContinuousPotionEffects(true))
+                        doContinuousPotionEffect(elitePotionEffect, player);
+        }, 20L, 20L);
     }
 
     public static void addOnHitCooldown(HashSet<Player> cooldownList, Player player, long delay) {
         cooldownList.add(player);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                cooldownList.remove(player);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, delay);
+        FoliaScheduler.runTimer(() -> {
+            cooldownList.remove(player);
+        }, delay, 0);
     }
 
     private void doContinuousPotionEffect(ElitePotionEffect elitePotionEffect, Player player) {

@@ -1,16 +1,15 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.PlayerDamagedByEliteMobEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class Taze extends BossPower implements Listener {
@@ -45,11 +44,8 @@ public class Taze extends BossPower implements Listener {
         player.sendTitle("", "Shocked!", 1, 30, 1);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 30, 5));
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                taze(player, entityLocation, counter + 1);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 5);
+        FoliaScheduler.runLater(() -> {
+            taze(player, entityLocation, counter + 1);
+        }, 5);
     }
 }

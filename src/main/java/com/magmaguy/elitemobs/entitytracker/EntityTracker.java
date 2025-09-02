@@ -25,7 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;
@@ -121,20 +121,17 @@ public class EntityTracker implements Listener {
         BlockData finalPreviousBlockData = previousBlockData;
         //Death banners for instanced content don't timeout
         if (ticks < 0) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (Bukkit.getWorld(worldUUID) == null) return;
-                temporaryBlocks.remove(block);
-                if (!block.getBlockData().equals(finalPreviousBlockData))
-                    if (finalPreviousBlockData != null)
-                        //Case if a temp block was placed and now needs to be restored
-                        block.setBlockData(finalPreviousBlockData);
-                    else
-                        //Case if a temp block was placed on a temp block
-                        block.setType(Material.AIR);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        FoliaScheduler.runAtLocationLater(block.getLocation(), () -> {
+            if (Bukkit.getWorld(worldUUID) == null) return;
+            temporaryBlocks.remove(block);
+            if (!block.getBlockData().equals(finalPreviousBlockData))
+                if (finalPreviousBlockData != null)
+                    //Case if a temp block was placed and now needs to be restored
+                    block.setBlockData(finalPreviousBlockData);
+                else
+                    //Case if a temp block was placed on a temp block
+                    block.setType(Material.AIR);
+        }, ticks);
     }
 
     public static boolean isTemporaryBlock(Block block) {
@@ -232,24 +229,21 @@ public class EntityTracker implements Listener {
     //After many years of trying to make the chunk unload event work, I gave up and am now using a clock instead.
     //There's just too many bugs with how the chunk unloading works, unfortunately
     public static void managedEntityWatchdog() {
-        ManagedEntityTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Safely iterate over eliteMobEntities by cloning the values first to avoid CME
-                new HashSet<>(eliteMobEntities.values()).forEach(value -> {
-                    if (value.getLivingEntity() != null && !value.getLivingEntity().isValid()) {
-                        value.remove(RemovalReason.CHUNK_UNLOAD);
-                    }
-                });
+        FoliaScheduler.runTimer(() -> {
+            // Safely iterate over eliteMobEntities by cloning the values first to avoid CME
+            new HashSet<>(eliteMobEntities.values()).forEach(value -> {
+                if (value.getLivingEntity() != null && !value.getLivingEntity().isValid()) {
+                    value.remove(RemovalReason.CHUNK_UNLOAD);
+                }
+            });
 
-                // Safely iterate over npcEntities by cloning the values first to avoid CME
-                new HashSet<>(npcEntities.values()).forEach(value -> {
-                    if (value.getVillager() != null && !value.getVillager().isValid()) {
-                        value.remove(RemovalReason.CHUNK_UNLOAD);
-                    }
-                });
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0,1);
+            // Safely iterate over npcEntities by cloning the values first to avoid CME
+            new HashSet<>(npcEntities.values()).forEach(value -> {
+                if (value.getVillager() != null && !value.getVillager().isValid()) {
+                    value.remove(RemovalReason.CHUNK_UNLOAD);
+                }
+            });
+        }, 0, 1);
     }
 
     @EventHandler(ignoreCancelled = true)

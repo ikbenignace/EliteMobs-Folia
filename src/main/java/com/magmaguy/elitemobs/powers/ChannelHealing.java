@@ -8,7 +8,8 @@ import com.magmaguy.elitemobs.powers.meta.CombatEnterScanPower;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 
@@ -19,16 +20,12 @@ public class ChannelHealing extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
-                    return;
-                }
-                doPower(eliteEntity);
+        super.bukkitTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 2);
+            doPower(eliteEntity);
+        }, 0, 20 * 2);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -47,47 +44,43 @@ public class ChannelHealing extends CombatEnterScanPower {
         super.setInCooldown(healer, true);
         healer.getLivingEntity().setAI(false);
         damagedEntity.setHealing(true);
-        new BukkitRunnable() {
-            int timer = 0;
-
-            @Override
-            public void run() {
-                if (!healer.isValid() ||
-                        !damagedEntity.isValid() ||
-                        damagedEntity.getHealth() / damagedEntity.getMaxHealth() > .8 ||
-                        healer.getLocation().distance(damagedEntity.getLocation()) > 25) {
-                    cancel();
-                    setInCooldown(healer, false);
-                    doCooldown(healer);
-                    damagedEntity.setHealing(false);
-                    if (healer.isValid())
-                        healer.getLivingEntity().setAI(true);
-                    return;
-                }
-
-                if (timer % 10 == 0 && timer > 0) {
-                    double healAmount = healer.getLevel() / 2d;
-                    damagedEntity.heal(healAmount);
-                    damagedEntity.getLocation().getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, damagedEntity.getLocation().add(new Vector(0, 1, 0)), 20, 0.1, 0.1, 0.1);
-                }
-
-                Vector toDamaged = damagedEntity.getLocation().add(new Vector(0, 1, 0))
-                        .subtract(healer.getLocation().add(new Vector(0, 1, 0)))
-                        .toVector().normalize().multiply(.5);
-
-                Location rayLocation = healer.getLocation().add(new Vector(0, 1, 0)).add(toDamaged);
-
-                for (int i = 0; i < 55; i++) {
-                    rayLocation.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, rayLocation, 1, toDamaged.getX(), toDamaged.getY(), toDamaged.getZ(), .2D);
-                    rayLocation.add(toDamaged);
-                    if (rayLocation.distance(damagedEntity.getLocation()) < 2)
-                        break;
-                }
-
-                timer++;
-
+        
+        final int[] timer = {0};
+        
+        WrappedTask task = FoliaScheduler.runAtEntityTimer(healer.getLivingEntity(), () -> {
+            if (!healer.isValid() ||
+                    !damagedEntity.isValid() ||
+                    damagedEntity.getHealth() / damagedEntity.getMaxHealth() > .8 ||
+                    healer.getLocation().distance(damagedEntity.getLocation()) > 25) {
+                setInCooldown(healer, false);
+                doCooldown(healer);
+                damagedEntity.setHealing(false);
+                if (healer.isValid())
+                    healer.getLivingEntity().setAI(true);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 2L);
+
+            if (timer[0] % 10 == 0 && timer[0] > 0) {
+                double healAmount = healer.getLevel() / 2d;
+                damagedEntity.heal(healAmount);
+                damagedEntity.getLocation().getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, damagedEntity.getLocation().add(new Vector(0, 1, 0)), 20, 0.1, 0.1, 0.1);
+            }
+
+            Vector toDamaged = damagedEntity.getLocation().add(new Vector(0, 1, 0))
+                    .subtract(healer.getLocation().add(new Vector(0, 1, 0)))
+                    .toVector().normalize().multiply(.5);
+
+            Location rayLocation = healer.getLocation().add(new Vector(0, 1, 0)).add(toDamaged);
+
+            for (int i = 0; i < 55; i++) {
+                rayLocation.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, rayLocation, 1, toDamaged.getX(), toDamaged.getY(), toDamaged.getZ(), .2D);
+                rayLocation.add(toDamaged);
+                if (rayLocation.distance(damagedEntity.getLocation()) < 2)
+                    break;
+            }
+
+            timer[0]++;
+        }, 0L, 2L);
     }
 
     @Override

@@ -4,13 +4,13 @@ import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.config.AdventurersGuildConfig;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.AttributeManager;
 import com.magmaguy.magmacore.util.Round;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -234,15 +234,12 @@ public class GuildRank {
     public static class GuildRankEvents implements Listener {
         @EventHandler
         public void onPlayerJoin(PlayerJoinEvent event) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (event.getPlayer().isOnline())
-                        setMaxHealth(event.getPlayer(),
-                                GuildRank.getActiveGuildRank(event.getPlayer(), true),
-                                GuildRank.getGuildPrestigeRank(event.getPlayer(), true));
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 3);
+            FoliaScheduler.runLater(() -> {
+                if (event.getPlayer().isOnline())
+                    setMaxHealth(event.getPlayer(),
+                            GuildRank.getActiveGuildRank(event.getPlayer(), true),
+                            GuildRank.getGuildPrestigeRank(event.getPlayer(), true));
+            }, 20 * 3);
         }
     }
 

@@ -1,16 +1,16 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.config.powers.premade.ZombieParentsConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.powers.meta.MajorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.Logger;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -24,17 +24,21 @@ public class ZombieParents extends MajorPower implements Listener {
     }
 
     private static void startDialog(CustomBossEntity reinforcementMom, CustomBossEntity reinforcementDad, EliteEntity bossEntity) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!bossEntity.isValid()) {
-                    doDeathMessages(reinforcementDad, reinforcementMom);
-                    cancel();
-                } else {
-                    doDialog(reinforcementDad, reinforcementMom, bossEntity);
-                }
+        WrappedTask dialogTask = FoliaScheduler.runTimer(() -> {
+            if (!bossEntity.isValid()) {
+                doDeathMessages(reinforcementDad, reinforcementMom);
+                // Task will be cancelled externally
+            } else {
+                doDialog(reinforcementDad, reinforcementMom, bossEntity);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20, 20L * 8);
+        }, 20, 20L * 8);
+        
+        // Cancel task when boss entity becomes invalid
+        FoliaScheduler.runTimer(() -> {
+            if (!bossEntity.isValid() && dialogTask != null) {
+                dialogTask.cancel();
+            }
+        }, 20, 20);
     }
 
     private static void doDeathMessages(CustomBossEntity reinforcementDad, CustomBossEntity reinforcementMom) {
@@ -72,15 +76,10 @@ public class ZombieParents extends MajorPower implements Listener {
     }
 
     private static void nameClearer(EliteEntity eliteEntity) {
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (eliteEntity.isValid())
-                    eliteEntity.setName(eliteEntity.getName(), true);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20L * 3);
-
+        FoliaScheduler.runLater(() -> {
+            if (eliteEntity.isValid())
+                eliteEntity.setName(eliteEntity.getName(), true);
+        }, 20L * 3);
     }
 
     @EventHandler

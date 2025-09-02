@@ -13,6 +13,7 @@ import com.magmaguy.elitemobs.events.MoonPhaseDetector;
 import com.magmaguy.elitemobs.events.TimedEvent;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardFlagChecker;
 import com.magmaguy.magmacore.instance.MatchInstance;
 import com.magmaguy.magmacore.util.Logger;
@@ -23,7 +24,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -108,66 +108,56 @@ public class CustomSpawn {
     public void queueSpawn() {
         //Make sure a location exists
         if (spawnLocation == null)
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    generateCustomSpawn();
-                }
-            }.runTaskAsynchronously(MetadataHandler.PLUGIN);
+            FoliaScheduler.runAsync(() -> {
+                generateCustomSpawn();
+            });
         else
             spawn();
     }
 
     private void spawn() {
         //Pass back to sync if it's in async
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (spawnLocation == null) {
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
-                    cancel();
-                    return;
-                }
-                //One last check
-                //Last line of defense - spawn a test mob. If some unknown protection system prevents spawning it should prevent this
-                LivingEntity testEntity = spawnLocation.getWorld().spawn(spawnLocation, Zombie.class);
-                if (!testEntity.isValid()) {
-                    spawnLocation = null;
-                    //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
-                    Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> generateCustomSpawn(), 1);
-                    cancel();
-                    return;
-                }
-                testEntity.remove();
-
-                if (!keepTrying) cancel();
-
-                if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
-                        spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
-                    return;
-
-                if (customSpawnConfigFields.getMoonPhase() != null)
-                    if (!MoonPhaseDetector.detectMoonPhase(spawnLocation.getWorld()).equals(customSpawnConfigFields.getMoonPhase()))
-                        return;
-
-                for (CustomBossEntity customBossEntity : customBossEntities)
-                    if (!customBossEntity.exists())
-                        customBossEntity.spawn(spawnLocation, isEvent);
-
-                cancel();
-
-                if (timedEvent != null)
-                    timedEvent.queueEvent();
-
+        FoliaScheduler.runAtLocationTimer(spawnLocation, () -> {
+            if (spawnLocation == null) {
+                FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            //One last check
+            //Last line of defense - spawn a test mob. If some unknown protection system prevents spawning it should prevent this
+            LivingEntity testEntity = spawnLocation.getWorld().spawn(spawnLocation, Zombie.class);
+            if (!testEntity.isValid()) {
+                spawnLocation = null;
+                //Run 1 tick later to make sure it doesn't get stuck trying over and over again in the same tick
+                FoliaScheduler.runLater(() -> generateCustomSpawn(), 1);
+                return;
+            }
+            testEntity.remove();
+
+            if (!keepTrying) return;
+
+            if (Objects.requireNonNull(spawnLocation.getWorld()).getTime() < customSpawnConfigFields.getEarliestTime() ||
+                    spawnLocation.getWorld().getTime() > customSpawnConfigFields.getLatestTime())
+                return;
+
+            if (customSpawnConfigFields.getMoonPhase() != null)
+                if (!MoonPhaseDetector.detectMoonPhase(spawnLocation.getWorld()).equals(customSpawnConfigFields.getMoonPhase()))
+                    return;
+
+            for (CustomBossEntity customBossEntity : customBossEntities)
+                if (!customBossEntity.exists())
+                    customBossEntity.spawn(spawnLocation, isEvent);
+
+            if (timedEvent != null)
+                timedEvent.queueEvent();
+
+        }, 0, 1);
     }
 
     private void generateCustomSpawn() {
         //If the global cooldown if enforced and this is a timed event wait for the cd to be over
 
         if (timedEvent != null && System.currentTimeMillis() < TimedEvent.getNextEventStartMinimum()) {
-            Bukkit.getScheduler().scheduleAsyncDelayedTask(MetadataHandler.PLUGIN, this::generateCustomSpawn, 20 * 60L);
+            FoliaScheduler.runLaterAsync(this::generateCustomSpawn, 20 * 60L);
             return;
         }
 
@@ -186,12 +176,9 @@ public class CustomSpawn {
 
         if (spawnLocation == null) {
             if (keepTrying) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        generateCustomSpawn();
-                    }
-                }.runTaskLaterAsynchronously(MetadataHandler.PLUGIN, 20 * 60);
+                FoliaScheduler.runLater(() -> {
+                    generateCustomSpawn();
+                }, 20 * 60);
             } else {
                 customBossEntities.forEach((customBossEntity -> {
                     if (customBossEntity.summoningEntity != null)

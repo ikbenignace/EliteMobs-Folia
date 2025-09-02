@@ -1,9 +1,9 @@
 package com.magmaguy.elitemobs.api;
 
 import com.magmaguy.elitemobs.CrashFix;
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.config.powers.PowersConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
@@ -11,7 +11,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -95,13 +94,10 @@ public class EliteExplosionEvent extends Event implements Cancellable {
                     fallingBlock.setVelocity(fallingBlock.getLocation().clone().subtract(explosionSourceLocation).toVector().normalize().setY(1).multiply(0.5));
             }
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (fallingBlock.isValid())
-                        fallingBlock.remove();
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 4);
+            FoliaScheduler.runAtEntityLater(fallingBlock, () -> {
+                if (fallingBlock.isValid())
+                    fallingBlock.remove();
+            }, 20 * 4);
 
             CrashFix.registerVisualFallingBlock(fallingBlock);
         }

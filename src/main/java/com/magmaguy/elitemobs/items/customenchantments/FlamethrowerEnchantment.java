@@ -18,8 +18,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,15 +90,13 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
         }
 
         private void doFlamethrowerPhase1(Player player, Location targetLocation) {
-
-            new BukkitRunnable() {
+            FoliaScheduler.runAtEntityTimer(player, new Runnable() {
                 int counter = 0;
 
                 @Override
                 public void run() {
 
                     if (!player.isValid() || !player.getLocation().getWorld().equals(targetLocation.getWorld())) {
-                        cancel();
                         return;
                     }
 
@@ -107,11 +105,10 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
 
                     if (counter < 20) return;
                     doFlamethrowerPhase2(player, targetLocation);
-                    cancel();
 
                 }
 
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
         }
 
@@ -130,13 +127,12 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
          */
         private void doFlamethrowerPhase2(Player player, Location target) {
             List<Location> damagePoints = generateDamagePoints(player, target);
-            new BukkitRunnable() {
+            FoliaScheduler.runAtEntityTimer(player, new Runnable() {
                 int timer = 0;
 
                 @Override
                 public void run() {
                     if (!player.isValid() || !player.getLocation().getWorld().equals(target.getWorld())) {
-                        cancel();
                         return;
                     }
                     doParticleEffect(player, target, Particle.FLAME);
@@ -144,9 +140,8 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
                     timer++;
                     if (timer < 20 * 3) return;
                     doFlamethrowerPhase3(player, target);
-                    cancel();
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
         }
 
 
@@ -156,21 +151,19 @@ public class FlamethrowerEnchantment extends CustomEnchantment {
          * @param player
          */
         private void doFlamethrowerPhase3(Player player, Location fixedPlayerLocation) {
-            new BukkitRunnable() {
+            FoliaScheduler.runAtEntityTimer(player, new Runnable() {
                 int timer = 0;
 
                 @Override
                 public void run() {
                     if (!player.isValid() || !player.getLocation().getWorld().equals(fixedPlayerLocation.getWorld())) {
-                        cancel();
                         return;
                     }
                     timer++;
                     doParticleEffect(player, fixedPlayerLocation, Particle.SMOKE);
                     if (timer < 20) return;
-                    cancel();
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
         }
     }
 

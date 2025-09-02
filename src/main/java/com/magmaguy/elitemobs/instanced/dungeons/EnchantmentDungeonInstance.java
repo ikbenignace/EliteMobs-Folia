@@ -13,7 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -66,16 +66,13 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
                 cloneWorldFiles(contentPackagesConfigFields, instancedWordName, player));
         future.thenAccept(file -> {
             if (file == null) return;
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
-                    if (dungeonInstance instanceof EnchantmentDungeonInstance enchantmentDungeonInstance) {
-                        enchantmentDungeonInstance.setUpgradedItem(upgradedItem.clone());
-                        enchantmentDungeonInstance.setCurrentItem(itemFromInventory.clone());
-                    }
+            FoliaScheduler.runNextTick(() -> {
+                DungeonInstance dungeonInstance = initializeInstancedWorld(contentPackagesConfigFields, instancedWordName, player, file, (String) contentPackagesConfigFields.getDifficulties().get(0).get("name"));
+                if (dungeonInstance instanceof EnchantmentDungeonInstance enchantmentDungeonInstance) {
+                    enchantmentDungeonInstance.setUpgradedItem(upgradedItem.clone());
+                    enchantmentDungeonInstance.setCurrentItem(itemFromInventory.clone());
                 }
-            }.runTask(MetadataHandler.PLUGIN);
+            });
         });
 
         return true;
@@ -83,12 +80,9 @@ public class EnchantmentDungeonInstance extends DungeonInstance {
 
     @Override
     public void endMatch() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                removeInstance();
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 10);
+        FoliaScheduler.runLater(() -> {
+            removeInstance();
+        }, 20 * 10);
     }
 
     @Override

@@ -1,18 +1,17 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.events.BossCustomAttackDamage;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -53,14 +52,12 @@ public class Flamethrower extends BossPower implements Listener {
 
         eliteEntity.getLivingEntity().setAI(false);
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
-
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
 
@@ -69,12 +66,9 @@ public class Flamethrower extends BossPower implements Listener {
 
                 if (counter < 20 * 2) return;
                 doFlamethrowerPhase2(eliteEntity, fixedPlayerLocation);
-                cancel();
-
+                return; // Exit the runnable
             }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+        }, 0, 1);
     }
 
     @EventHandler
@@ -111,13 +105,12 @@ public class Flamethrower extends BossPower implements Listener {
      */
     private void doFlamethrowerPhase2(EliteEntity eliteEntity, Location fixedPlayerLocation) {
         List<Location> damagePoints = generateDamagePoints(eliteEntity, fixedPlayerLocation);
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int timer = 0;
 
             @Override
             public void run() {
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
 
@@ -126,9 +119,9 @@ public class Flamethrower extends BossPower implements Listener {
                 timer++;
                 if (timer < 20 * 3) return;
                 doFlamethrowerPhase3(eliteEntity, fixedPlayerLocation);
-                cancel();
+                return; // Exit the runnable
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     /**
@@ -137,22 +130,21 @@ public class Flamethrower extends BossPower implements Listener {
      * @param eliteEntity
      */
     private void doFlamethrowerPhase3(EliteEntity eliteEntity, Location fixedPlayerLocation) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int timer = 0;
 
             @Override
             public void run() {
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
                 timer++;
                 doParticleEffect(eliteEntity, fixedPlayerLocation, Particle.SMOKE);
                 if (timer < 20) return;
-                cancel();
                 eliteEntity.getLivingEntity().setAI(true);
+                return; // Exit the runnable
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
 }

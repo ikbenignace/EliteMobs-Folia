@@ -3,6 +3,7 @@ version: 9.5.3
 author: MagmaGuy
 main: com.magmaguy.elitemobs.EliteMobs
 api-version: 1.14
+folia-supported: true
 softdepend:
 - Multiverse-Core
 - WorldGuard

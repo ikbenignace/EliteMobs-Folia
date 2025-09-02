@@ -1,17 +1,16 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,20 +22,17 @@ public class MeteorShower extends BossPower implements Listener {
 
     public static void doMeteorShower(EliteEntity eliteEntity) {
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
             int counter = 0;
 
             @Override
             public void run() {
-
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
 
                 if (counter > 10 * 20) {
-                    cancel();
                     eliteEntity.getLivingEntity().setAI(true);
                     eliteEntity.getLivingEntity().teleport(initialLocation);
                     return;
@@ -47,13 +43,10 @@ public class MeteorShower extends BossPower implements Listener {
                 doCloudEffect(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)));
 
                 if (counter > 2 * 20) {
-
                     doFireballs(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)), eliteEntity);
-
                 }
-
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     public static void doCloudEffect(Location location) {

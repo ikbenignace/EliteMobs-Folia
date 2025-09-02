@@ -1,33 +1,33 @@
 package com.magmaguy.elitemobs.quests;
 
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.api.QuestAcceptEvent;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.api.QuestCompleteEvent;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.api.QuestProgressionEvent;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.QuestsConfig;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customloottable.CustomLootEntry;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.items.customloottable.EliteCustomLootEntry;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.objectives.*;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.treasurechest.TreasureChest;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.wormhole.Wormhole;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.SpigotMessage;
 import lombok.Getter;
@@ -44,7 +44,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -60,8 +59,8 @@ public class QuestTracking {
     private final CustomQuest customQuest;
     private final List<Location> turnInNPCs = new ArrayList<>();
     private List<ObjectiveDestinations> objectiveDestinations = new ArrayList<>();
-    private WrappedTask locationRefresher;
-    private WrappedTask compassTask;
+    private BukkitTask locationRefresher;
+    private BukkitTask compassTask;
     private BossBar compassBar;
     private boolean questIsDone = false;
 
@@ -109,13 +108,16 @@ public class QuestTracking {
     }
 
     private void startLocationGetter() {
-        FoliaScheduler.runAtEntityTimer(player, () -> {
-            if (!player.isValid()) {
-                stop();
-                return;
+        locationRefresher = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isValid()) {
+                    stop();
+                    return;
+                }
+                updateLocations(customQuest);
             }
-            updateLocations(customQuest);
-        }, 0L, 20L * 60L);
+        }.runTaskTimerAsynchronously(MetadataHandler.PLUGIN, 0L, 20L * 60L);
     }
 
     public void updateLocations(Quest quest) {
@@ -130,7 +132,7 @@ public class QuestTracking {
                         destinations.addAll(getDialogLocations((DialogObjective) objective));
                     else if (objective instanceof CustomFetchObjective)
                         destinations.addAll(getFetchLocations((CustomFetchObjective) objective));
-            FoliaScheduler.runLater(() -> objectiveDestinations = destinations, 1);
+            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, () -> objectiveDestinations = destinations);
         } else {
             questIsDone = true;
             getTurnInNPC();
@@ -192,25 +194,29 @@ public class QuestTracking {
 
     public void stop() {
         playerTrackingQuests.remove(player);
-        FoliaScheduler.runLater(() -> {
-            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-        }, 1);
-        if (locationRefresher != null)
-            locationRefresher.cancel();
-        if (compassTask != null)
-            compassTask.cancel();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            }
+        }.runTask(MetadataHandler.PLUGIN);
+        locationRefresher.cancel();
+        compassTask.cancel();
         compassBar.removeAll();
     }
 
     private void startCompass() {
         compassBar = Bukkit.createBossBar("", BarColor.GREEN, BarStyle.SOLID, BarFlag.PLAY_BOSS_MUSIC);
-        compassTask = FoliaScheduler.runAtEntityTimer(player, () -> {
-            if (!player.isOnline()) {
-                stop();
-                return;
+        compassTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    stop();
+                    return;
+                }
+                updateCompassContents();
             }
-            updateCompassContents();
-        }, 0L, 1L);
+        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 1L);
     }
 
     private void updateCompassContents() {

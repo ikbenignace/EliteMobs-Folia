@@ -1,7 +1,6 @@
 package com.magmaguy.elitemobs.events;
 
 import com.magmaguy.elitemobs.EliteMobs;
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.announcements.AnnouncementPriority;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
 import com.magmaguy.elitemobs.config.ValidWorldsConfig;
@@ -11,12 +10,11 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardCompatibility;
 import com.magmaguy.elitemobs.thirdparty.worldguard.WorldGuardFlagChecker;
 import com.magmaguy.elitemobs.utils.CommandRunner;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.instance.MatchInstance;
 import com.magmaguy.magmacore.util.Logger;
-import org.bukkit.Bukkit;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +28,7 @@ public abstract class CustomEvent {
     //Common fields
     public EventType eventType;
     public ArrayList<CustomBossEntity> primaryEliteMobs = new ArrayList<>();
-    public BukkitTask eventWatchdog;
+    public WrappedTask eventWatchdog;
     public int announcementPriority;
     public CustomEventsConfigFields customEventsConfigFields;
     public String startMessage, endMessage;
@@ -104,13 +102,10 @@ public abstract class CustomEvent {
             CommandRunner.runCommandFromList(this.startEventCommands, new ArrayList<>());
         eventStartTime = System.currentTimeMillis();
         currentDay = dayCalculator();
-        eventWatchdog = new BukkitRunnable() {
-            @Override
-            public void run() {
-                commonWatchdogBehavior();
-                eventWatchdog();
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20, 20);
+        eventWatchdog = FoliaScheduler.runAtLocationTimer(eventStartLocation, () -> {
+            commonWatchdogBehavior();
+            eventWatchdog();
+        }, 20, 20);
     }
 
     private int dayCalculator() {
@@ -167,7 +162,7 @@ public abstract class CustomEvent {
         if (this.endMessage != null)
             AnnouncementPriority.announce(this.endMessage, eventStartLocation.getWorld(), this.announcementPriority);
         if (this.endEventCommands != null)
-            Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, () -> CommandRunner.runCommandFromList(this.endEventCommands, new ArrayList<>()));
+            FoliaScheduler.runNextTick(() -> CommandRunner.runCommandFromList(this.endEventCommands, new ArrayList<>()));
         endModifiers();
     }
 

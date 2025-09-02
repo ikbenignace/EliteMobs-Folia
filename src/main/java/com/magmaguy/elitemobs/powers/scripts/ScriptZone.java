@@ -16,7 +16,7 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,7 +93,7 @@ public class ScriptZone {
         entitiesInZone = new HashSet<>();
         ScriptActionData scriptActionData = new ScriptActionData(eliteEntity, targets, this);
         zoneListenerTask = new ZoneListenerTask(eliteEntity, scriptActionData);
-        zoneListenerTask.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> zoneListenerTask.run(), 1, 1);
     }
 
     /**
@@ -402,21 +402,24 @@ public class ScriptZone {
     /**
      * A task that listens for entities entering or leaving the zone.
      */
-    private class ZoneListenerTask extends BukkitRunnable {
+    private class ZoneListenerTask {
         private final EliteEntity eliteEntity;
         private final ScriptActionData scriptActionData;
+        private boolean isCancelled = false;
 
         public ZoneListenerTask(EliteEntity eliteEntity, ScriptActionData scriptActionData) {
             this.eliteEntity = eliteEntity;
             this.scriptActionData = scriptActionData;
         }
 
-        @Override
+        public void cancel() {
+            this.isCancelled = true;
+        }
+
         public void run() {
             try {
-                if (eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
+                if (isCancelled || eliteEntity.getLivingEntity() == null || !eliteEntity.getLivingEntity().isValid()) {
                     // Cancel task if the elite entity is no longer valid
-                    cancel();
                     return;
                 }
 

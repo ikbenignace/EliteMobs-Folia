@@ -81,11 +81,15 @@ repositories {
             artifact()
         }
     }
+    //FoliaLib
+    maven { url = 'https://repo.tcoded.com/releases' }
 }
 
 dependencies {
     //Spigot API
     compileOnly "org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT"
+    //FoliaLib
+    implementation "com.tcoded:FoliaLib:0.5.1"
     //WorldGuard API
     compileOnly group: 'com.sk89q.worldguard', name: 'worldguard-bukkit', version: '7.0.7'
     //Vault
@@ -143,6 +147,8 @@ shadowJar {
         // Relocate MagmaCore
 //        relocate('com.magmaguy.magmacore', 'com.magmaguy.elitemobs.magmacore')
         relocate('com.magmaguy.easyminecraftgoals', 'com.magmaguy.elitemobs.easyminecraftgoals')
+        // Relocate FoliaLib
+        relocate('com.tcoded.folialib', 'com.magmaguy.elitemobs.lib.folialib')
     }
 
     archiveClassifier.set(null)

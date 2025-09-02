@@ -3,10 +3,10 @@ package com.magmaguy.elitemobs.utils;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.internal.RemovalReason;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class DialogArmorStand {
@@ -18,7 +18,7 @@ public class DialogArmorStand {
         TextDisplay armorStand = VisualDisplay.generateTemporaryTextDisplay(sourceEntity.getLocation().clone().add(finalOffset), dialog);
 
         //This part is necessary because armorstands are visible on their first tick to players
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(armorStand, new Runnable() {
             int taskTimer = 0;
 
             @Override
@@ -27,13 +27,11 @@ public class DialogArmorStand {
 
                 if (taskTimer > 15 || !sourceEntity.isValid()) {
                     EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
                     return;
                 }
                 armorStand.teleport(sourceEntity.getLocation().clone().add(finalOffset).add(new Vector(0, taskTimer * 0.05, 0)));
             }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 2);
+        }, 0, 2);
 
         return armorStand;
     }
@@ -51,20 +49,19 @@ public class DialogArmorStand {
 
         TextDisplay armorStand = VisualDisplay.generateTemporaryTextDisplay(sourceEntity.getLocation().clone().add(getDisplacementVector(sourceEntity)), dialog);
         //This part is necessary because armorstands are visible on their first tick to players
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(armorStand, new Runnable() {
             int taskTimer = 0;
 
             @Override
             public void run() {
                 if (taskTimer > 15 || !sourceEntity.isValid()) {
                     EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
                     return;
                 }
                 armorStand.teleport(sourceEntity.getLocation().clone().add(getDisplacementVector(sourceEntity)));
                 taskTimer++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
         return armorStand;
     }
 

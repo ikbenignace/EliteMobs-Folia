@@ -1,18 +1,17 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.events.BossCustomAttackDamage;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,7 +25,7 @@ public class Firestorm extends BossPower implements Listener {
     private static void doFirestorm(EliteEntity eliteEntity) {
         if (eliteEntity == null || !eliteEntity.isValid()) return;
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
@@ -36,7 +35,6 @@ public class Firestorm extends BossPower implements Listener {
                 if (counter > 20 * 10 || !eliteEntity.isValid()) {
                     if (eliteEntity.isValid())
                         eliteEntity.getLivingEntity().setAI(true);
-                    cancel();
                     return;
                 }
 
@@ -49,14 +47,14 @@ public class Firestorm extends BossPower implements Listener {
                     doFlamePyrePhase1(randomLocation, eliteEntity);
                 }
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     /**
      * Warning phase
      */
     private static void doFlamePyrePhase1(Location location, EliteEntity eliteEntity) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -64,10 +62,9 @@ public class Firestorm extends BossPower implements Listener {
                 counter++;
                 spawnPhase1Particle(location, Particle.SMOKE);
                 if (counter < 20 * 2) return;
-                cancel();
                 doFlamePyrePhase2(location, eliteEntity);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     private static void spawnPhase1Particle(Location location, Particle particle) {
@@ -85,7 +82,7 @@ public class Firestorm extends BossPower implements Listener {
      * First damage phase
      */
     private static void doFlamePyrePhase2(Location location, EliteEntity eliteEntity) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -95,10 +92,9 @@ public class Firestorm extends BossPower implements Listener {
                 doDamage(location, eliteEntity, 0.5, 50, 0.5);
                 spawnPhase2Particle(location, Particle.SMOKE);
                 if (counter < 20 * 2) return;
-                cancel();
                 doFlamePyrePhase3(location, eliteEntity);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     private static void spawnPhase2Particle(Location location, Particle particle) {
@@ -122,7 +118,7 @@ public class Firestorm extends BossPower implements Listener {
      * Second damage phase / last warning phase
      */
     private static void doFlamePyrePhase3(Location location, EliteEntity eliteEntity) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -132,10 +128,9 @@ public class Firestorm extends BossPower implements Listener {
                 doDamage(location, eliteEntity, 3, 50, 3);
                 spawnPhase3Particle(location, Particle.SMOKE);
                 if (counter < 20 * 2) return;
-                cancel();
                 doFlamePyrePhase4(location, eliteEntity);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     private static void spawnPhase3Particle(Location location, Particle particle) {
@@ -148,7 +143,7 @@ public class Firestorm extends BossPower implements Listener {
      * @param eliteEntity
      */
     private static void doFlamePyrePhase4(Location location, EliteEntity eliteEntity) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -157,9 +152,8 @@ public class Firestorm extends BossPower implements Listener {
                 spawnPhase3Particle(location, Particle.FLAME);
                 doDamage(location, eliteEntity, 5, 50, 5);
                 if (counter < 20 * 2) return;
-                cancel();
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     @EventHandler

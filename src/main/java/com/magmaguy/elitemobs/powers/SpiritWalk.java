@@ -1,6 +1,5 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedEvent;
 import com.magmaguy.elitemobs.api.EliteMobExitCombatEvent;
 import com.magmaguy.elitemobs.combatsystem.antiexploit.PreventMountExploit;
@@ -10,6 +9,8 @@ import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.RegionalBossEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,121 +42,101 @@ public class SpiritWalk extends BossPower implements Listener {
         Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
         eliteEntity.setCombatGracePeriod(20 * 20);
 
-        new BukkitRunnable() {
-
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
-
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
 
                 if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter > 20 * 10) {
-
                     eliteEntity.getLivingEntity().teleport(finalLocation);
                     eliteEntity.getLivingEntity().setAI(true);
                     eliteEntity.getLivingEntity().setInvulnerable(false);
                     eliteEntity.getLivingEntity().removePotionEffect(PotionEffectType.GLOWING);
-                    cancel();
-
+                    return;
                 }
 
                 eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
-
                 counter++;
-
             }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+        }, 0, 1);
     }
 
     public static void spiritWalkRegionalBossAnimation(EliteEntity eliteEntity, Location entityLocation, Location finalLocation) {
-        Bukkit.getScheduler().runTask(MetadataHandler.PLUGIN, bukkitTask -> {
-                    if (eliteEntity.getLivingEntity() == null) return;
-                    eliteEntity.getLivingEntity().setAI(false);
-                    eliteEntity.getLivingEntity().setInvulnerable(true);
-                    Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
+        FoliaScheduler.runAtEntity(eliteEntity.getLivingEntity(), () -> {
+            if (eliteEntity.getLivingEntity() == null) return;
+            eliteEntity.getLivingEntity().setAI(false);
+            eliteEntity.getLivingEntity().setInvulnerable(true);
+            Vector toDestination = finalLocation.clone().subtract(entityLocation.clone()).toVector().normalize().divide(new Vector(2, 2, 2));
 
-                    Entity vehicle = null;
+            Entity vehicle = null;
 
-                    if (eliteEntity.getLivingEntity().isInsideVehicle()) {
-                        vehicle = eliteEntity.getLivingEntity().getVehicle();
-                        if (vehicle instanceof LivingEntity)
-                            ((LivingEntity) vehicle).setAI(false);
-                        vehicle.setInvulnerable(true);
-                        if (((CustomBossEntity) eliteEntity).getPhaseBossEntity() != null)
-                            vehicle.remove();
+            if (eliteEntity.getLivingEntity().isInsideVehicle()) {
+                vehicle = eliteEntity.getLivingEntity().getVehicle();
+                if (vehicle instanceof LivingEntity)
+                    ((LivingEntity) vehicle).setAI(false);
+                vehicle.setInvulnerable(true);
+                if (((CustomBossEntity) eliteEntity).getPhaseBossEntity() != null)
+                    vehicle.remove();
+            }
+
+            final Entity finalVehicle = vehicle;
+            FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
+                int counter = 0;
+
+                @Override
+                public void run() {
+                    if (!eliteEntity.isValid()) {
+                        return;
                     }
 
-                    new BukkitRunnable() {
-                        final Entity vehicle = eliteEntity.getLivingEntity().getVehicle();
+                    if (eliteEntity.getLivingEntity().isInsideVehicle())
+                        eliteEntity.getLivingEntity().leaveVehicle();
 
-                        int counter = 0;
+                    if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter > 20 * 10) {
 
-                        @Override
-                        public void run() {
-                            if (!eliteEntity.isValid()) {
-                                cancel();
-                                return;
-                            }
+                        eliteEntity.getLivingEntity().setAI(true);
+                        eliteEntity.getLivingEntity().setInvulnerable(false);
 
-                            if (eliteEntity.getLivingEntity().isInsideVehicle())
-                                eliteEntity.getLivingEntity().leaveVehicle();
+                        if (finalVehicle != null && !finalVehicle.isDead())
+                            finalVehicle.teleport(finalLocation);
+                        eliteEntity.getLivingEntity().teleport(finalLocation);
 
-                            if (eliteEntity.getLivingEntity().getLocation().clone().distance(finalLocation) < 2 || counter > 20 * 10) {
-
-                                eliteEntity.getLivingEntity().setAI(true);
-                                eliteEntity.getLivingEntity().setInvulnerable(false);
-
-                                if (vehicle != null && !vehicle.isDead())
-                                    vehicle.teleport(finalLocation);
-                                eliteEntity.getLivingEntity().teleport(finalLocation);
-
-                                if (vehicle != null && !vehicle.isDead()) {
-                                    if (vehicle instanceof LivingEntity) {
-                                        ((LivingEntity) vehicle).setAI(true);
-                                        EliteEntity vehicleBoss = EntityTracker.getEliteMobEntity(vehicle);
-                                        if (vehicleBoss != null)
-                                            Bukkit.getServer().getPluginManager().callEvent(new EliteMobExitCombatEvent(vehicleBoss, EliteMobExitCombatEvent.EliteMobExitCombatReason.SPIRIT_WALK));
-
-                                    }
-
-                                    vehicle.setInvulnerable(false);
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            PreventMountExploit.bypass = true;
-                                            vehicle.addPassenger(eliteEntity.getLivingEntity());
-                                        }
-                                    }.runTaskLater(MetadataHandler.PLUGIN, 1);
-                                }
-                                cancel();
-
-                                Bukkit.getServer().getPluginManager().callEvent(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.SPIRIT_WALK));
-                                if (eliteEntity.getLivingEntity() instanceof Mob)
-                                    if (((Mob) eliteEntity.getLivingEntity()).getTarget() == null && eliteEntity instanceof RegionalBossEntity regionalBossEntity)
-                                        CustomBossEntity.CustomBossEntityEvents.slowRegionalBoss(regionalBossEntity);
+                        if (finalVehicle != null && !finalVehicle.isDead()) {
+                            if (finalVehicle instanceof LivingEntity) {
+                                ((LivingEntity) finalVehicle).setAI(true);
+                                EliteEntity vehicleBoss = EntityTracker.getEliteMobEntity(finalVehicle);
+                                if (vehicleBoss != null)
+                                    Bukkit.getServer().getPluginManager().callEvent(new EliteMobExitCombatEvent(vehicleBoss, EliteMobExitCombatEvent.EliteMobExitCombatReason.SPIRIT_WALK));
 
                             }
 
-                            if (vehicle != null && !vehicle.isDead()) {
-                                vehicle.teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
-                            }
-                            eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
-
-                            counter++;
-
+                            finalVehicle.setInvulnerable(false);
+                            FoliaScheduler.runLater(() -> {
+                                PreventMountExploit.bypass = true;
+                                finalVehicle.addPassenger(eliteEntity.getLivingEntity());
+                            }, 1);
                         }
 
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                        Bukkit.getServer().getPluginManager().callEvent(new EliteMobExitCombatEvent(eliteEntity, EliteMobExitCombatEvent.EliteMobExitCombatReason.SPIRIT_WALK));
+                        if (eliteEntity.getLivingEntity() instanceof Mob)
+                            if (((Mob) eliteEntity.getLivingEntity()).getTarget() == null && eliteEntity instanceof RegionalBossEntity regionalBossEntity)
+                                CustomBossEntity.CustomBossEntityEvents.slowRegionalBoss(regionalBossEntity);
+                        return;
+                    }
+
+                    if (finalVehicle != null && !finalVehicle.isDead()) {
+                        finalVehicle.teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
+                    }
+                    eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(toDestination.clone()));
+
+                    counter++;
                 }
-
-        );
-
+            }, 0, 1);
+        });
     }
 
     private void incrementHitCounter() {
@@ -201,15 +181,12 @@ public class SpiritWalk extends BossPower implements Listener {
     }
 
     public void initializeSpiritWalk(EliteEntity eliteEntity) {
-        new BukkitRunnable() {
-
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 1;
 
             @Override
             public void run() {
-
                 if (counter > 3 || !eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
 
@@ -229,18 +206,13 @@ public class SpiritWalk extends BossPower implements Listener {
 
                     if (newValidLocation != null) {
                         spiritWalkAnimation(eliteEntity, eliteEntity.getLivingEntity().getLocation(), newValidLocation.add(new Vector(0.5, 1, 0.5)));
-                        cancel();
-                        break;
+                        return;
                     }
-
                 }
 
                 counter++;
-
             }
-
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+        }, 0, 1);
     }
 
     private Location scanVertically(Location simulatedLocation) {

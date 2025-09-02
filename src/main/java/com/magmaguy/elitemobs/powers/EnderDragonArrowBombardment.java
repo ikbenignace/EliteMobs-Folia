@@ -1,14 +1,13 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.combatsystem.EliteProjectile;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.Bombardment;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Projectile;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -34,12 +33,9 @@ public class EnderDragonArrowBombardment extends Bombardment {
                 Projectile arrow = EliteProjectile.create(EntityType.ARROW, eliteEntity.getLivingEntity(), shotVector, false);
 
                 //anti-lag measure, culls arrows after 4 seconds
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        arrow.remove();
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20L * 4);
+                FoliaScheduler.runLater(() -> {
+                    arrow.remove();
+                }, 20L * 4);
             }
     }
 }

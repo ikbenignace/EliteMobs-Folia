@@ -7,6 +7,8 @@ import com.magmaguy.elitemobs.config.powers.PowersConfigFields;
 import com.magmaguy.elitemobs.explosionregen.Explosion;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -16,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -33,56 +34,51 @@ public class FireworksBarrage extends BossPower {
         if (eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)).getBlock().getType().equals(Material.AIR))
             if (!eliteEntity.getLivingEntity().getType().equals(EntityType.GHAST))
                 eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)));
-        new BukkitRunnable() {
-            final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-
-                for (int i = 0; i < 2; i++) {
-                    Firework firework = (Firework) eliteEntity.getLivingEntity().getWorld().spawnEntity(eliteEntity.getLivingEntity().getLocation(), EntityType.FIREWORK_ROCKET);
-                    FireworkMeta fireworkMeta = firework.getFireworkMeta();
-                    fireworkMeta.setPower(10);
-                    fireworkMeta.addEffect(FireworkEffect.builder().withColor(Color.RED, Color.WHITE, Color.BLUE).flicker(true).build());
-                    firework.setFireworkMeta(fireworkMeta);
-                    firework.setVelocity(new Vector(ThreadLocalRandom.current().nextDouble(-0.5, 0.5),
-                            ThreadLocalRandom.current().nextDouble(), ThreadLocalRandom.current().nextDouble(-0.5, 0.5)));
-                    firework.setPersistent(false);
-                }
-
-                for (Entity nearbyEntity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
-                    if (nearbyEntity instanceof Player)
-                        if (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
-                                ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL)) {
-                            Firework firework = (Firework) eliteEntity.getLivingEntity().getWorld().spawnEntity(eliteEntity.getLivingEntity().getLocation(), EntityType.FIREWORK_ROCKET);
-                            FireworkMeta fireworkMeta = firework.getFireworkMeta();
-                            fireworkMeta.setPower(10);
-                            fireworkMeta.addEffect(FireworkEffect.builder().withColor(Color.RED, Color.WHITE, Color.BLUE).flicker(true).build());
-                            firework.setFireworkMeta(fireworkMeta);
-                            firework.setVelocity(
-                                    ((Player) nearbyEntity).getEyeLocation().clone()
-                                            .subtract(firework.getLocation())
-                                            .toVector().normalize().multiply(0.5));
-                            firework.setShotAtAngle(true);
-                            firework.setPersistent(false);
-                            new FireworkTask(firework, nearbyEntity.getLocation().clone(), eliteEntity);
-                        }
-
-                counter++;
-                if (counter > 10) {
-                    cancel();
-                    eliteEntity.getLivingEntity().setAI(true);
-                    eliteEntity.getLivingEntity().teleport(initialLocation);
-                }
-
+        
+        final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
+        final int[] counter = {0};
+        
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (!eliteEntity.isValid()) {
+                return; // Task will stop when entity becomes invalid
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+
+            for (int i = 0; i < 2; i++) {
+                Firework firework = (Firework) eliteEntity.getLivingEntity().getWorld().spawnEntity(eliteEntity.getLivingEntity().getLocation(), EntityType.FIREWORK_ROCKET);
+                FireworkMeta fireworkMeta = firework.getFireworkMeta();
+                fireworkMeta.setPower(10);
+                fireworkMeta.addEffect(FireworkEffect.builder().withColor(Color.RED, Color.WHITE, Color.BLUE).flicker(true).build());
+                firework.setFireworkMeta(fireworkMeta);
+                firework.setVelocity(new Vector(ThreadLocalRandom.current().nextDouble(-0.5, 0.5),
+                        ThreadLocalRandom.current().nextDouble(), ThreadLocalRandom.current().nextDouble(-0.5, 0.5)));
+                firework.setPersistent(false);
+            }
+
+            for (Entity nearbyEntity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
+                if (nearbyEntity instanceof Player)
+                    if (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
+                            ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL)) {
+                        Firework firework = (Firework) eliteEntity.getLivingEntity().getWorld().spawnEntity(eliteEntity.getLivingEntity().getLocation(), EntityType.FIREWORK_ROCKET);
+                        FireworkMeta fireworkMeta = firework.getFireworkMeta();
+                        fireworkMeta.setPower(10);
+                        fireworkMeta.addEffect(FireworkEffect.builder().withColor(Color.RED, Color.WHITE, Color.BLUE).flicker(true).build());
+                        firework.setFireworkMeta(fireworkMeta);
+                        firework.setVelocity(
+                                ((Player) nearbyEntity).getEyeLocation().clone()
+                                        .subtract(firework.getLocation())
+                                        .toVector().normalize().multiply(0.5));
+                        firework.setShotAtAngle(true);
+                        firework.setPersistent(false);
+                        new FireworkTask(firework, nearbyEntity.getLocation().clone(), eliteEntity);
+                    }
+
+            counter[0]++;
+            if (counter[0] > 10) {
+                eliteEntity.getLivingEntity().setAI(true);
+                eliteEntity.getLivingEntity().teleport(initialLocation);
+                return; // End the task
+            }
+        }, 0, 10);
     }
 
     public static class FireworksBarrageEvents implements Listener {
@@ -100,28 +96,26 @@ public class FireworksBarrage extends BossPower {
 
     private class FireworkTask {
         public FireworkTask(Firework firework, Location targetLocation, EliteEntity eliteEntity) {
-            new BukkitRunnable() {
-                int counter = 0;
-
-                @Override
-                public void run() {
-                    counter++;
-                    if (firework == null || counter > 20 * 5) {
-                        cancel();
-                        return;
-                    }
-                    if (firework.getLocation().distanceSquared(targetLocation) < Math.pow(0.01, 2)) {
-                        firework.detonate();
-                        List<Block> blockList = new ArrayList<>();
-                        for (int x = -1; x < 2; x++)
-                            for (int y = -1; y < 2; y++)
-                                for (int z = -1; z < 2; z++)
-                                    blockList.add(firework.getLocation().clone().add(new Vector(x, y, z)).getBlock());
-                        Explosion.generateFakeExplosion(blockList, eliteEntity.getLivingEntity(), (PowersConfigFields) getPowersConfigFields(), firework.getLocation());
-                    }
+            final int[] counter = {0};
+            final WrappedTask[] taskRef = {null};
+            
+            taskRef[0] = FoliaScheduler.runTimer(() -> {
+                counter[0]++;
+                if (firework == null || counter[0] > 20 * 5) {
+                    if (taskRef[0] != null) taskRef[0].cancel();
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+                if (firework.getLocation().distanceSquared(targetLocation) < Math.pow(0.01, 2)) {
+                    firework.detonate();
+                    List<Block> blockList = new ArrayList<>();
+                    for (int x = -1; x < 2; x++)
+                        for (int y = -1; y < 2; y++)
+                            for (int z = -1; z < 2; z++)
+                                blockList.add(firework.getLocation().clone().add(new Vector(x, y, z)).getBlock());
+                    Explosion.generateFakeExplosion(blockList, eliteEntity.getLivingEntity(), (PowersConfigFields) getPowersConfigFields(), firework.getLocation());
+                    if (taskRef[0] != null) taskRef[0].cancel();
+                }
+            }, 0, 1);
         }
     }
 

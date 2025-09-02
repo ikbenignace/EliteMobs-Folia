@@ -1,6 +1,5 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobEnterCombatEvent;
 import com.magmaguy.elitemobs.api.EliteMobExitCombatEvent;
 import com.magmaguy.elitemobs.collateralminecraftchanges.LightningSpawnBypass;
@@ -9,6 +8,8 @@ import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MajorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
@@ -16,8 +17,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,14 +24,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public class EnderDragonEmpoweredLightning extends MajorPower {
 
     private boolean isActive = false;
-    private BukkitTask bukkitTask = null;
+    private WrappedTask wrappedTask = null;
 
     public EnderDragonEmpoweredLightning() {
         super(PowersConfig.getPower("ender_dragon_empowered_lightning.yml"));
     }
 
     public static void lightningTask(Location location) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -47,12 +46,11 @@ public class EnderDragonEmpoweredLightning extends MajorPower {
                     fireball.setVelocity(new Vector(0, -3, 0));
                     fireball.setYield(5F);
                     EliteProjectile.signExplosiveWithPower(fireball, "ender_dragon_empowered_lightning.yml");
-                    cancel();
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, location, 10, 0.5, 1.5, 0.5, 0.3);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
 
     }
 
@@ -62,24 +60,20 @@ public class EnderDragonEmpoweredLightning extends MajorPower {
 
         isActive = true;
 
-        bukkitTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-                if (isInCooldown(eliteEntity)) return;
-                fireLightning(eliteEntity);
+        wrappedTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (!eliteEntity.isValid()) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20);
+            if (isInCooldown(eliteEntity)) return;
+            fireLightning(eliteEntity);
+        }, 0, 20);
 
     }
 
     private void deactivate() {
         isActive = false;
-        if (bukkitTask != null)
-            bukkitTask.cancel();
+        if (wrappedTask != null)
+            wrappedTask.cancel();
     }
 
     public void fireLightning(EliteEntity eliteEntity) {
@@ -94,12 +88,9 @@ public class EnderDragonEmpoweredLightning extends MajorPower {
             Location randomLocation = locationRandomizer(eliteEntity.getLivingEntity().getLocation(), 0);
             if (randomLocation == null) continue;
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    lightningTask(randomLocation);
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, ThreadLocalRandom.current().nextInt(20 * 5));
+            FoliaScheduler.runAtLocationLater(randomLocation, () -> {
+                lightningTask(randomLocation);
+            }, ThreadLocalRandom.current().nextInt(20 * 5));
 
         }
     }

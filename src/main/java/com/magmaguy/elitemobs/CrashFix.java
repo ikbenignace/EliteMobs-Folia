@@ -1,6 +1,7 @@
 package com.magmaguy.elitemobs;
 
 import com.magmaguy.elitemobs.utils.ChunkVectorizer;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.PersistentVanillaData;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -10,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 
@@ -63,15 +63,12 @@ public class CrashFix implements Listener {
      */
     private static void delayedChunkCheck(Chunk chunk, int hashedChunk) {
         Entity[] entities = chunk.getEntities().clone();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Entity entity : entities)
-                    if (isPersistentEntity(entity))
-                        entity.remove();
-                temporarilyCachedChunks.remove(hashedChunk);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+        FoliaScheduler.runAtLocationLater(chunk.getBlock(8, 0, 8).getLocation(), () -> {
+            for (Entity entity : entities)
+                if (isPersistentEntity(entity))
+                    entity.remove();
+            temporarilyCachedChunks.remove(hashedChunk);
+        }, 1);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

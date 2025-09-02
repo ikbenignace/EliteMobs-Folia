@@ -6,13 +6,13 @@ import com.magmaguy.elitemobs.api.EliteMobExitCombatEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfigFields;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.utils.EnderDragonPhaseSimplifier;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,7 +23,7 @@ public abstract class Bombardment extends MajorPower implements Listener {
     public int firingTimer = 0;
     private boolean isActive = false;
     private boolean firing = false;
-    private BukkitTask task = null;
+    private WrappedTask activeTask = null;
 
     public Bombardment(PowersConfigFields powersConfigFields) {
         super(powersConfigFields);
@@ -35,50 +35,47 @@ public abstract class Bombardment extends MajorPower implements Listener {
         if (isActive) return;
         isActive = true;
 
-        task = new BukkitRunnable() {
-            int counter = 0;
+        final int[] counter = {0};
 
-            @Override
-            public void run() {
+        activeTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            counter[0]++;
 
-                counter++;
+            if (stopCondition(eliteEntity))
+                return;
 
-                if (stopCondition(eliteEntity))
+            if (firing || isInCooldown(eliteEntity))
+                return;
+
+            if (ThreadLocalRandom.current().nextDouble() > 0.1) return;
+
+            if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+                EnderDragon.Phase phase = ((EnderDragon) eliteEntity.getLivingEntity()).getPhase();
+                if (phase.equals(EnderDragon.Phase.DYING) ||
+                        phase.equals(EnderDragon.Phase.HOVER) ||
+                        phase.equals(EnderDragon.Phase.ROAR_BEFORE_ATTACK) ||
+                        phase.equals(EnderDragon.Phase.FLY_TO_PORTAL) ||
+                        phase.equals(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET)) {
                     return;
-
-                if (firing || isInCooldown(eliteEntity))
-                    return;
-
-                if (ThreadLocalRandom.current().nextDouble() > 0.1) return;
-
-                if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON)) {
-                    EnderDragon.Phase phase = ((EnderDragon) eliteEntity.getLivingEntity()).getPhase();
-                    if (phase.equals(EnderDragon.Phase.DYING) ||
-                            phase.equals(EnderDragon.Phase.HOVER) ||
-                            phase.equals(EnderDragon.Phase.ROAR_BEFORE_ATTACK) ||
-                            phase.equals(EnderDragon.Phase.FLY_TO_PORTAL) ||
-                            phase.equals(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET)) {
-                        return;
-                    }
                 }
-
-                for (Entity entity : eliteEntity.getLivingEntity().getNearbyEntities(10, 100, 10)) {
-                    if (entity.getType().equals(EntityType.PLAYER)) {
-                        firing = true;
-                        fire(eliteEntity);
-                        return;
-                    }
-                }
-
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+
+            for (Entity entity : eliteEntity.getLivingEntity().getNearbyEntities(10, 100, 10)) {
+                if (entity.getType().equals(EntityType.PLAYER)) {
+                    firing = true;
+                    fire(eliteEntity);
+                    return;
+                }
+            }
+        }, 0, 5);
     }
 
     public void deactivate() {
         firing = false;
         isActive = false;
-        if (task != null)
-            task.cancel();
+        if (activeTask != null) {
+            activeTask.cancel();
+            activeTask = null;
+        }
     }
 
     private boolean stopCondition(EliteEntity eliteEntity) {
@@ -106,21 +103,15 @@ public abstract class Bombardment extends MajorPower implements Listener {
 
         firingTimer = 0;
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                firingTimer++;
-                if (stopCondition(eliteEntity) || firingTimer > 20 * 5) {
-                    cancel();
-                    firing = false;
-                    return;
-                }
-
-                taskBehavior(eliteEntity);
-
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            firingTimer++;
+            if (stopCondition(eliteEntity) || firingTimer > 20 * 5) {
+                firing = false;
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+
+            taskBehavior(eliteEntity);
+        }, 0, 1);
     }
 
     public abstract void taskBehavior(EliteEntity eliteEntity);

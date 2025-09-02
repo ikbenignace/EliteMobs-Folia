@@ -15,7 +15,7 @@ import com.magmaguy.magmacore.util.AttributeManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 public class InstancePlayerManager {
 
@@ -52,20 +52,17 @@ public class InstancePlayerManager {
             new EventCaller(new PlayerJoinDungeonEvent(dungeonInstance));
 
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                //Teleport the player to the correct location
-                MatchInstance.MatchInstanceEvents.teleportBypass = true;
-                if (matchInstance.state.equals(MatchInstance.InstancedRegionState.WAITING) && matchInstance.lobbyLocation != null)
-                    player.teleport(matchInstance.lobbyLocation);
-                else
-                    player.teleport(matchInstance.startLocation);
+        FoliaScheduler.runLater(() -> {
+            //Teleport the player to the correct location
+            MatchInstance.MatchInstanceEvents.teleportBypass = true;
+            if (matchInstance.state.equals(MatchInstance.InstancedRegionState.WAITING) && matchInstance.lobbyLocation != null)
+                player.teleport(matchInstance.lobbyLocation);
+            else
+                player.teleport(matchInstance.startLocation);
 
-                //Set the lives that the player has //todo: this needs to become configurable and be expanded upon in the future
-                matchInstance.playerLives.put(player, 3);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+            //Set the lives that the player has //todo: this needs to become configurable and be expanded upon in the future
+            matchInstance.playerLives.put(player, 3);
+        }, 1);
 
         return true;
     }

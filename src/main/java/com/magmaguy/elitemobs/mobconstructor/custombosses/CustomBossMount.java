@@ -1,13 +1,16 @@
 package com.magmaguy.elitemobs.mobconstructor.custombosses;
 
 import com.magmaguy.elitemobs.MetadataHandler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.combatsystem.antiexploit.PreventMountExploit;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfig;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.config.custombosses.CustomBossesConfigFields;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.Logger;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class CustomBossMount {
     private CustomBossMount() {
@@ -43,21 +46,18 @@ public class CustomBossMount {
                 mountEntity.setMount(true);
                 mountEntity.spawn(false);
 
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!mountEntity.isValid()) return;
-                        if (customBossEntity.getLivingEntity() == null) return;
-                        if (mountEntity.getCustomModel() != null)
-                            mountEntity.getCustomModel().addPassenger(customBossEntity);
-                        else {
-                            PreventMountExploit.bypass = true;
-                            if (mountEntity.getLivingEntity() != null)
-                                mountEntity.getLivingEntity().addPassenger(customBossEntity.getLivingEntity());
-                        }
-                        customBossEntity.customBossMount = mountEntity;
+                FoliaScheduler.runLater(() -> {
+                    if (!mountEntity.isValid()) return;
+                    if (customBossEntity.getLivingEntity() == null) return;
+                    if (mountEntity.getCustomModel() != null)
+                        mountEntity.getCustomModel().addPassenger(customBossEntity);
+                    else {
+                        PreventMountExploit.bypass = true;
+                        if (mountEntity.getLivingEntity() != null)
+                            mountEntity.getLivingEntity().addPassenger(customBossEntity.getLivingEntity());
                     }
-                }.runTaskLater(MetadataHandler.PLUGIN, 5);
+                    customBossEntity.customBossMount = mountEntity;
+                }, 5);
                 return mountEntity;
             }
 

@@ -1,10 +1,10 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.NonSolidBlockTypes;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -49,27 +48,22 @@ public class GroundPound extends MinorPower implements Listener {
     public void doGroundPound(EliteEntity eliteEntity) {
 
         //step 1: make boss go up
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!eliteEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-                eliteEntity.getLivingEntity().setVelocity(new Vector(0, 1.5, 0));
-                cloudParticle(eliteEntity.getLivingEntity().getLocation());
-
+        FoliaScheduler.runAtEntityLater(eliteEntity.getLivingEntity(), () -> {
+            if (!eliteEntity.isValid()) {
+                return;
             }
-        }.runTaskLater(MetadataHandler.PLUGIN, 1);
+            eliteEntity.getLivingEntity().setVelocity(new Vector(0, 1.5, 0));
+            cloudParticle(eliteEntity.getLivingEntity().getLocation());
+
+        }, 1);
 
         //step 2: make boss go down
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
                 if (!eliteEntity.isValid()) {
-                    cancel();
                     return;
                 }
                 counter++;
@@ -78,13 +72,12 @@ public class GroundPound extends MinorPower implements Listener {
                     eliteEntity.getLivingEntity().setVelocity(new Vector(0, -2, 0));
                     cloudParticle(eliteEntity.getLivingEntity().getLocation());
 
-                    new BukkitRunnable() {
+                    FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
                         int counter = 0;
 
                         @Override
                         public void run() {
                             if (counter > 20 * 5 || !eliteEntity.isValid()) {
-                                cancel();
                                 return;
                             }
 
@@ -92,8 +85,6 @@ public class GroundPound extends MinorPower implements Listener {
 
                             if (!eliteEntity.getLivingEntity().isOnGround())
                                 return;
-
-                            cancel();
 
                             landCloudParticle(eliteEntity.getLivingEntity().getLocation());
 
@@ -109,18 +100,17 @@ public class GroundPound extends MinorPower implements Listener {
 
 
                         }
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                    }, 0, 1);
 
-                    cancel();
                     return;
 
                 }
 
                 if (counter > 20 * 5)
-                    cancel();
+                    return;
 
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20, 1);
+        }, 20, 1);
 
     }
 

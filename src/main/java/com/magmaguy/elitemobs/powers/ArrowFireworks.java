@@ -1,10 +1,10 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.NonSolidBlockTypes;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -14,7 +14,6 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.SpectralArrow;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -51,13 +50,12 @@ public class ArrowFireworks extends MinorPower implements Listener {
             rocketArrow.setGravity(false);
             rocketArrow.setGlowing(true);
 
-            new BukkitRunnable() {
+            FoliaScheduler.runAtEntityTimer(rocketArrow, new Runnable() {
                 int counter = 0;
 
                 @Override
                 public void run() {
                     if (!rocketArrow.isValid() || !eliteEntity.isValid()) {
-                        cancel();
                         return;
                     }
 
@@ -74,15 +72,12 @@ public class ArrowFireworks extends MinorPower implements Listener {
                         }
 
                         rocketArrow.remove();
-
-                        cancel();
+                        return;
                     }
 
                     counter++;
-
-
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            }, 0, 1);
 
         }
 

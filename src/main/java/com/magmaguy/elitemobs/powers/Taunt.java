@@ -1,6 +1,5 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedEvent;
 import com.magmaguy.elitemobs.api.EliteMobDeathEvent;
 import com.magmaguy.elitemobs.api.EliteMobTargetPlayerEvent;
@@ -10,13 +9,13 @@ import com.magmaguy.elitemobs.config.powers.premade.TauntConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,17 +41,11 @@ public class Taunt extends MinorPower implements Listener {
         int randomizedKey = ThreadLocalRandom.current().nextInt(list.size());
         String tempName = list.get(randomizedKey);
         entity.setCustomName(ChatColorConverter.convert(tempName));
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (!entity.isValid())
-                    return;
-                entity.setCustomName(eliteEntity.getName());
-            }
-
-
-        }.runTaskLater(MetadataHandler.PLUGIN, 4 * 20L);
+        FoliaScheduler.runLater(() -> {
+            if (!entity.isValid())
+                return;
+            entity.setCustomName(eliteEntity.getName());
+        }, 4 * 20L);
     }
 
     /**

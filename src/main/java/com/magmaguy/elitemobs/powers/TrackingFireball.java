@@ -1,17 +1,17 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobTargetPlayerEvent;
 import com.magmaguy.elitemobs.combatsystem.EliteProjectile;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.powers.meta.MajorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.GameMode;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -49,27 +49,19 @@ public class TrackingFireball extends MajorPower {
 
             public TrackingFireballTasks(Monster monster, TrackingFireball trackingFireball) {
 
-                new BukkitRunnable() {
-
-                    @Override
-                    public void run() {
-
-                        if (!monster.isValid() || monster.getTarget() == null) {
-                            trackingFireball.setFiring(false);
-                            cancel();
-                            return;
-                        }
-
-                        for (Entity nearbyEntity : monster.getNearbyEntities(20, 20, 20))
-                            if (nearbyEntity instanceof Player)
-                                if (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
-                                        ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL))
-                                    new TrackingFireballTask(monster, (Player) nearbyEntity);
-
+                FoliaScheduler.runAtEntityTimer(monster, () -> {
+                    if (!monster.isValid() || monster.getTarget() == null) {
+                        trackingFireball.setFiring(false);
+                        return;
                     }
 
-                }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 8);
+                    for (Entity nearbyEntity : monster.getNearbyEntities(20, 20, 20))
+                        if (nearbyEntity instanceof Player)
+                            if (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
+                                    ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL))
+                                new TrackingFireballTask(monster, (Player) nearbyEntity);
 
+                }, 0, 20 * 8);
             }
 
             public class TrackingFireballTask {
@@ -84,7 +76,7 @@ public class TrackingFireball extends MajorPower {
                     repeatingFireball.setShooter((ProjectileSource) entity);
                     trackingFireballs.put(repeatingFireball.getUniqueId(), this);
 
-                    new BukkitRunnable() {
+                    FoliaScheduler.runAtEntityTimer(repeatingFireball, new Runnable() {
                         int counter = 0;
 
                         @Override
@@ -95,7 +87,6 @@ public class TrackingFireball extends MajorPower {
                                     player.isDead() ||
                                     counter > 20 * 60 * 3 ||
                                     repeatingFireball.getLocation().getWorld() != player.getWorld()) {
-                                cancel();
                                 return;
                             }
 
@@ -108,7 +99,7 @@ public class TrackingFireball extends MajorPower {
                             }
                             counter++;
                         }
-                    }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+                    }, 1, 1);
                 }
 
 

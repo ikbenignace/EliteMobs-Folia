@@ -1,18 +1,17 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.collateralminecraftchanges.LightningSpawnBypass;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class AttackLightning extends MinorPower implements Listener {
     public AttackLightning() {
@@ -38,7 +37,7 @@ public class AttackLightning extends MinorPower implements Listener {
     }
 
     public void lightningTask(Location location) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(location, new Runnable() {
             int counter = 0;
 
             @Override
@@ -47,13 +46,11 @@ public class AttackLightning extends MinorPower implements Listener {
                 if (counter > 20 * 3) {
                     LightningSpawnBypass.bypass();
                     location.getWorld().strikeLightning(location);
-                    cancel();
                     return;
                 }
                 location.getWorld().spawnParticle(Particle.CRIT, location, 10, 0.5, 1.5, 0.5, 0.3);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
-
+        }, 0, 1);
     }
 
 }

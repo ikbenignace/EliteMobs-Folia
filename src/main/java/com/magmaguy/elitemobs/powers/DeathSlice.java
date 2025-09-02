@@ -1,6 +1,5 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDamagedByPlayerEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
@@ -8,13 +7,13 @@ import com.magmaguy.elitemobs.events.BossCustomAttackDamage;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.BossPower;
 import com.magmaguy.elitemobs.powerstances.GenericRotationMatrixMath;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ public class DeathSlice extends BossPower implements Listener {
     private static void doDeathSlice(EliteEntity eliteEntity) {
         ArrayList<Location> locations = raytracedLocationList(eliteEntity.getLivingEntity().getLocation());
         eliteEntity.getLivingEntity().setAI(false);
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
@@ -37,7 +36,6 @@ public class DeathSlice extends BossPower implements Listener {
                 if (counter > 20 * 5 || !eliteEntity.isValid()) {
                     if (eliteEntity.getLivingEntity() != null)
                         eliteEntity.getLivingEntity().setAI(true);
-                    cancel();
                     return;
                 }
 
@@ -51,7 +49,7 @@ public class DeathSlice extends BossPower implements Listener {
 
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 2);
+        }, 0, 2);
 
     }
 

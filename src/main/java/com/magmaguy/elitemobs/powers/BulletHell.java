@@ -18,7 +18,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -29,29 +30,31 @@ public class BulletHell extends BossPower implements Listener {
     }
 
     private static void trackingArrowLoop(Player player, Arrow arrow) {
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-                if (player.isValid() && !player.isDead() && arrow.isValid() && arrow.getWorld().equals(player.getWorld())
-                        && player.getLocation().distanceSquared(arrow.getLocation()) < 900 && !arrow.isOnGround()) {
-                    if (counter % 10 == 0)
-                        arrow.setVelocity(arrow.getVelocity().add(arrowAdjustmentVector(arrow, player)));
-                    arrow.getWorld().spawnParticle(Particle.FLAME, arrow.getLocation(), 10, 0.01, 0.01, 0.01, 0.01);
-                } else {
-                    arrow.setGravity(true);
-                    EntityTracker.unregister(arrow, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
-                }
-                if (counter > 20 * 10) {
-                    EntityTracker.unregister(arrow, RemovalReason.EFFECT_TIMEOUT);
-                    arrow.setGravity(true);
-                    cancel();
-                }
-                counter++;
+        final int[] counter = {0};
+        
+        WrappedTask task = FoliaScheduler.runAtEntityTimer(arrow, () -> {
+            if (player.isValid() && !player.isDead() && arrow.isValid() && arrow.getWorld().equals(player.getWorld())
+                    && player.getLocation().distanceSquared(arrow.getLocation()) < 900 && !arrow.isOnGround()) {
+                if (counter[0] % 10 == 0)
+                    arrow.setVelocity(arrow.getVelocity().add(arrowAdjustmentVector(arrow, player)));
+                arrow.getWorld().spawnParticle(Particle.FLAME, arrow.getLocation(), 10, 0.01, 0.01, 0.01, 0.01);
+            } else {
+                arrow.setGravity(true);
+                EntityTracker.unregister(arrow, RemovalReason.EFFECT_TIMEOUT);
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+            if (counter[0] > 20 * 10) {
+                EntityTracker.unregister(arrow, RemovalReason.EFFECT_TIMEOUT);
+                arrow.setGravity(true);
+                return;
+            }
+            counter[0]++;
+        }, 0, 1);
+        
+        // Schedule task cancellation as a safety measure
+        FoliaScheduler.runAtEntityLater(arrow, () -> {
+            if (task != null) task.cancel();
+        }, 20 * 10 + 5);
     }
 
     private static Vector arrowAdjustmentVector(Arrow arrow, Player player) {
@@ -74,38 +77,38 @@ public class BulletHell extends BossPower implements Listener {
         eliteEntity.getLivingEntity().setAI(false);
         if (eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)).getBlock().getType().equals(Material.AIR))
             eliteEntity.getLivingEntity().teleport(eliteEntity.getLivingEntity().getLocation().clone().add(new Vector(0, 10, 0)));
-        new BukkitRunnable() {
-            final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-
-                eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.DRIPPING_WATER, eliteEntity.getLivingEntity().getLocation(), 10, 1, 1, 1);
-
-                for (Entity nearbyEntity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
-                    if (nearbyEntity instanceof Player &&
-                            (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
-                                    ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL))) {
-                        Arrow arrow = (Arrow) EliteProjectile.create(EntityType.ARROW, eliteEntity.getLivingEntity(), (Player) nearbyEntity, false);
-                        arrow.setVelocity(arrow.getVelocity().multiply(0.1));
-                        trackingArrowLoop((Player) nearbyEntity, arrow);
-                    }
-
-                counter++;
-                if (counter > 20) {
-                    cancel();
-                    eliteEntity.getLivingEntity().setAI(true);
-                    eliteEntity.getLivingEntity().teleport(initialLocation);
-                }
-
+        
+        final Location initialLocation = eliteEntity.getLivingEntity().getLocation().clone();
+        final int[] counter = {0};
+        
+        WrappedTask task = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (!eliteEntity.isValid()) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+
+            eliteEntity.getLivingEntity().getWorld().spawnParticle(Particle.DRIPPING_WATER, eliteEntity.getLivingEntity().getLocation(), 10, 1, 1, 1);
+
+            for (Entity nearbyEntity : eliteEntity.getLivingEntity().getNearbyEntities(20, 20, 20))
+                if (nearbyEntity instanceof Player &&
+                        (((Player) nearbyEntity).getGameMode().equals(GameMode.ADVENTURE) ||
+                                ((Player) nearbyEntity).getGameMode().equals(GameMode.SURVIVAL))) {
+                    Arrow arrow = (Arrow) EliteProjectile.create(EntityType.ARROW, eliteEntity.getLivingEntity(), (Player) nearbyEntity, false);
+                    arrow.setVelocity(arrow.getVelocity().multiply(0.1));
+                    trackingArrowLoop((Player) nearbyEntity, arrow);
+                }
+
+            counter[0]++;
+            if (counter[0] > 20) {
+                eliteEntity.getLivingEntity().setAI(true);
+                eliteEntity.getLivingEntity().teleport(initialLocation);
+                return;
+            }
+        }, 0, 10);
+        
+        // Schedule task cancellation as a safety measure
+        FoliaScheduler.runAtEntityLater(eliteEntity.getLivingEntity(), () -> {
+            if (task != null) task.cancel();
+        }, 20 * 10 + 50);
     }
 
 }

@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -205,7 +205,7 @@ public class ArenaInstance extends MatchInstance {
             delayBetweenWaves *= 2;
         }
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, () -> {
+        FoliaScheduler.runLater(() -> {
             if (arenaState == ArenaState.IDLE) return;
             String title = ArenasConfig.getWaveTitle();
             String subtitle = ArenasConfig.getWaveSubtitle();
@@ -223,17 +223,14 @@ public class ArenaInstance extends MatchInstance {
     }
 
     private void arenaWatchdog() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (arenaState != ArenaState.ACTIVE) return;
-                for (CustomBossEntity customBossEntity : (HashSet<CustomBossEntity>) customBosses.clone())
-                    if (!customBossEntity.exists()) removeBoss(customBossEntity);
-                if (!nonEliteMobsEntities.isEmpty())
-                    for (Entity entity : (HashSet<Entity>) nonEliteMobsEntities.clone())
-                        if (!entity.isValid()) removeBoss(entity);
-            }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0L, 20L);
+        FoliaScheduler.runTimer(() -> {
+            if (arenaState != ArenaState.ACTIVE) return;
+            for (CustomBossEntity customBossEntity : (HashSet<CustomBossEntity>) customBosses.clone())
+                if (!customBossEntity.exists()) removeBoss(customBossEntity);
+            if (!nonEliteMobsEntities.isEmpty())
+                for (Entity entity : (HashSet<Entity>) nonEliteMobsEntities.clone())
+                    if (!entity.isValid()) removeBoss(entity);
+        }, 0L, 20L);
     }
 
     public void removeBoss(CustomBossEntity customBossEntity) {
@@ -328,7 +325,7 @@ public class ArenaInstance extends MatchInstance {
         } else
             participants.forEach(player -> player.sendTitle(ArenasConfig.getDefeatTitle().replace("$wave", currentWave + ""), ArenasConfig.getDefeatSubtitle().replace("$wave", currentWave + ""), 20, 20 * 10, 20));
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(MetadataHandler.PLUGIN, this::destroyMatch, customArenasConfigFields.getDelayBetweenWaves());
+        FoliaScheduler.runLater(this::destroyMatch, customArenasConfigFields.getDelayBetweenWaves());
     }
 
     @Override

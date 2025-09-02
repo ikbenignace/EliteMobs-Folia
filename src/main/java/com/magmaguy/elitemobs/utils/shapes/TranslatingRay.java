@@ -1,12 +1,13 @@
 package com.magmaguy.elitemobs.utils.shapes;
 
-import com.magmaguy.elitemobs.MetadataHandler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.Lerp;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class TranslatingRay extends Ray {
     private final Location finalCenterLocation;
+    private WrappedTask animationTask;
 
     public TranslatingRay(boolean ignoresSolidBlocks,
                           double pointRadius,
@@ -26,13 +27,15 @@ public class TranslatingRay extends Ray {
                                 Location startLocation2,
                                 Location endLocation2,
                                 int animationDuration) {
-        new BukkitRunnable() {
+        animationTask = FoliaScheduler.runAtLocationTimer(startLocation1, new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
                 if (counter > animationDuration) {
-                    cancel();
+                    if (animationTask != null) {
+                        animationTask.cancel();
+                    }
                     return;
                 }
                 counter++;
@@ -40,6 +43,6 @@ public class TranslatingRay extends Ray {
                         Lerp.lerpLocation(startLocation1, endLocation1, counter / (double) animationDuration),
                         Lerp.lerpLocation(startLocation2, endLocation2, counter / (double) animationDuration));
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1L, 1L);
+        }, 1L, 1L);
     }
 }
