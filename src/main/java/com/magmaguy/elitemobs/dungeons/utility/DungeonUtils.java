@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.List;
 
 public class DungeonUtils {
@@ -64,30 +65,81 @@ public class DungeonUtils {
         
         if (world != null) {
             worldPackage.setInstalled(true);
+            // If we got a fallback world (like main world), provide additional context
+            if (isFolia() && world.equals(Bukkit.getWorlds().get(0))) {
+                Logger.info("World package '" + worldName + "' installed with limited functionality on Folia (using main world).");
+            }
         } else {
-            Logger.warn("Failed to install world package '" + worldName + "' - world loading failed");
+            Logger.warn("Failed to install world package '" + worldName + "' - world loading failed. Package will be marked as not installed.");
         }
         return world;
     }
 
     public static World loadWorld(String worldName, World.Environment environment, ContentPackagesConfigFields contentPackagesConfigFields) {
-        // Check if running on Folia and skip world creation to prevent UnsupportedOperationException
-        if (isFolia()) {
-            Logger.warn("Skipping world creation for '" + worldName + "' - dynamic world creation is not supported on Folia. Some dungeon features may be unavailable.");
-            return null;
+        // Try multiple approaches for world loading on different server platforms
+        World world = null;
+        
+        // First approach: Check if world already exists and load it
+        try {
+            world = Bukkit.getWorld(worldName);
+            if (world != null) {
+                EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+                Logger.info("Using existing world '" + worldName + "' instead of creating new one.");
+                return world;
+            }
+        } catch (Exception e) {
+            Logger.warn("Failed to access existing world '" + worldName + "': " + e.getMessage());
         }
         
+        // Second approach: Check if world folder exists and try to load it using WorldCreator
         try {
-            World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
-            if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
-            return world;
+            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+            if (worldFolder.exists()) {
+                org.bukkit.WorldCreator creator = new org.bukkit.WorldCreator(worldName);
+                creator.environment(environment);
+                world = creator.createWorld();
+                if (world != null) {
+                    EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+                    Logger.info("Successfully loaded existing world '" + worldName + "' using WorldCreator.");
+                    return world;
+                }
+            }
         } catch (UnsupportedOperationException e) {
-            Logger.warn("Failed to load world '" + worldName + "' - dynamic world creation is not supported on this server platform. Some dungeon features may be unavailable.");
-            return null;
+            Logger.warn("WorldCreator not supported on this platform for '" + worldName + "', trying other approaches...");
         } catch (Exception e) {
-            Logger.warn("Failed to load world '" + worldName + "' due to an unexpected error: " + e.getMessage());
-            return null;
+            Logger.warn("Failed to load existing world folder for '" + worldName + "': " + e.getMessage());
         }
+        
+        // Third approach: Try direct world loading (works on most platforms)
+        try {
+            world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
+            if (world != null) {
+                EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+                Logger.info("Successfully loaded world '" + worldName + "' using direct loading.");
+                return world;
+            }
+        } catch (UnsupportedOperationException e) {
+            Logger.warn("Direct world creation not supported on this platform for '" + worldName + "', trying fallback approaches...");
+        } catch (Exception e) {
+            Logger.warn("Direct world creation failed for '" + worldName + "': " + e.getMessage() + ", trying fallback approaches...");
+        }
+        
+        // Fourth approach: Try to use main world as fallback for essential functionality
+        if (isFolia()) {
+            try {
+                World mainWorld = Bukkit.getWorlds().get(0);
+                if (mainWorld != null) {
+                    Logger.warn("World creation not supported on Folia. Using main world as fallback for '" + worldName + "'. Some features may be limited.");
+                    // Don't register as EliteMobsWorld since it's not actually the dungeon world
+                    return mainWorld;
+                }
+            } catch (Exception e) {
+                Logger.warn("Failed to access main world as fallback: " + e.getMessage());
+            }
+        }
+        
+        Logger.warn("All world loading approaches failed for '" + worldName + "'. Dungeon features will be unavailable.");
+        return null;
     }
 
     public static boolean unloadWorld(WorldPackage worldPackage) {
