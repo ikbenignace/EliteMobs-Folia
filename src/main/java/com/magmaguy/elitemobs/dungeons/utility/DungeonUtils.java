@@ -6,7 +6,7 @@ import com.magmaguy.elitemobs.dungeons.WorldDungeonPackage;
 import com.magmaguy.elitemobs.dungeons.WorldPackage;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.magmacore.util.Logger;
-import com.magmaguy.magmacore.util.TemporaryWorldManager;
+
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -110,18 +110,29 @@ public class DungeonUtils {
             Logger.warn("Failed to load existing world folder for '" + worldName + "': " + e.getMessage());
         }
         
-        // Third approach: Try direct world loading (works on most platforms)
-        try {
-            world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
-            if (world != null) {
-                EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
-                Logger.info("Successfully loaded world '" + worldName + "' using direct loading.");
-                return world;
+        // Third approach: Try direct world creation using WorldCreator (for new worlds)
+        if (!isFolia()) {
+            try {
+                org.bukkit.WorldCreator creator = new org.bukkit.WorldCreator(worldName);
+                creator.environment(environment);
+                // Create a void world for dungeon purposes
+                creator.generateStructures(false);
+                creator.type(org.bukkit.WorldType.FLAT);
+                creator.generatorSettings("3;minecraft:air;127;");
+                
+                world = creator.createWorld();
+                if (world != null) {
+                    EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+                    Logger.info("Successfully created new world '" + worldName + "' using WorldCreator.");
+                    return world;
+                }
+            } catch (UnsupportedOperationException e) {
+                Logger.warn("World creation not supported on this platform for '" + worldName + "' (likely Folia), using fallback...");
+            } catch (Exception e) {
+                Logger.warn("World creation failed for '" + worldName + "': " + e.getMessage() + ", using fallback...");
             }
-        } catch (UnsupportedOperationException e) {
-            Logger.warn("Direct world creation not supported on this platform for '" + worldName + "', trying fallback approaches...");
-        } catch (Exception e) {
-            Logger.warn("Direct world creation failed for '" + worldName + "': " + e.getMessage() + ", trying fallback approaches...");
+        } else {
+            Logger.warn("Skipping world creation on Folia platform for '" + worldName + "', using fallback...");
         }
         
         // Fourth approach: Try to use main world as fallback for essential functionality
