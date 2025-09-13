@@ -7,7 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -34,20 +34,16 @@ public class NPCChatBubble {
 
             TextDisplay visualArmorStand = VisualDisplay.generateTemporaryTextDisplay(newLocation, substring);
 
-            new BukkitRunnable() {
-                int counter = 0;
+            final int[] counter = {0};
 
-                @Override
-                public void run() {
-                    if (counter > 20 * 5 || npcEntity.getVillager() == null || !npcEntity.getVillager().isValid() || !visualArmorStand.isValid()) {
-                        visualArmorStand.remove();
-                        cancel();
-                        return;
-                    }
-                    visualArmorStand.teleport(visualArmorStand.getLocation().clone().add(new Vector(0, 0.005, 0)));
-                    counter++;
+            FoliaScheduler.runAtEntityTimer(visualArmorStand, () -> {
+                if (counter[0] > 20 * 5 || npcEntity.getVillager() == null || !npcEntity.getVillager().isValid() || !visualArmorStand.isValid()) {
+                    visualArmorStand.remove();
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+                visualArmorStand.teleport(visualArmorStand.getLocation().clone().add(new Vector(0, 0.005, 0)));
+                counter[0]++;
+            }, 0, 1);
 
             lineCounter++;
 

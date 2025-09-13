@@ -1,14 +1,13 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.events.BossCustomAttackDamage;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +16,7 @@ public class ProjectileDamage {
 
     public static void doGoldNuggetDamage(List<Item> goldNuggets, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
 
             int timer = 0;
 
@@ -26,7 +25,6 @@ public class ProjectileDamage {
 
                 timer++;
                 if (goldNuggets.isEmpty()) {
-                    cancel();
                     return;
                 }
 
@@ -63,11 +61,9 @@ public class ProjectileDamage {
                     endIterator.remove();
                 }
 
-                cancel();
-
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
 
     }
 

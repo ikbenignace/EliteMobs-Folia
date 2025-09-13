@@ -12,7 +12,7 @@ import com.magmaguy.elitemobs.powers.meta.MinorPower;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -199,9 +199,8 @@ public class ShieldWall extends MinorPower {
     }
 
     private void armorStandTracker(EliteEntity eliteEntity) {
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
             if (!eliteEntity.isValid() || (northHealthPool == 0 && southHealthPool == 0 && eastHealthPool == 0 && westHealthPool == 0) || !isActive) {
-                task.cancel();
                 setActive(false);
 
                 for (List<ArmorStand> armorStands : armorStands.values())
@@ -241,7 +240,6 @@ public class ShieldWall extends MinorPower {
                 }
             }
             if (visualShieldsLeft == 0) {
-                task.cancel();
                 setActive(false);
             }
         }, 1, 1);

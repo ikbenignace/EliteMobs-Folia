@@ -5,6 +5,7 @@ import com.magmaguy.elitemobs.config.enchantments.premade.EarthquakeConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Particle;
@@ -32,20 +33,22 @@ public class EarthquakeEnchantment extends CustomEnchantment {
     public static void doEarthquakeEnchantment(int earthquakeLevel, Player player) {
         player.sendMessage(EarthquakeConfig.getEarthquakeActivationMessage());
         player.setVelocity(player.getLocation().getDirection().normalize().multiply((Math.log(earthquakeLevel + 2 / 2D) + 1) / 20D).setY(Math.log(earthquakeLevel + 2 / 2D)));
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
-            player.setFallDistance(0f);
-            if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
-                    && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                task.cancel();
-                doLanding(earthquakeLevel, player);
-                return;
+        FoliaScheduler.runAtEntityTimer(player, new Runnable() {
+            @Override
+            public void run() {
+                player.setFallDistance(0f);
+                if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
+                        && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
+                    doLanding(earthquakeLevel, player);
+                    return;
+                }
+                player.getWorld().spawnParticle(Particle.DUST, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
+                        20, 0.1, 0.1, 0.1, 1, new Particle.DustOptions(Color.fromRGB(
+                                ThreadLocalRandom.current().nextInt(80, 100),
+                                ThreadLocalRandom.current().nextInt(20, 40),
+                                ThreadLocalRandom.current().nextInt(10, 20)
+                        ), 1));
             }
-            player.getWorld().spawnParticle(Particle.DUST, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
-                    20, 0.1, 0.1, 0.1, 1, new Particle.DustOptions(Color.fromRGB(
-                            ThreadLocalRandom.current().nextInt(80, 100),
-                            ThreadLocalRandom.current().nextInt(20, 40),
-                            ThreadLocalRandom.current().nextInt(10, 20)
-                    ), 1));
         }, 5, 1);
     }
 
@@ -84,12 +87,12 @@ public class EarthquakeEnchantment extends CustomEnchantment {
             if (earthquakeLevel < 1) return;
             if (!players.contains(event.getPlayer().getUniqueId())) {
                 players.add(event.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, (task) -> players.remove(event.getPlayer().getUniqueId()), 10);
+                FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> players.remove(event.getPlayer().getUniqueId()), 10);
                 return;
             }
             players.remove(event.getPlayer().getUniqueId());
             cooldownPlayers.add(event.getPlayer().getUniqueId());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, (task) -> {
+            FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> {
                 event.getPlayer().sendMessage(EarthquakeConfig.getEarthquakeAvailableMessage());
                 cooldownPlayers.remove(event.getPlayer().getUniqueId());
             }, 20L * 60 * 2);

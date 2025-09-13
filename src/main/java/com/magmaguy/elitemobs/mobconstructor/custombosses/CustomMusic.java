@@ -1,10 +1,11 @@
 package com.magmaguy.elitemobs.mobconstructor.custombosses;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.PlayerTeleportEvent;
 import com.magmaguy.elitemobs.config.contentpackages.ContentPackagesConfigFields;
 import com.magmaguy.elitemobs.dungeons.EliteMobsWorld;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.Logger;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.SoundCategory;
@@ -14,8 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +35,8 @@ public class CustomMusic {
     private String name2 = null;
     @Getter
     private int durationTicks2 = -1;
-    private BukkitTask bossScannerTask = null;
-    private BukkitTask songTask = null;
+    private WrappedTask bossScannerTask = null;
+    private WrappedTask songTask = null;
     private World world;
 
     //Format: name=rsp.name length=durations_milliseconds->name=rsp.name length=duration_milliseconds
@@ -98,16 +97,13 @@ public class CustomMusic {
         if (bossScannerTask != null) {
             bossScannerTask.cancel();
         }
-        bossScannerTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!customBossEntity.exists()) {
-                    stop();
-                    return;
-                }
-                play(customBossEntity.getLocation(), customBossEntity.getCustomBossesConfigFields().getFollowDistance());
+        bossScannerTask = FoliaScheduler.runAtEntityTimer(customBossEntity.getLivingEntity(), () -> {
+            if (!customBossEntity.exists()) {
+                stop();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+            play(customBossEntity.getLocation(), customBossEntity.getCustomBossesConfigFields().getFollowDistance());
+        }, 0, 10);
     }
 
     public void stop() {
@@ -166,40 +162,38 @@ public class CustomMusic {
         //Case for a song with no transition
         CustomMusic customMusic = this;
         if (name2 == null) {
-            songTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (contentType == ContentType.BOSS && !customBossEntity.exists() ||
-                            contentType == ContentType.BOSS && player.getLocation().distanceSquared(customBossEntity.getLivingEntity().getLocation()) > Math.pow(customBossEntity.getFollowDistance() * 1.5, 2) ||
-                            contentType == ContentType.DUNGEON && !player.getWorld().equals(world)) {
-                        cancel();
-                        players.remove(player);
-                        playerSongSingleton.remove(player);
-                        return;
+            songTask = FoliaScheduler.runTimer(() -> {
+                if (contentType == ContentType.BOSS && !customBossEntity.exists() ||
+                        contentType == ContentType.BOSS && player.getLocation().distanceSquared(customBossEntity.getLivingEntity().getLocation()) > Math.pow(customBossEntity.getFollowDistance() * 1.5, 2) ||
+                        contentType == ContentType.DUNGEON && !player.getWorld().equals(world)) {
+                    players.remove(player);
+                    playerSongSingleton.remove(player);
+                    if (songTask != null) {
+                        songTask.cancel();
                     }
-                    if (playerSongSingleton.containsKey(player) && !players.get(player).equals(customMusic)) return;
-                    if (!playerSongSingleton.containsKey(player)) playerSongSingleton.put(player, customMusic);
-                    player.playSound(player.getLocation(), name, SoundCategory.MUSIC,1f, 1f);
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, 0, durationTicks);
+                if (playerSongSingleton.containsKey(player) && !players.get(player).equals(customMusic)) return;
+                if (!playerSongSingleton.containsKey(player)) playerSongSingleton.put(player, customMusic);
+                player.playSound(player.getLocation(), name, SoundCategory.MUSIC,1f, 1f);
+            }, 0, durationTicks);
         }
         //case for a song with a transition
         else {
             player.playSound(player.getLocation(), name, SoundCategory.MUSIC, 1f, 1f);
-            songTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (contentType == ContentType.BOSS && !customBossEntity.exists() ||
-                            contentType == ContentType.BOSS && player.getLocation().distanceSquared(customBossEntity.getLivingEntity().getLocation()) > Math.pow(customBossEntity.getFollowDistance() * 1.5, 2) ||
-                            contentType == ContentType.DUNGEON && !player.getWorld().equals(world)) {
-                        cancel();
-                        players.remove(player);
-                        playerSongSingleton.remove(player);
-                        return;
+            songTask = FoliaScheduler.runTimer(() -> {
+                if (contentType == ContentType.BOSS && !customBossEntity.exists() ||
+                        contentType == ContentType.BOSS && player.getLocation().distanceSquared(customBossEntity.getLivingEntity().getLocation()) > Math.pow(customBossEntity.getFollowDistance() * 1.5, 2) ||
+                        contentType == ContentType.DUNGEON && !player.getWorld().equals(world)) {
+                    players.remove(player);
+                    playerSongSingleton.remove(player);
+                    if (songTask != null) {
+                        songTask.cancel();
                     }
-                    player.playSound(player.getLocation(), name2, SoundCategory.MUSIC,1f, 1f);
+                    return;
                 }
-            }.runTaskTimer(MetadataHandler.PLUGIN, durationTicks, durationTicks2);
+                player.playSound(player.getLocation(), name2, SoundCategory.MUSIC,1f, 1f);
+            }, durationTicks, durationTicks2);
         }
 
         players.put(player, this);
@@ -217,16 +211,13 @@ public class CustomMusic {
             if (eliteMobsWorld == null || eliteMobsWorld.getContentPackagesConfigFields().getSong() == null) return;
             CustomMusic customMusic = dungeonMusic.get(event.getDestination().getWorld());
             if (customMusic == null) {
-                Logger.warn("aFailed to get custom music for " + event.getDestination().getWorld().getName());
+                Logger.warn("Failed to get custom music for " + event.getDestination().getWorld().getName());
                 return;
             }
             //Wait for a second after teleporting, just to make sure
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    customMusic.play(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20);
+            FoliaScheduler.runLater(() -> {
+                customMusic.play(event.getPlayer());
+            }, 20);
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -239,12 +230,9 @@ public class CustomMusic {
                 return;
             }
             //Wait for a second after teleporting, just to make sure
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    customMusic.play(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20);
+            FoliaScheduler.runLater(() -> {
+                customMusic.play(event.getPlayer());
+            }, 20);
         }
     }
 }

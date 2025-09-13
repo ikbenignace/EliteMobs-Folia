@@ -1,9 +1,9 @@
 package com.magmaguy.elitemobs.utils;
 
 import com.magmaguy.elitemobs.MetadataHandler;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
 import java.util.List;
@@ -30,13 +30,10 @@ public class SimpleScoreboard {
 
     public static Scoreboard temporaryScoreboard(Player player, String displayName, List<String> scoreboardContents, int ticksTimeout) {
         Scoreboard scoreboard = lazyScoreboard(player, displayName, scoreboardContents);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (player.getScoreboard().equals(scoreboard))
-                    player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticksTimeout);
+        FoliaScheduler.runLater(() -> {
+            if (player.getScoreboard().equals(scoreboard))
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }, ticksTimeout);
 
         return scoreboard;
     }

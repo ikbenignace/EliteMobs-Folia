@@ -14,8 +14,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -31,19 +31,21 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
 
     public static void doPlasmaBootsEnchantment(int level, Player player) {
         player.setVelocity(new Vector(0, .8, 0));
-        Bukkit.getScheduler().runTaskTimer(MetadataHandler.PLUGIN, (task) -> {
-            if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
-                    && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
-                task.cancel();
-                doLanding(level, player);
-                return;
+        FoliaScheduler.runAtEntityTimer(player, new Runnable() {
+            @Override
+            public void run() {
+                if (!player.isValid() || !player.getLocation().clone().subtract(new Vector(0, 1, 0)).getBlock().isPassable()
+                        && player.getLocation().getY() - player.getLocation().getBlock().getY() < 0.1 || !player.getLocation().clone().getBlock().isPassable()) {
+                    doLanding(level, player);
+                    return;
+                }
+                player.getWorld().spawnParticle(Particle.DUST, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
+                        20, 0.1, 0.1, 0.1, 1, new Particle.DustOptions(Color.fromRGB(
+                                ThreadLocalRandom.current().nextInt(0, 100),
+                                ThreadLocalRandom.current().nextInt(122, 255),
+                                ThreadLocalRandom.current().nextInt(0, 100)
+                        ), 1));
             }
-            player.getWorld().spawnParticle(Particle.DUST, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
-                    20, 0.1, 0.1, 0.1, 1, new Particle.DustOptions(Color.fromRGB(
-                            ThreadLocalRandom.current().nextInt(0, 100),
-                            ThreadLocalRandom.current().nextInt(122, 255),
-                            ThreadLocalRandom.current().nextInt(0, 100)
-                    ), 1));
         }, 5, 1);
     }
 
@@ -64,14 +66,13 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
     }
 
     private static void createProjectile(Vector shotVector, Location sourceLocation, Player player) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(sourceLocation, new Runnable() {
             final Location currentLocation = sourceLocation.clone();
             int counter = 0;
 
             @Override
             public void run() {
                 if (counter > 20 * 3) {
-                    cancel();
                     return;
                 }
                 counter++;
@@ -79,19 +80,18 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
                         .getNearbyEntities(currentLocation, 0.1, 0.1, 0.1)) {
                     if (!(entity instanceof LivingEntity)) continue;
                     if (entity.getType().equals(EntityType.PLAYER)) continue;
-                    cancel();
                     doDamage(player, (LivingEntity) entity);
-                    break;
+                    return;
                 }
 
                 doVisualEffect(currentLocation);
 
                 currentLocation.add(shotVector);
                 if (!currentLocation.getBlock().isPassable()) {
-                    cancel();
+                    return;
                 }
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     private static void doDamage(Player player, LivingEntity livingEntity) {
@@ -123,12 +123,12 @@ public class PlasmaBootsEnchantment extends CustomEnchantment {
             if (plasmaBootLevel < 1) return;
             if (!players.contains(event.getPlayer().getUniqueId())) {
                 players.add(event.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> players.remove(event.getPlayer().getUniqueId()), 10);
+                FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> players.remove(event.getPlayer().getUniqueId()), 10);
                 return;
             }
             players.remove(event.getPlayer().getUniqueId());
             cooldownPlayers.add(event.getPlayer().getUniqueId());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, task -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
+            FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> cooldownPlayers.remove(event.getPlayer().getUniqueId()), 20L * 60 * 2);
 
             doPlasmaBootsEnchantment((int) plasmaBootLevel, event.getPlayer());
 

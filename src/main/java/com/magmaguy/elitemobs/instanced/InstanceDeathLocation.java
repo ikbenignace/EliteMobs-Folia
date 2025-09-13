@@ -11,7 +11,8 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Vector;
 
 public class InstanceDeathLocation {
@@ -67,19 +68,15 @@ public class InstanceDeathLocation {
 
     //This is necessary because physics updates might remove the banner while it should still be on there
     public void bannerWatchdog() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
-                    cancel();
-                    return;
-                }
-                if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
-                EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
-                EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
-                findBannerLocation(deathLocation);
+        FoliaScheduler.runAtLocationTimer(bannerBlock.getLocation(), () -> {
+            if (!matchInstance.deathBanners.containsKey(bannerBlock)) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 5, 5);
+            if (bannerBlock.getType().equals(Material.RED_BANNER)) return;
+            EntityTracker.unregister(nameTag, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(instructions, RemovalReason.EFFECT_TIMEOUT);
+            EntityTracker.unregister(livesLeft, RemovalReason.EFFECT_TIMEOUT);
+            findBannerLocation(deathLocation);
+        }, 5, 5);
     }
 }

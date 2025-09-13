@@ -1,17 +1,16 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobTargetPlayerEvent;
 import com.magmaguy.elitemobs.combatsystem.EliteProjectile;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 /**
@@ -71,14 +70,13 @@ public class AttackFireball extends MinorPower implements Listener {
 
     private void repeatingFireballTask(Monster monster, AttackFireball attackFireball) {
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(monster, new Runnable() {
 
             @Override
             public void run() {
 
                 if (!monster.isValid() || monster.getTarget() == null) {
                     attackFireball.setFiring(false);
-                    cancel();
                     return;
                 }
 
@@ -92,7 +90,7 @@ public class AttackFireball extends MinorPower implements Listener {
                             Fireball fireball = shootFireball(monster, targetPlayer);
                             if (fireball == null) {
                                 // Log or handle the case where fireball creation failed
-                                MetadataHandler.PLUGIN.getLogger().warning("Failed to create fireball for entity at " + monster.getLocation());
+                                System.out.println("Failed to create fireball for entity at " + monster.getLocation());
                             }
                         }
                     }
@@ -100,7 +98,7 @@ public class AttackFireball extends MinorPower implements Listener {
 
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20L * 8);
+        }, 0, 20L * 8);
 
     }
 

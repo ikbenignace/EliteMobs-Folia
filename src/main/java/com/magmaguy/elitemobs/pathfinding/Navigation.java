@@ -3,20 +3,19 @@ package com.magmaguy.elitemobs.pathfinding;
 import com.magmaguy.easyminecraftgoals.NMSManager;
 import com.magmaguy.easyminecraftgoals.events.WanderBackToPointEndEvent;
 import com.magmaguy.easyminecraftgoals.events.WanderBackToPointStartEvent;
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.RegionalBossEntity;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.AttributeManager;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 
@@ -26,7 +25,7 @@ public class Navigation implements Listener {
         NMSManager.getAdapter().doNotMove(livingEntity);
     }
 
-    private static final HashMap<CustomBossEntity, BukkitTask> currentlyNavigating = new HashMap();
+    private static final HashMap<CustomBossEntity, WrappedTask> currentlyNavigating = new HashMap();
 
     public static void addSoftLeashAI(RegionalBossEntity regionalBossEntity) {
         if (NMSManager.getAdapter() == null) return;
@@ -66,7 +65,7 @@ public class Navigation implements Listener {
     }
 
     public static void shutdown() {
-        currentlyNavigating.values().forEach(BukkitTask::cancel);
+        currentlyNavigating.values().forEach(WrappedTask::cancel);
         currentlyNavigating.clear();
     }
 
@@ -79,7 +78,7 @@ public class Navigation implements Listener {
         Double finalSpeed = speed;
         if (currentlyNavigating.get(customBossEntity) != null) currentlyNavigating.get(customBossEntity).cancel();
         int finalDuration = duration;
-        currentlyNavigating.put(customBossEntity, new BukkitRunnable() {
+        currentlyNavigating.put(customBossEntity, FoliaScheduler.runAtEntityTimer(customBossEntity.getLivingEntity(), new Runnable() {
             int counter = 0;
 
             @Override
@@ -90,14 +89,16 @@ public class Navigation implements Listener {
                     if (customBossEntity.exists() && counter >= finalDuration && force) {
                         customBossEntity.getLivingEntity().teleport(destination);
                     }
-                    cancel();
-                    currentlyNavigating.remove(customBossEntity);
+                    WrappedTask task = currentlyNavigating.remove(customBossEntity);
+                    if (task != null) {
+                        task.cancel();
+                    }
                     return;
                 }
                 NMSManager.getAdapter().move(customBossEntity.getLivingEntity(), finalSpeed.floatValue(), destination);
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1));
+        }, 0, 1));
     }
 
     @EventHandler(ignoreCancelled = true)

@@ -3,6 +3,7 @@ package com.magmaguy.elitemobs.playerdata;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.items.MobTierCalculator;
 import com.magmaguy.elitemobs.items.potioneffects.ElitePotionEffect;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -102,7 +103,7 @@ public class ElitePlayerInventory {
 
     private boolean updateLock() {
         isUpdateLock = true;
-        Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> isUpdateLock = false, 1);
+        FoliaScheduler.runLater(() -> isUpdateLock = false, 1);
         return true;
     }
 

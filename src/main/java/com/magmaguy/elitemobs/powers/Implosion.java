@@ -1,12 +1,13 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobDeathEvent;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
@@ -15,7 +16,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class Implosion extends MinorPower implements Listener {
 
@@ -27,7 +27,7 @@ public class Implosion extends MinorPower implements Listener {
     public void onDeath(EliteMobDeathEvent event) {
         if (!event.getEliteEntity().hasPower(this)) return;
 
-        new BukkitRunnable() {
+        WrappedTask explosionTask = FoliaScheduler.runAtLocationTimer(event.getEntity().getLocation(), new Runnable() {
             int counter = 0;
 
             @Override
@@ -51,11 +51,18 @@ public class Implosion extends MinorPower implements Listener {
                                 //Sometimes this is infinite. That just means players shouldn't move.
                             }
                         }
-                    cancel();
+                    return; // Exit the runnable
                 }
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 0);
+        }, 1, 1);
+        
+        // Cancel task when explosion ends
+        FoliaScheduler.runLater(() -> {
+            if (explosionTask != null) {
+                explosionTask.cancel();
+            }
+        }, 20 * 3 + 5);
     }
 
 }

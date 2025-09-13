@@ -10,6 +10,7 @@ import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.items.customenchantments.CriticalStrikesEnchantment;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.utils.DialogArmorStand;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.elitemobs.utils.VisualDisplay;
 import com.magmaguy.magmacore.util.Round;
 import org.bukkit.ChatColor;
@@ -24,7 +25,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
@@ -95,14 +95,13 @@ public class PopupDisplay implements Listener {
         armorStand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
         armorStand.setRightArmPose(new EulerAngle(Math.PI / 2d, Math.PI + Math.PI / 2d, Math.PI));
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(eliteEntity.getLocation(), new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
                 if (counter > 20 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
                     EntityTracker.unregister(armorStand, RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
                     return;
                 }
                 try {
@@ -112,7 +111,7 @@ public class PopupDisplay implements Listener {
                 }
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+        }, 1, 1);
     }
 
     private Location getResistLocation(Player player, EliteEntity eliteEntity) {
@@ -130,7 +129,7 @@ public class PopupDisplay implements Listener {
         textDisplays[0] = generateWeakArmorStand(player, eliteEntity, material, -1);
         textDisplays[1] = generateWeakArmorStand(player, eliteEntity, material, 1);
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtLocationTimer(eliteEntity.getLocation(), new Runnable() {
             int counter = 0;
 
             @Override
@@ -138,7 +137,6 @@ public class PopupDisplay implements Listener {
                 if (counter > 10 || !eliteEntity.isValid() || !player.isValid() || !eliteEntity.getLocation().getWorld().equals(player.getWorld())) {
                     EntityTracker.unregister(textDisplays[0], RemovalReason.EFFECT_TIMEOUT);
                     EntityTracker.unregister(textDisplays[1], RemovalReason.EFFECT_TIMEOUT);
-                    cancel();
                     return;
                 }
                 for (TextDisplay armorStand : textDisplays)
@@ -146,7 +144,7 @@ public class PopupDisplay implements Listener {
                             .subtract(armorStand.getLocation()).toVector().normalize().multiply(.4)));
                 counter++;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 1, 1);
+        }, 1, 1);
     }
 
     private TextDisplay generateWeakArmorStand(Player player, EliteEntity eliteEntity, Material material, int offset) {

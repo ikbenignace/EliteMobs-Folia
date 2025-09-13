@@ -1,16 +1,15 @@
 package com.magmaguy.elitemobs.powers;
 
-import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.api.EliteMobTargetPlayerEvent;
 import com.magmaguy.elitemobs.combatsystem.EliteProjectile;
 import com.magmaguy.elitemobs.config.powers.PowersConfig;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.powers.meta.MinorPower;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.GameMode;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Created by MagmaGuy on 06/05/2017.
@@ -38,14 +37,13 @@ public class AttackArrow extends MinorPower implements Listener {
 
     private void repeatingArrowTask(AttackArrow attackArrow, EliteEntity eliteEntity) {
 
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), new Runnable() {
 
             @Override
             public void run() {
 
                 if (!eliteEntity.isValid() || ((Monster) eliteEntity.getLivingEntity()).getTarget() == null) {
                     attackArrow.setFiring(false);
-                    cancel();
                     return;
                 }
 
@@ -58,7 +56,7 @@ public class AttackArrow extends MinorPower implements Listener {
 
             }
 
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 8);
+        }, 0, 20 * 8);
 
     }
 

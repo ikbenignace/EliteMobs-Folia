@@ -3,9 +3,11 @@ package com.magmaguy.elitemobs.mobconstructor.custombosses;
 import com.magmaguy.elitemobs.MetadataHandler;
 import com.magmaguy.elitemobs.config.DefaultConfig;
 import com.magmaguy.elitemobs.config.MobCombatSettingsConfig;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import com.magmaguy.magmacore.util.ChatColorConverter;
 import com.magmaguy.magmacore.util.Logger;
 import com.magmaguy.magmacore.util.Round;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -18,8 +20,6 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +30,7 @@ public class CustomBossBossBar {
     private final CustomBossEntity customBossEntity;
     private final Map<Player, BossBar> bossBars = new HashMap<>();
     private final HashSet<Player> trackingPlayers = new HashSet<>();
-    private BukkitTask bossBarUpdater;
+    private WrappedTask bossBarUpdater;
     private boolean warned = false;
 
     public CustomBossBossBar(CustomBossEntity customBossEntity) {
@@ -111,41 +111,38 @@ public class CustomBossBossBar {
     }
 
     public void start() {
-        bossBarUpdater = new BukkitRunnable() {
-            @Override
-            public void run() {
-                //This can happen on phase changes where boss bars might not be configured on subsequent entities
-                if (!customBossEntity.exists() || customBossEntity.getCustomBossesConfigFields().getLocationMessage() == null) {
-                    cancel();
-                    remove();
-                    return;
-                }
-
-                HashSet<Player> freshIteration = new HashSet<>();
-                for (Player player : trackingPlayers) {
-                    freshIteration.add(player);
-                    if (!bossBars.containsKey(player)) createBossBar(player);
-                    updateBossBar(player, bossBars.get(player));
-                }
-
-                //Remove players that have stopped
-                bossBars.entrySet().removeIf(entry -> {
-                    if (!trackingPlayers.contains(entry.getKey())) {
-                        entry.getValue().removeAll();
-                        return true;
-                    }
-                    return false;
-                });
-
-                //nearby player check
-                if (customBossEntity.isValid())
-                    for (Entity entity : customBossEntity.getLivingEntity().getNearbyEntities(30, 30, 30))
-                        if (entity.getType().equals(EntityType.PLAYER))
-                            if (!freshIteration.contains((Player) entity))
-                                createBossBar((Player) entity);
-
+        bossBarUpdater = FoliaScheduler.runTimer(() -> {
+            //This can happen on phase changes where boss bars might not be configured on subsequent entities
+            if (!customBossEntity.exists() || customBossEntity.getCustomBossesConfigFields().getLocationMessage() == null) {
+                bossBarUpdater.cancel();
+                remove();
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 5);
+
+            HashSet<Player> freshIteration = new HashSet<>();
+            for (Player player : trackingPlayers) {
+                freshIteration.add(player);
+                if (!bossBars.containsKey(player)) createBossBar(player);
+                updateBossBar(player, bossBars.get(player));
+            }
+
+            //Remove players that have stopped
+            bossBars.entrySet().removeIf(entry -> {
+                if (!trackingPlayers.contains(entry.getKey())) {
+                    entry.getValue().removeAll();
+                    return true;
+                }
+                return false;
+            });
+
+            //nearby player check
+            if (customBossEntity.isValid())
+                for (Entity entity : customBossEntity.getLivingEntity().getNearbyEntities(30, 30, 30))
+                    if (entity.getType().equals(EntityType.PLAYER))
+                        if (!freshIteration.contains((Player) entity))
+                            createBossBar((Player) entity);
+
+        }, 0, 5);
     }
 
     private void createBossBar(Player player) {

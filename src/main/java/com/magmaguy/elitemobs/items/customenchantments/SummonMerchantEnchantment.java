@@ -13,7 +13,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,12 +49,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
             return;
         }
         //pass to a sync task
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                new NPCEntity(player.getLocation());
-            }
-        }.runTask(MetadataHandler.PLUGIN);
+        FoliaScheduler.runLater(() -> new NPCEntity(player.getLocation()), 0);
     }
 
     public static class SummonMerchantEvents implements Listener {
@@ -68,12 +63,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
                 return;
             if (playerCooldowns.contains(event.getPlayer())) return;
             playerCooldowns.add(event.getPlayer());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerCooldowns.remove(event.getPlayer());
-                }
-            }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60);
+            FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> playerCooldowns.remove(event.getPlayer()), 20 * 60);
             doSummonMerchant(event.getPlayer(), false, event.getPlayer().getInventory().getItemInMainHand());
         }
 
@@ -83,12 +73,7 @@ public class SummonMerchantEnchantment extends CustomEnchantment implements List
             if (event.getMessage().equalsIgnoreCase(merchantMessage)) {
                 if (playerCooldowns.contains(event.getPlayer())) return;
                 playerCooldowns.add(event.getPlayer());
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerCooldowns.remove(event.getPlayer());
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20 * 60);
+                FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> playerCooldowns.remove(event.getPlayer()), 20 * 60);
                 for (ItemStack itemStack : event.getPlayer().getInventory())
                     if (itemStack != null)
                         if (getEnchantment(itemStack.getItemMeta()) > 0) {

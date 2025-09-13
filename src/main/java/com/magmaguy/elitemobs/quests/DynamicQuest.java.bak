@@ -1,27 +1,26 @@
 package com.magmaguy.elitemobs.quests;
 
 import com.magmaguy.elitemobs.MetadataHandler;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.adventurersguild.GuildRank;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.QuestsConfig;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.config.menus.premade.DynamicQuestMenuConfig;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.mobconstructor.mobdata.aggressivemobs.EliteMobProperties;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.playerdata.database.PlayerData;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.objectives.DynamicKillObjective;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.objectives.QuestObjectives;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import com.magmaguy.elitemobs.quests.rewards.QuestReward;
-import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.magmaguy.elitemobs.thirdparty.FoliaScheduler;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +30,7 @@ public class DynamicQuest extends Quest {
 
     //These are generated fresh every hour
     private static final HashMap<Integer, List<QuestObjectives>> threeRandomDynamicObjectives = new HashMap<>();
-    private static WrappedTask randomizerTask;
+    private static BukkitTask randomizerTask;
 
     public DynamicQuest(Player player, int questLevel, QuestObjectives questObjectives) {
         super(player, questObjectives, questLevel);
@@ -42,15 +41,18 @@ public class DynamicQuest extends Quest {
     }
 
     public static void startRandomizingQuests() {
-        randomizerTask = FoliaScheduler.runTimer(() -> {
-            for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
-                List<QuestObjectives> questObjectives = new ArrayList<>();
-                for (int questNumber = 0; questNumber < 3; questNumber++) {
-                    questObjectives.add(new QuestObjectives(activeLevel));
+        randomizerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (int activeLevel = 1; activeLevel < 21; activeLevel++) {
+                    List<QuestObjectives> questObjectives = new ArrayList<>();
+                    for (int questNumber = 0; questNumber < 3; questNumber++) {
+                        questObjectives.add(new QuestObjectives(activeLevel));
+                    }
+                    threeRandomDynamicObjectives.put(activeLevel, questObjectives);
                 }
-                threeRandomDynamicObjectives.put(activeLevel, questObjectives);
             }
-        }, 0, 20 * 60L);
+        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 20 * 60L);
     }
 
     public static void shutdown() {

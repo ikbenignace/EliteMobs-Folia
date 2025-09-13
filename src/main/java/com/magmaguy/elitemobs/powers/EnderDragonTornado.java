@@ -14,7 +14,7 @@ import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -32,23 +32,18 @@ public class EnderDragonTornado extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
-                    return;
-                }
-
-                if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON)) {
-                    EnderDragon.Phase phase = ((EnderDragon) eliteEntity.getLivingEntity()).getPhase();
-                    if (!EnderDragonPhaseSimplifier.isLanded(phase)) return;
-                }
-
-                doPower(eliteEntity);
-
+        super.bukkitTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+
+            if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+                EnderDragon.Phase phase = ((EnderDragon) eliteEntity.getLivingEntity()).getPhase();
+                if (!EnderDragonPhaseSimplifier.isLanded(phase)) return;
+            }
+
+            doPower(eliteEntity);
+        }, 0, 10);
     }
 
     private void doPower(EliteEntity eliteEntity) {
@@ -59,40 +54,34 @@ public class EnderDragonTornado extends CombatEnterScanPower {
                 .toLocation(eliteEntity.getLivingEntity().getWorld());
 
         tornadoSpeed = tornadoEye.clone().subtract(eliteEntity.getLivingEntity().getLocation()).toVector().setY(0).normalize().multiply(0.2);
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (!eliteEntity.isValid()) {
-                    cancel();
-                    return;
-                }
-
-                if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
-                    ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
-
-                if (doExit(eliteEntity) || eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) && !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
-                    cancel();
-                    return;
-                }
-
-                tornadoEye.add(tornadoSpeed);
-
-                if (counter % 2 == 0) {
-                    doTornadoParticles();
-                    doTerrainDestruction(eliteEntity);
-                    doEntityDisplacement(eliteEntity.getLivingEntity());
-                }
-
-                if (counter > 20 * 6) {
-                    cancel();
-                }
-
-                counter++;
+        
+        final int[] counter = {0};
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (!eliteEntity.isValid()) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+
+            if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
+                ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
+
+            if (doExit(eliteEntity) || eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) && !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
+                return;
+            }
+
+            tornadoEye.add(tornadoSpeed);
+
+            if (counter[0] % 2 == 0) {
+                doTornadoParticles();
+                doTerrainDestruction(eliteEntity);
+                doEntityDisplacement(eliteEntity.getLivingEntity());
+            }
+
+            if (counter[0] > 20 * 6) {
+                return;
+            }
+
+            counter[0]++;
+        }, 0, 1);
     }
 
     private void doTornadoParticles() {

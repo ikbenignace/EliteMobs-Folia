@@ -41,8 +41,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -52,8 +52,8 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     public static Set<CustomBossEntity> dynamicLevelBossEntities = new HashSet<>();
     @Getter
     protected static HashSet<CustomBossEntity> trackableCustomBosses = new HashSet<>();
-    private static BukkitTask dynamicLevelUpdater = null;
-    private final List<BukkitTask> globalReinforcements = new ArrayList<>();
+    private static WrappedTask dynamicLevelUpdater = null;
+    private final List<Object> globalReinforcements = new ArrayList<>();
     @Getter
     protected CustomBossesConfigFields customBossesConfigFields;
     protected CustomBossEntity customBossMount = null;
@@ -65,7 +65,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     protected CustomBossTrail customBossTrail;
     @Getter
     protected CustomBossBossBar customBossBossBar;
-    protected Integer escapeMechanism;
+    protected Object escapeMechanism;
     @Getter
     protected PhaseBossEntity phaseBossEntity = null;
     protected String worldName;
@@ -143,31 +143,28 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
     }
 
     public static void startUpdatingDynamicLevels() {
-        dynamicLevelUpdater = new BukkitRunnable() {
-            @Override
-            public void run() {
-                Iterator<CustomBossEntity> iterator = dynamicLevelBossEntities.iterator();
-                while (iterator.hasNext()) {
-                    CustomBossEntity customBossEntity = iterator.next();
-                    if (!customBossEntity.isValid()) {
-                        iterator.remove(); // Remove from the list instead of canceling
-                        continue; // Skip to the next iteration
-                    }
-                    int currentLevel = customBossEntity.getLevel();
-                    customBossEntity.getDynamicLevel(customBossEntity.getLocation());
-                    int newLevel = customBossEntity.getLevel();
-
-                    if (currentLevel == newLevel) {
-                        continue; // Skip to the next iteration if the level hasn't changed
-                    }
-
-                    // In theory, the damage should update automatically; the only thing that needs updating should be the health
-                    customBossEntity.setMaxHealth();
-                    customBossEntity.setNormalizedHealth();
-                    CustomBossMegaConsumer.setName(customBossEntity.getLivingEntity(), customBossEntity, customBossEntity.level);
+        dynamicLevelUpdater = FoliaScheduler.runTimer(() -> {
+            Iterator<CustomBossEntity> iterator = dynamicLevelBossEntities.iterator();
+            while (iterator.hasNext()) {
+                CustomBossEntity customBossEntity = iterator.next();
+                if (!customBossEntity.isValid()) {
+                    iterator.remove(); // Remove from the list instead of canceling
+                    continue; // Skip to the next iteration
                 }
+                int currentLevel = customBossEntity.getLevel();
+                customBossEntity.getDynamicLevel(customBossEntity.getLocation());
+                int newLevel = customBossEntity.getLevel();
+
+                if (currentLevel == newLevel) {
+                    continue; // Skip to the next iteration if the level hasn't changed
+                }
+
+                // In theory, the damage should update automatically; the only thing that needs updating should be the health
+                customBossEntity.setMaxHealth();
+                customBossEntity.setNormalizedHealth();
+                CustomBossMegaConsumer.setName(customBossEntity.getLivingEntity(), customBossEntity, customBossEntity.level);
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 20 * 5L, 20 * 5L);
+        }, 20 * 5L, 20 * 5L);
     }
 
     public static void shutdown() {
@@ -313,7 +310,7 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
                 if (elitePower instanceof CustomSummonPower)
                     ((CustomSummonPower) elitePower).getCustomBossReinforcements().forEach((customBossReinforcement -> {
                         if (customBossReinforcement.summonType.equals(CustomSummonPower.SummonType.GLOBAL))
-                            globalReinforcements.add(CustomSummonPower.summonGlobalReinforcement(customBossReinforcement, this));
+                            CustomSummonPower.summonGlobalReinforcement(customBossReinforcement, this);
                     }));
 
         CommandRunner.runCommandFromList(customBossesConfigFields.getOnSpawnCommands(), new ArrayList<>());
@@ -534,7 +531,11 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
             if (!(this instanceof RegionalBossEntity) || this instanceof InstancedBossEntity)
                 EntityTracker.getEliteMobEntities().remove(super.eliteUUID);
             new EventCaller(new EliteMobRemoveEvent(this, removalReason));
-            if (escapeMechanism != null) Bukkit.getScheduler().cancelTask(escapeMechanism);
+            if (escapeMechanism != null) {
+                if (escapeMechanism instanceof com.tcoded.folialib.wrapper.task.WrappedTask) {
+                    ((com.tcoded.folialib.wrapper.task.WrappedTask) escapeMechanism).cancel();
+                }
+            }
             trackableCustomBosses.remove(this);
             if (persistentObjectHandler != null) {
                 persistentObjectHandler.remove();
@@ -547,9 +548,14 @@ public class CustomBossEntity extends EliteEntity implements Listener, Persisten
                     !removalReason.equals(RemovalReason.ARENA_RESET))
                 if (phaseBossEntity != null)
                     phaseBossEntity.silentReset();
-            globalReinforcements.forEach((bukkitTask -> {
-                if (bukkitTask != null)
-                    bukkitTask.cancel();
+            globalReinforcements.forEach((taskObj -> {
+                if (taskObj != null) {
+                    if (taskObj instanceof org.bukkit.scheduler.BukkitTask) {
+                        ((org.bukkit.scheduler.BukkitTask) taskObj).cancel();
+                    } else if (taskObj instanceof WrappedTask) {
+                        ((WrappedTask) taskObj).cancel();
+                    }
+                }
             }));
             globalReinforcements.clear();
             if (!removalReason.equals(RemovalReason.REINFORCEMENT_CULL)) {

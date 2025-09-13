@@ -12,7 +12,7 @@ import org.bukkit.Particle;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -32,20 +32,17 @@ public class EnderDragonDiscoFireballs extends CombatEnterScanPower {
 
     @Override
     protected void finishActivation(EliteEntity eliteEntity) {
-        super.bukkitTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
-                    return;
-                }
-
-                if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
-                    if (!EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase()))
-                        return;
-
-                doPower(eliteEntity);
+        super.bukkitTask = FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (doExit(eliteEntity) || isInCooldown(eliteEntity)) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 10);
+
+            if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
+                if (!EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase()))
+                    return;
+
+            doPower(eliteEntity);
+        }, 0, 10);
     }
 
     @Override
@@ -56,44 +53,38 @@ public class EnderDragonDiscoFireballs extends CombatEnterScanPower {
     private void doPower(EliteEntity eliteEntity) {
         doCooldown(eliteEntity);
 
-        new BukkitRunnable() {
-            int counter = 0;
-
-            @Override
-            public void run() {
-
-                if (doExit(eliteEntity) ||
-                        eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) &&
-                                !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
-                    cancel();
-                    return;
-                }
-
-                if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
-                    ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
-
-                if (counter == 0) {
-                    //todo: reset fields if needed
-                    generateLocations();
-                    commitLocations(eliteEntity);
-                    randomTiltSeed = ThreadLocalRandom.current().nextInt();
-                    warningCounter = 0;
-                }
-
-                if (counter < 20 * 6) {
-                    //todo: warning phase
-                    doWarningPhase(eliteEntity);
-                    warningCounter++;
-                }
-
-                if (counter > 20 * 6) {
-                    doDamagePhase(eliteEntity);
-                    cancel();
-                }
-
-                counter++;
+        final int[] counter = {0};
+        FoliaScheduler.runAtEntityTimer(eliteEntity.getLivingEntity(), () -> {
+            if (doExit(eliteEntity) ||
+                    eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON) &&
+                            !EnderDragonPhaseSimplifier.isLanded(((EnderDragon) eliteEntity.getLivingEntity()).getPhase())) {
+                return;
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+
+            if (eliteEntity.getLivingEntity().getType().equals(EntityType.ENDER_DRAGON))
+                ((EnderDragon) eliteEntity.getLivingEntity()).setPhase(EnderDragon.Phase.SEARCH_FOR_BREATH_ATTACK_TARGET);
+
+            if (counter[0] == 0) {
+                //todo: reset fields if needed
+                generateLocations();
+                commitLocations(eliteEntity);
+                randomTiltSeed = ThreadLocalRandom.current().nextInt();
+                warningCounter = 0;
+            }
+
+            if (counter[0] < 20 * 6) {
+                //todo: warning phase
+                doWarningPhase(eliteEntity);
+                warningCounter++;
+            }
+
+            if (counter[0] > 20 * 6) {
+                doDamagePhase(eliteEntity);
+                return;
+            }
+
+            counter[0]++;
+        }, 0, 1);
     }
 
     private void generateLocations() {

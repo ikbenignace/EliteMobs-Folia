@@ -33,8 +33,8 @@ import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -599,22 +599,12 @@ public class EliteEntity {
 
     public void doCooldown() {
         setInCooldown(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20 * 15);
+        FoliaScheduler.runAtEntityLater(getLivingEntity(), () -> setInCooldown(false), 20 * 15);
     }
 
     public void doGlobalPowerCooldown(int ticks) {
         setInCooldown(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                setInCooldown(false);
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, ticks);
+        FoliaScheduler.runAtEntityLater(getLivingEntity(), () -> setInCooldown(false), ticks);
     }
 
     public void setTriggeredAntiExploit(boolean triggeredAntiExploit) {
@@ -639,22 +629,12 @@ public class EliteEntity {
 
     public void setInAntiExploitCooldown() {
         this.inAntiExploitCooldown = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                inAntiExploitCooldown = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, 20);
+        FoliaScheduler.runAtEntityLater(getLivingEntity(), () -> inAntiExploitCooldown = false, 20);
     }
 
     public void setCombatGracePeriod(int delayInTicks) {
         this.inCombatGracePeriod = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                inCombatGracePeriod = false;
-            }
-        }.runTaskLater(MetadataHandler.PLUGIN, delayInTicks);
+        FoliaScheduler.runAtEntityLater(getLivingEntity(), () -> inCombatGracePeriod = false, delayInTicks);
     }
 
     public void addGlobalReinforcement(CustomBossEntity customBossEntity) {

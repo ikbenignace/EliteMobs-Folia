@@ -23,7 +23,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.*;
 
@@ -114,12 +114,9 @@ public class ProceduralShopMenu {
                 }
 
                 cooldownPlayers.add(event.getWhoClicked().getUniqueId());
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        cooldownPlayers.remove(event.getWhoClicked().getUniqueId());
-                    }
-                }.runTaskLater(MetadataHandler.PLUGIN, 20 * 2L);
+                FoliaScheduler.runLater(() -> {
+                    cooldownPlayers.remove(event.getWhoClicked().getUniqueId());
+                }, 20 * 2L);
 
                 populateShop(event.getInventory(), Bukkit.getPlayer(event.getWhoClicked().getUniqueId()));
                 event.setCancelled(true);

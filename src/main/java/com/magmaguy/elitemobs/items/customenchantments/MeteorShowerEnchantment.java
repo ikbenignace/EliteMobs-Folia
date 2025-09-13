@@ -11,8 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,19 +25,17 @@ public class MeteorShowerEnchantment extends CustomEnchantment {
     }
 
     public static void doMeteorShower(Player player) {
-        new BukkitRunnable() {
+        FoliaScheduler.runAtEntityTimer(player, new Runnable() {
             int counter = 0;
 
             @Override
             public void run() {
 
                 if (!player.isValid()) {
-                    cancel();
                     return;
                 }
 
                 if (counter > 10 * 20) {
-                    cancel();
                     return;
                 }
 
@@ -52,7 +50,7 @@ public class MeteorShowerEnchantment extends CustomEnchantment {
                 }
 
             }
-        }.runTaskTimer(MetadataHandler.PLUGIN, 0, 1);
+        }, 0, 1);
     }
 
     private static void doCloudEffect(Location location) {

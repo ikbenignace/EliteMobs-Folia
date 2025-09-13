@@ -8,6 +8,7 @@ import com.magmaguy.elitemobs.entitytracker.EntityTracker;
 import com.magmaguy.elitemobs.mobconstructor.EliteEntity;
 import com.magmaguy.elitemobs.playerdata.ElitePlayerInventory;
 import com.magmaguy.elitemobs.utils.EventCaller;
+import com.magmaguy.elitemobs.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.damage.DamageSource;
@@ -56,7 +57,7 @@ public class LightningEnchantment extends CustomEnchantment {
             if (lightningChance <= 0) return;
             if (lightningChance >= ThreadLocalRandom.current().nextDouble()) return;
             playersInCooldown.add(event.getPlayer());
-            Bukkit.getScheduler().runTaskLater(MetadataHandler.PLUGIN, () -> playersInCooldown.remove(event.getPlayer()), LightningConfig.minimumCooldown * 20L);
+            FoliaScheduler.runAtEntityLater(event.getPlayer(), () -> playersInCooldown.remove(event.getPlayer()), LightningConfig.minimumCooldown * 20L);
             playerLightning(event.getPlayer(), event.getEliteMobEntity().getLivingEntity().getLocation());
         }
     }
