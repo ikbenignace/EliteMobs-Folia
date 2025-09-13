@@ -5,20 +5,15 @@ import com.magmaguy.elitemobs.dungeons.EliteMobsWorld;
 import com.magmaguy.elitemobs.dungeons.WorldDungeonPackage;
 import com.magmaguy.elitemobs.dungeons.WorldPackage;
 import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
-import com.magmaguy.magmacore.util.Logger;
-
+import com.magmaguy.magmacore.util.TemporaryWorldManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
-import org.bukkit.WorldType;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.util.List;
 
 public class DungeonUtils {
-    
     public static Pair getLowestAndHighestLevels(List<CustomBossEntity> customBossEntities) {
         int lowestLevel = 0;
         int highestLevel = 0;
@@ -38,84 +33,16 @@ public class DungeonUtils {
         String worldName = worldPackage.getContentPackagesConfigFields().getWorldName();
         World.Environment environment = worldPackage.getContentPackagesConfigFields().getEnvironment();
         World world = loadWorld(worldName, environment, worldPackage.getContentPackagesConfigFields());
-        
-        // Handle wormhole world loading
-        if (worldPackage.getContentPackagesConfigFields().getWormholeWorldName() != null) {
-            World wormholeWorld = loadWorld(worldPackage.getContentPackagesConfigFields().getWormholeWorldName(), environment, worldPackage.getContentPackagesConfigFields());
-            if (wormholeWorld == null) {
-                Logger.warn("Failed to load wormhole world for package: " + worldPackage.getContentPackagesConfigFields().getWormholeWorldName());
-            }
-        }
-        
-        if (world != null) {
-            worldPackage.setInstalled(true);
-        }
+        if (worldPackage.getContentPackagesConfigFields().getWormholeWorldName() != null)
+            loadWorld(worldPackage.getContentPackagesConfigFields().getWormholeWorldName(), environment, worldPackage.getContentPackagesConfigFields());
+        if (world != null) worldPackage.setInstalled(true);
         return world;
     }
 
     public static World loadWorld(String worldName, World.Environment environment, ContentPackagesConfigFields contentPackagesConfigFields) {
-        World world = loadVoidTemporaryWorld(worldName, environment);
-        if (world != null) {
-            EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
-        }
+        World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
+        if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
         return world;
-    }
-
-    /**
-     * Replacement for TemporaryWorldManager.loadVoidTemporaryWorld
-     * Creates a void world using standard Bukkit APIs
-     */
-    private static World loadVoidTemporaryWorld(String worldName, World.Environment environment) {
-        try {
-            // First check if world already exists
-            World existingWorld = Bukkit.getWorld(worldName);
-            if (existingWorld != null) {
-                Logger.info("Using existing world '" + worldName + "'.");
-                return existingWorld;
-            }
-
-            // Check if world folder exists and try to load it
-            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
-            if (worldFolder.exists()) {
-                try {
-                    WorldCreator creator = new WorldCreator(worldName);
-                    creator.environment(environment);
-                    World world = creator.createWorld();
-                    if (world != null) {
-                        Logger.info("Successfully loaded existing world '" + worldName + "'.");
-                        return world;
-                    }
-                } catch (Exception e) {
-                    Logger.warn("Failed to load existing world folder for '" + worldName + "': " + e.getMessage());
-                }
-            }
-
-            // Create new void world
-            Logger.info("Loading world " + worldName + " !");
-            WorldCreator creator = new WorldCreator(worldName);
-            creator.environment(environment);
-            creator.generateStructures(false);
-            creator.type(WorldType.FLAT);
-            creator.generatorSettings("3;minecraft:air;127;");
-            
-            World world = creator.createWorld();
-            if (world != null) {
-                Logger.info("Successfully created void world '" + worldName + "'.");
-                return world;
-            } else {
-                Logger.warn("Failed to create world '" + worldName + "' - createWorld returned null.");
-                return null;
-            }
-            
-        } catch (UnsupportedOperationException e) {
-            Logger.warn("Failed to load world " + worldName + " !");
-            Logger.warn("World creation not supported on this server platform: " + e.getMessage());
-            return null;
-        } catch (Exception e) {
-            Logger.warn("Failed to load world " + worldName + " !");
-            Logger.warn("Error creating world '" + worldName + "': " + e.getMessage());
-            return null;
-        }
     }
 
     public static boolean unloadWorld(WorldPackage worldPackage) {
