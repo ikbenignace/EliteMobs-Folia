@@ -8,9 +8,13 @@ import com.magmaguy.elitemobs.mobconstructor.custombosses.CustomBossEntity;
 import com.magmaguy.magmacore.util.TemporaryWorldManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.Difficulty;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.WorldType;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.List;
 
 public class DungeonUtils {
@@ -40,9 +44,79 @@ public class DungeonUtils {
     }
 
     public static World loadWorld(String worldName, World.Environment environment, ContentPackagesConfigFields contentPackagesConfigFields) {
+        // First try the original MagmaCore approach
         World world = TemporaryWorldManager.loadVoidTemporaryWorld(worldName, environment);
-        if (world != null) EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+        
+        // If MagmaCore fails (returns null), try alternative approaches
+        if (world == null) {
+            world = createWorldAlternative(worldName, environment);
+        }
+        
+        if (world != null) {
+            EliteMobsWorld.create(world.getUID(), contentPackagesConfigFields);
+        }
         return world;
+    }
+    
+    /**
+     * Alternative world creation method that works around Folia limitations
+     */
+    private static World createWorldAlternative(String worldName, World.Environment environment) {
+        try {
+            // First check if world already exists
+            World existingWorld = Bukkit.getWorld(worldName);
+            if (existingWorld != null) {
+                return existingWorld;
+            }
+            
+            // Check if world folder exists
+            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+            if (worldFolder.exists()) {
+                // Try to load existing world folder
+                try {
+                    WorldCreator creator = new WorldCreator(worldName);
+                    creator.environment(environment);
+                    World world = creator.createWorld();
+                    if (world != null) {
+                        return world;
+                    }
+                } catch (UnsupportedOperationException e) {
+                    // Folia doesn't support world creation, but we can provide better feedback
+                    com.magmaguy.magmacore.util.Logger.warn("Dynamic world creation not supported on this server platform.");
+                    com.magmaguy.magmacore.util.Logger.warn("World '" + worldName + "' folder exists but cannot be loaded dynamically.");
+                    com.magmaguy.magmacore.util.Logger.warn("Please restart the server to load this world.");
+                    return null;
+                }
+            }
+            
+            // Try to create a new void world
+            try {
+                WorldCreator creator = new WorldCreator(worldName);
+                creator.environment(environment);
+                creator.generateStructures(false);
+                creator.type(WorldType.FLAT);
+                creator.generatorSettings("3;minecraft:air;127;");
+                
+                World world = creator.createWorld();
+                if (world != null) {
+                    world.setKeepSpawnInMemory(false);
+                    world.setDifficulty(Difficulty.HARD);
+                    return world;
+                }
+            } catch (UnsupportedOperationException e) {
+                // Folia limitation - provide clear feedback
+                com.magmaguy.magmacore.util.Logger.warn("World creation not supported on this server platform.");
+                com.magmaguy.magmacore.util.Logger.warn("To use EliteMobs worlds on Folia:");
+                com.magmaguy.magmacore.util.Logger.warn("1. Use a world management plugin to pre-create the world '" + worldName + "'");
+                com.magmaguy.magmacore.util.Logger.warn("2. Or copy the world folder to your server directory and restart");
+                return null;
+            }
+            
+        } catch (Exception e) {
+            com.magmaguy.magmacore.util.Logger.warn("Failed to create world '" + worldName + "': " + e.getMessage());
+        }
+        
+        return null;
     }
 
     public static boolean unloadWorld(WorldPackage worldPackage) {
